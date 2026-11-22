@@ -4,6 +4,41 @@ import { CashFlowPage, ComparePage, Dashboard, MonteCarloPage, NetWorthChart, Pr
 import { useActivePlan, useStore } from './store';
 import { Card, Check, Select } from './ui';
 import { examplePlan } from './engine/defaults';
+import { hasVault, lock, openExport, removePassword, sealExport, setPassword } from './vault';
+
+/** The app's state as the store saves it. */
+const snapshotOfState = () => JSON.stringify({ state: useStore.getState(), version: 0 });
+
+function PasswordCard() {
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [msg, setMsg] = useState('');
+  const protectedNow = hasVault();
+  const save = async () => {
+    if (pw.length < 8) return setMsg('Use at least 8 characters.');
+    if (pw !== pw2) return setMsg('The two passwords differ.');
+    await setPassword(pw, snapshotOfState());
+    setPw(''); setPw2('');
+    setMsg(protectedNow ? 'Password changed.' : 'Your plans are now encrypted with this password.');
+  };
+  return (
+    <Card title="Password protection">
+      <div className="lockbox">
+        <p className="muted">{protectedNow
+          ? 'On. Your plans are stored encrypted (AES-256-GCM, key from PBKDF2-SHA-256 with 600,000 iterations) and open only with your password. A lost password cannot be recovered; keep an encrypted backup.'
+          : 'Off. Set a password to store your plans encrypted on this device and ask for the password each time the app opens.'}</p>
+        <label className="field"><span>{protectedNow ? 'New password' : 'Password'}</span><div className="input"><input type="password" value={pw} onChange={(e) => setPw(e.target.value)} /></div></label>
+        <label className="field"><span>Repeat it</span><div className="input"><input type="password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></div></label>
+        {msg && <p className="muted">{msg}</p>}
+        <div className="row">
+          <button onClick={save}>{protectedNow ? 'Change password' : 'Protect with a password'}</button>
+          {protectedNow && <button className="ghost" onClick={lock}>Lock now</button>}
+          {protectedNow && <button className="ghost danger" onClick={() => { if (confirm('Store your plans unencrypted again?')) { removePassword(snapshotOfState()); setMsg('Protection removed.'); } }}>Remove password</button>}
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 const PAGES = {
   dashboard: ['Dashboard', Dashboard],
@@ -78,15 +113,29 @@ function PlanMenu() {
 function SettingsPage() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
-  const exportAll = () => {
-    const { plans, snapshots, settings } = useStore.getState();
+  const download = (text: string, name: string) => {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([JSON.stringify({ plans, snapshots, settings }, null, 1)], { type: 'application/json' }));
-    a.download = `horizon-${new Date().toISOString().slice(0, 10)}.json`;
+    a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    a.download = name;
     a.click();
   };
-  const importAll = (file: File) => file.text().then((t) => {
-    const data = JSON.parse(t);
+  const day = new Date().toISOString().slice(0, 10);
+  const exportAll = async (encrypted: boolean) => {
+    const { plans, snapshots, settings } = useStore.getState();
+    const text = JSON.stringify({ plans, snapshots, settings }, null, 1);
+    if (!encrypted) return download(text, `horizon-${day}.json`);
+    const pw = prompt('Password for this backup file (needed to import it):');
+    if (!pw) return;
+    download(await sealExport(pw, text), `horizon-${day}-encrypted.json`);
+  };
+  const importAll = (file: File) => file.text().then(async (t) => {
+    let raw = t;
+    if (t.includes('horizonEncryptedBackup')) {
+      const pw = prompt('This backup is encrypted. Its password:');
+      if (!pw) return;
+      raw = await openExport(pw, t).catch(() => { throw new Error('wrong password'); });
+    }
+    const data = JSON.parse(raw);
     if (!Array.isArray(data.plans) || data.plans.length === 0) throw new Error('No plans in this file');
     useStore.getState().importAll(data);
   }).catch((e) => alert('Could not import: ' + e.message));
@@ -98,10 +147,12 @@ function SettingsPage() {
           <Select label="Theme" value={settings.theme} options={[['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />
         </div>
       </Card>
+      <PasswordCard />
       <Card title="Your data">
-        <p className="muted">Everything stays in this browser's storage; nothing is sent anywhere. Export a file to keep a backup or to move to another device.</p>
+        <p className="muted">Everything stays in this browser's storage; nothing is sent anywhere. To use another device, export an encrypted backup and import it there.</p>
         <div className="row">
-          <button onClick={exportAll}>Export all</button>
+          <button onClick={() => exportAll(true)}>Export encrypted backup</button>
+          <button className="ghost" onClick={() => exportAll(false)}>Export unencrypted</button>
           <label className="button">Import<input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importAll(e.target.files[0])} /></label>
           <button className="danger" onClick={() => { if (confirm('Replace every plan and snapshot with the example plan?')) useStore.getState().importAll({ plans: [examplePlan()], snapshots: [], settings }); }}>Reset</button>
         </div>

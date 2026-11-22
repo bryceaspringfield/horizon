@@ -1,7 +1,8 @@
 // Everything the app keeps, in the browser's local storage only: plans, net-worth snapshots, and settings. Export and
 // import move it as one JSON file.
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { vaultStorage } from './vault';
 import { examplePlan, uid } from './engine/defaults';
 import type { Plan } from './engine/types';
 
@@ -80,7 +81,8 @@ export const useStore = create<AppState>()(
       setSettings: (s) => set((st) => ({ settings: { ...st.settings, ...s } })),
       importAll: (data) => set({ plans: data.plans, snapshots: data.snapshots ?? [], settings: data.settings ?? get().settings, activeId: data.plans[0].id }),
     }),
-    { name: 'horizon-v1' },
+    // The state is read only after the login screen (main.tsx) unlocks a vault, or at once when there is none.
+    { name: 'horizon-v1', storage: createJSONStorage(() => vaultStorage), skipHydration: true },
   ),
 );
 

@@ -1,6 +1,5 @@
 # Horizon: open tasks
 
-- [ ] Publish: create the GitHub repository and turn on Pages (waits on Bryce's choice of public or private).
 - [ ] Spousal Social Security benefit (up to half the partner's PIA), not only the survivor benefit.
 - [ ] Medicare premiums with IRMAA surcharges from 65, and ACA premiums before 65.
 - [ ] Itemized deductions (mortgage interest, state taxes up to the SALT cap, charity) when larger than the standard deduction.
