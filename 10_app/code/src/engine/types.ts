@@ -49,6 +49,10 @@ export interface Account {
   saleYear?: number;
   /** Yearly expense ratio or fee. */
   fee?: number;
+  /** Debts: a yearly payment beyond the required one, to pay the debt off sooner. */
+  extraPayment?: number;
+  /** An account opened in a later year (a home bought later and its mortgage): zero before, its balance from then. */
+  startYear?: number;
 }
 
 export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall';
@@ -133,10 +137,13 @@ export interface Strategy {
   /** Each year, realize taxable gains up to the top of the 0% long-term capital gains band (resetting the basis). */
   harvestZeroGains: boolean;
   /** Retirement spending rule: the plan's expenses, or a fixed share of the portfolio, or guardrails. */
-  spending: 'expenses' | 'fixedPercent' | 'guardrails';
+  spending: 'expenses' | 'fixedPercent' | 'guardrails' | 'vpw';
   spendingRate: number;
   /** Safe withdrawal rate the financial independence test uses. */
   safeWithdrawalRate: number;
+  /** Glide path: every invested account's stock share moves in a straight line from its own mix at startAge to
+   * endStocks at endAge (by its owner's age), the rest in bonds; off when disabled. */
+  glidePath?: { enabled: boolean; startAge: number; endAge: number; endStocks: number };
 }
 
 export interface Deductions {
@@ -170,7 +177,16 @@ export interface Assumptions {
   dividendYield: number;
   state: string;
   filingStatus: FilingStatus;
+  /** Stress test: stocks fall by this share in this year, in every projection and simulation path. */
+  crash?: { enabled: boolean; year: number; drop: number };
 }
+
+/** Life events which change the plan from their year: buying a home, a child, a career break, or a pay change. */
+export type LifeEvent =
+  | { id: string; kind: 'homePurchase'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; appreciation: number; closingCosts: number }
+  | { id: string; kind: 'child'; name: string; year: number; yearlyCost: number; collegeYearly: number; collegeYears: number }
+  | { id: string; kind: 'careerBreak'; name: string; personId: string; year: number; endYear: number }
+  | { id: string; kind: 'payChange'; name: string; personId: string; year: number; factor: number };
 
 export interface Plan {
   id: string;
@@ -186,6 +202,7 @@ export interface Plan {
   assumptions: Assumptions;
   deductions: Deductions;
   healthcare: Healthcare;
+  events?: LifeEvent[];
 }
 
 /** One year of a plan's projection. */

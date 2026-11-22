@@ -16,8 +16,8 @@ from playwright.sync_api import sync_playwright
 H = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DIST = os.path.join(H, '10_app', 'code', 'dist')
 OUT = os.path.join(H, '99_overall', 'output', 'pages')
-PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'milestones', 'strategy', 'taxhealth', 'assumptions', 'networth',
-         'cashflow', 'taxes', 'montecarlo', 'compare', 'progress', 'table', 'settings']
+PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions', 'networth',
+         'cashflow', 'taxes', 'montecarlo', 'fire', 'compare', 'progress', 'table', 'settings']
 
 
 def main():
@@ -58,6 +58,25 @@ def main():
                 print('   ERROR', e[:300])
             bad += len(errors)
             pg.screenshot(path=os.path.join(OUT, f'{name}.png'), full_page=True)
+        # Phone width: no page may scroll sideways, and the menu drawer opens and leads to a page.
+        ph = b.new_page(viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
+        perr = []
+        ph.on('pageerror', lambda e: perr.append(str(e)))
+        wide = []
+        for name in PAGES:
+            ph.goto(f'{url}#{name}'); ph.reload(); ph.wait_for_timeout(1500)
+            over = ph.evaluate('document.documentElement.scrollWidth - window.innerWidth')
+            if over > 2:
+                wide.append(f'{name} (+{over}px)')
+            if name in ('dashboard', 'accounts', 'cashflow', 'montecarlo', 'fire', 'events'):
+                ph.screenshot(path=os.path.join(OUT, f'phone_{name}.png'), full_page=True)
+        ph.goto(f'{url}#dashboard'); ph.reload(); ph.wait_for_timeout(1500)
+        ph.click('.mobilebar button'); ph.wait_for_timeout(500)
+        ph.screenshot(path=os.path.join(OUT, 'phone_menu.png'))
+        ph.click('nav a:has-text("Taxes and health")'); ph.wait_for_timeout(800)
+        drawer_ok = 'Taxes and health' in ph.inner_text('main h2')
+        print(f'phone: {len(perr)} errors; pages wider than the screen: {", ".join(wide) or "none"}; menu drawer leads to a page: {drawer_ok}')
+        bad += len(perr) + len(wide) + (0 if drawer_ok else 1)
         print('dashboard stats:', pg.goto(f'{url}#dashboard') and '', end='')
         pg.reload(); pg.wait_for_timeout(1200)
         print(' | '.join(pg.inner_text('.stats').split('\n')))

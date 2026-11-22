@@ -1,7 +1,7 @@
 // The active plan's deterministic projection, recomputed when the plan changes, and a helper turning a year's nominal
 // dollars into today's dollars when the "today's dollars" setting is on.
 import { useMemo } from 'react';
-import { simulate } from './engine/simulate';
+import { expandEvents, simulate } from './engine/simulate';
 import type { Plan, Projection } from './engine/types';
 import { useActivePlan, useStore } from './store';
 
@@ -15,17 +15,20 @@ export function deflators(plan: Plan, proj: Projection): number[] {
 }
 
 export function useProjection() {
-  const plan = useActivePlan();
+  const raw = useActivePlan();
   const real = useStore((s) => s.settings.realDollars);
   return useMemo(() => {
+    // The plan with its life events applied, so the charts know the accounts and expenses the events create.
+    const plan = expandEvents(structuredClone(raw));
     const proj = simulate(structuredClone(plan));
     const d = deflators(plan, proj);
     const adj = (v: number, i: number) => (real ? v / d[i] : v);
     return { plan, proj, adj, real };
-  }, [plan, real]);
+  }, [raw, real]);
 }
 
-export function projectPlan(plan: Plan) {
+export function projectPlan(raw: Plan) {
+  const plan = expandEvents(structuredClone(raw));
   const proj = simulate(structuredClone(plan));
   return { proj, d: deflators(plan, proj) };
 }

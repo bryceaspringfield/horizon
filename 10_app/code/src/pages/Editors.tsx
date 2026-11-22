@@ -1,7 +1,9 @@
 // The pages where the plan is entered: people, accounts, income, Social Security, expenses, milestones, the strategy,
 // and the assumptions.
 import { uid } from '../engine/defaults';
-import type { Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, Milestone, WithdrawalStep } from '../engine/types';
+import type { Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, LifeEvent, Milestone, WithdrawalStep } from '../engine/types';
+import { estimatePia } from '../engine/retirement';
+import { useProjection } from '../useProjection';
 import statesJson from '../data/states.json';
 import { useActivePlan, useStore } from '../store';
 import { Card, Check, ListEditor, Num, Select, Text, money, pct } from '../ui';
@@ -58,6 +60,13 @@ export function PeoplePage() {
   );
 }
 
+function PayoffYear({ id }: { id: string }) {
+  const { proj } = useProjection();
+  const owing = proj.years.findIndex((r) => (r.balances[id] ?? 0) < -1);
+  const paid = owing < 0 ? undefined : proj.years.slice(owing).find((r) => (r.balances[id] ?? 0) > -1);
+  return <div className="field"><span>Paid off</span><div className="readout">{owing < 0 ? 'Not owed' : paid ? paid.year : 'After the plan'}</div></div>;
+}
+
 export function AccountsPage() {
   const plan = useActivePlan();
   const update = useUpdate();
@@ -103,6 +112,8 @@ export function AccountsPage() {
                 {a.kind === 'debt' && <>
                   <Num label="Interest rate" percent value={a.interestRate ?? 0} onChange={(v) => set((x) => { x.interestRate = v; })} />
                   <Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
+                  <Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
+                  <PayoffYear id={a.id} />
                   <Select label="Secured by" value={a.securedBy ?? ''} options={[['', 'Nothing'], ...assets]} onChange={(v) => set((x) => { x.securedBy = v || undefined; })} />
                 </>}
               </>
@@ -165,6 +176,12 @@ export function IncomePage() {
               <Num label="Benefit at 67, monthly" value={ss.pia} onChange={(v) => update((p) => { p.socialSecurity[i].pia = v; })} />
               <Num label="Claim age (62 to 70)" value={ss.claimAge} step={1} onChange={(v) => update((p) => { p.socialSecurity[i].claimAge = Math.min(70, Math.max(62, v)); })} />
               <div className="field"><span>Monthly at that age</span><div className="readout">{money(benefitAtClaim(ss.pia, ss.claimAge))}</div></div>
+              <div className="field"><span>No statement at hand?</span>
+                <button className="ghost" onClick={() => update((p) => {
+                  const sal = p.incomes.filter((x) => x.ownerId === person.id && (x.kind === 'salary' || x.kind === 'selfEmployment')).reduce((t, x) => t + x.amount, 0);
+                  const years = (p.strategy.retirementAge[person.id] ?? 65) - 22;
+                  p.socialSecurity[i].pia = Math.round(estimatePia(sal, years));
+                })}>Estimate from salary</button></div>
             </div>
           );
         })}
@@ -200,6 +217,64 @@ export function ExpensesPage() {
           );
         }}
       />
+    </Card>
+  );
+}
+
+const EVENT_KINDS: [LifeEvent['kind'], string][] = [['homePurchase', 'Buy a home'], ['child', 'Have a child'], ['careerBreak', 'Career break'], ['payChange', 'Pay change']];
+
+function newEvent(kind: LifeEvent['kind'], year: number, personId: string): LifeEvent {
+  const id = uid();
+  if (kind === 'homePurchase') return { id, kind, name: 'New home', year, price: 600000, downPayment: 0.2, rate: 0.065, termYears: 30, appreciation: 0.03, closingCosts: 0.03 };
+  if (kind === 'child') return { id, kind, name: 'Child', year, yearlyCost: 15000, collegeYearly: 30000, collegeYears: 4 };
+  if (kind === 'careerBreak') return { id, kind, name: 'Career break', personId, year, endYear: year + 1 };
+  return { id, kind, name: 'Promotion', personId, year, factor: 1.2 };
+}
+
+export function EventsPage() {
+  const plan = useActivePlan();
+  const update = useUpdate();
+  const events = plan.events ?? [];
+  const people = plan.people.map((p) => [p.id, p.name] as [string, string]);
+  const label = (e: LifeEvent) => EVENT_KINDS.find((k) => k[0] === e.kind)?.[1];
+  return (
+    <Card title="Life events">
+      <ListEditor<LifeEvent>
+        items={events}
+        title={(e) => `${e.year} · ${e.name} (${label(e)})`}
+        empty="Add a home purchase, a child, a career break, or a pay change."
+        onAdd={() => update((p) => { (p.events ??= []).push(newEvent('homePurchase', p.startYear + 3, p.people[0].id)); })}
+        onRemove={(i) => update((p) => { p.events!.splice(i, 1); })}
+        render={(e, i) => {
+          const set = (fn: (x: LifeEvent) => void) => update((p) => fn(p.events![i]));
+          return (
+            <>
+              <Select label="Event" value={e.kind} options={EVENT_KINDS} onChange={(v) => update((p) => { p.events![i] = { ...newEvent(v, e.year, p.people[0].id), id: e.id }; })} />
+              <Text label="Name" value={e.name} onChange={(v) => set((x) => { x.name = v; })} />
+              <Num label="Year" value={e.year} onChange={(v) => set((x) => { x.year = v; })} />
+              {e.kind === 'homePurchase' && <>
+                <Num label="Price (today's $)" value={e.price} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.price = v; })} />
+                <Num label="Down payment" percent value={e.downPayment} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.downPayment = v; })} />
+                <Num label="Closing costs" percent value={e.closingCosts} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.closingCosts = v; })} />
+                <Num label="Mortgage rate" percent value={e.rate} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.rate = v; })} />
+                <Num label="Term (years)" value={e.termYears} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.termYears = v; })} />
+                <Num label="Yearly appreciation" percent value={e.appreciation} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.appreciation = v; })} />
+              </>}
+              {e.kind === 'child' && <>
+                <Num label="Yearly cost to 18 (today's $)" value={e.yearlyCost} onChange={(v) => set((x) => { if (x.kind === 'child') x.yearlyCost = v; })} />
+                <Num label="College a year (today's $)" value={e.collegeYearly} onChange={(v) => set((x) => { if (x.kind === 'child') x.collegeYearly = v; })} />
+                <Num label="College years" value={e.collegeYears} onChange={(v) => set((x) => { if (x.kind === 'child') x.collegeYears = v; })} />
+              </>}
+              {(e.kind === 'careerBreak' || e.kind === 'payChange') && (
+                <Select label="Person" value={e.personId} options={people} onChange={(v) => set((x) => { if (x.kind === 'careerBreak' || x.kind === 'payChange') x.personId = v; })} />
+              )}
+              {e.kind === 'careerBreak' && <Num label="Back to work after" value={e.endYear} onChange={(v) => set((x) => { if (x.kind === 'careerBreak') x.endYear = v; })} />}
+              {e.kind === 'payChange' && <Num label="Pay from then on (× current)" step={0.05} value={e.factor} onChange={(v) => set((x) => { if (x.kind === 'payChange') x.factor = v; })} />}
+            </>
+          );
+        }}
+      />
+      <p className="muted">A home purchase adds the home, its mortgage (payment from the rate and term), the down payment and closing costs, and property tax; a child adds yearly costs to 18 and college after, paid first from a 529 account if you have one; a career break stops that person's pay; a pay change scales it from that year on.</p>
     </Card>
   );
 }
@@ -273,11 +348,22 @@ export function StrategyPage() {
           <Select label="How to draw" value={s.withdrawalMethod ?? 'order'} options={[['order', 'In the order above'], ['proportional', 'In proportion to balances']]}
             onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />
           <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />
-          <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)']]}
+          <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)']]}
             onChange={(v) => update((p) => { p.strategy.spending = v; })} />
-          {s.spending !== 'expenses' && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
+          {(s.spending === 'fixedPercent' || s.spending === 'guardrails') && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
           <Num label="Safe withdrawal rate (FI test)" percent value={s.safeWithdrawalRate} onChange={(v) => update((p) => { p.strategy.safeWithdrawalRate = v; })} />
         </div>
+      </Card>
+      <Card title="Asset allocation over time (glide path)">
+        <div className="grid">
+          <Check label="Shift from stocks to bonds with age" value={!!s.glidePath?.enabled} onChange={(v) => update((p) => { p.strategy.glidePath = { startAge: 45, endAge: 70, endStocks: 0.5, ...p.strategy.glidePath, enabled: v }; })} />
+          {s.glidePath?.enabled && <>
+            <Num label="From age" value={s.glidePath.startAge} onChange={(v) => update((p) => { p.strategy.glidePath!.startAge = v; })} />
+            <Num label="To age" value={s.glidePath.endAge} onChange={(v) => update((p) => { p.strategy.glidePath!.endAge = v; })} />
+            <Num label="Stocks at the end" percent value={s.glidePath.endStocks} onChange={(v) => update((p) => { p.strategy.glidePath!.endStocks = v; })} />
+          </>}
+        </div>
+        <p className="muted">Each invested account starts from its own mix and moves in a straight line to the end share by its owner's age; the rest goes to bonds.</p>
       </Card>
       <Card title="Roth conversions">
         <div className="grid">
@@ -334,6 +420,13 @@ export function AssumptionsPage() {
         <Num label="Bond volatility" percent value={a.volatility.bonds} onChange={(v) => update((p) => { p.assumptions.volatility.bonds = v; })} />
         <Num label="Stock-bond correlation" step={0.05} value={a.correlation} onChange={(v) => update((p) => { p.assumptions.correlation = v; })} />
         <Num label="Dividend yield" percent value={a.dividendYield} onChange={(v) => update((p) => { p.assumptions.dividendYield = v; })} />
+      </div>
+      <div className="grid" style={{ marginTop: 14 }}>
+        <Check label="Stress test: a market crash" value={!!a.crash?.enabled} onChange={(v) => update((p) => { p.assumptions.crash = { year: p.startYear + 5, drop: 0.35, ...p.assumptions.crash, enabled: v }; })} />
+        {a.crash?.enabled && <>
+          <Num label="Crash year" value={a.crash.year} onChange={(v) => update((p) => { p.assumptions.crash!.year = v; })} />
+          <Num label="Stocks fall by" percent value={a.crash.drop} onChange={(v) => update((p) => { p.assumptions.crash!.drop = v; })} />
+        </>}
       </div>
       <p className="muted">Returns are nominal yearly averages. From 1928 to 2025, the S&P 500 returned 11.9% a year on average (10.0% compounded), 10-year Treasuries 4.8%, T-bills 3.4%, and inflation averaged 3.1% (Damodaran, NYU Stern).</p>
     </Card>

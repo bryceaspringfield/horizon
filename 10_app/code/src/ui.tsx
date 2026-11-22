@@ -135,7 +135,10 @@ export function Chart({ option, height = 360 }: { option: Record<string, unknown
     tooltip: option.tooltip ? { backgroundColor: dark ? '#1a2038' : '#fff', borderColor: line, borderRadius: 12, padding: [10, 14],
       textStyle: { color: dark ? '#e8eaf4' : '#1b2033' }, extraCssText: 'box-shadow: 0 8px 24px rgba(20,24,60,.12);', ...(option.tooltip as object) } : undefined,
   };
-  return <ReactECharts option={full} style={{ height }} notMerge />;
+  const narrow = typeof window !== 'undefined' && window.innerWidth < 600;
+  const f = full as Record<string, unknown>;
+  if (narrow && f.grid) { const g = f.grid as { top?: number }; f.grid = { ...g, left: 52, right: 8, top: f.legend ? Math.max(g.top ?? 0, 72) : g.top }; }
+  return <ReactECharts option={full} style={{ height: narrow ? Math.min(height, 300) : height }} notMerge />;
 }
 
 export const moneyAxis = { type: 'value', axisLabel: { formatter: (v: number) => money(v, true) } };

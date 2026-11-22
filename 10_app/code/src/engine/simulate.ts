@@ -33,14 +33,47 @@ export function meanPath(plan: Plan): ReturnPath {
   };
 }
 
-function portfolioReturn(acc: Account, path: ReturnPath, i: number): number {
-  const w = acc.allocation;
+function portfolioReturn(acc: Account, path: ReturnPath, i: number, w: Account['allocation'] = acc.allocation): number {
   const total = w.stocks + w.bonds + w.cash || 1;
   const r = (w.stocks * path.stocks[i] + w.bonds * path.bonds[i] + w.cash * path.cash[i]) / total;
   return r - (acc.fee ?? 0);
 }
 
+/** Yearly payment of a fixed-rate loan. */
+export function loanPayment(principal: number, rate: number, years: number): number {
+  if (rate <= 0) return principal / years;
+  return (principal * rate) / (1 - Math.pow(1 + rate, -years));
+}
+
+/** Turns a plan's life events into the accounts and expenses they create (a home and its mortgage, a child's costs). */
+export function expandEvents(plan: Plan): Plan {
+  for (const e of plan.events ?? []) {
+    // Applied once: a plan already expanded keeps its accounts and expenses.
+    if (plan.accounts.some((x) => x.id.endsWith('_' + e.id)) || plan.expenses.some((x) => x.id.endsWith('_' + e.id))) continue;
+    if (e.kind === 'homePurchase') {
+      const loan = e.price * (1 - e.downPayment);
+      const assetId = 'ev_home_' + e.id;
+      // Dollars are today's: the price and payment rise with inflation to the purchase year.
+      const k = Math.pow(1 + plan.assumptions.inflation, e.year - plan.startYear);
+      plan.accounts.push({ id: assetId, name: e.name, kind: 'asset', ownerId: plan.people[0].id, balance: e.price * k,
+        allocation: { stocks: 0, bonds: 0, cash: 0 }, appreciation: e.appreciation, realEstate: true, startYear: e.year });
+      if (loan > 0) plan.accounts.push({ id: 'ev_mort_' + e.id, name: e.name + ' mortgage', kind: 'debt', ownerId: plan.people[0].id,
+        balance: loan * k, allocation: { stocks: 0, bonds: 0, cash: 0 }, interestRate: e.rate, payment: loanPayment(loan * k, e.rate, e.termYears),
+        securedBy: assetId, startYear: e.year });
+      plan.expenses.push({ id: 'ev_down_' + e.id, name: e.name + ': down payment and closing', kind: 'oneTime',
+        amount: e.price * (e.downPayment + e.closingCosts), startYear: e.year, growth: 0 });
+    } else if (e.kind === 'child') {
+      plan.expenses.push({ id: 'ev_child_' + e.id, name: e.name + ': child costs', kind: 'other', amount: e.yearlyCost, startYear: e.year, endYear: e.year + 17, growth: 0 });
+      if (e.collegeYearly > 0) plan.expenses.push({ id: 'ev_college_' + e.id, name: e.name + ': college', kind: 'education',
+        amount: e.collegeYearly, startYear: e.year + 18, endYear: e.year + 17 + e.collegeYears, growth: 0.02,
+        fundedBy: plan.accounts.find((x) => x.kind === 'college529')?.id });
+    }
+  }
+  return plan;
+}
+
 export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Projection {
+  expandEvents(plan);
   const a = plan.assumptions;
   const s = plan.strategy;
   const accounts = plan.accounts;
@@ -69,6 +102,13 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
 
   const end = lastYear(plan);
   const years: YearResult[] = [];
+  if (a.crash?.enabled) {
+    const ci = a.crash.year - plan.startYear;
+    if (ci >= 0 && ci < path.stocks.length) path = { ...path, stocks: path.stocks.map((r, i) => (i === ci ? -Math.abs(a.crash!.drop) : r)) };
+  }
+  // Accounts opened later start at zero; their balance appears in their first year.
+  const opening: Record<string, number> = {};
+  for (const x of accounts) if (x.startYear && x.startYear > plan.startYear) { opening[x.id] = state.balance[x.id]; state.balance[x.id] = 0; }
   let index = 1; // cumulative inflation since the start year
   let depletionYear: number | null = null;
   let fiYear: number | null = null;
@@ -87,8 +127,19 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   const dd = plan.deductions ?? { itemize: false, propertyTaxRate: 0, charity: 0 };
   const hc = plan.healthcare ?? { medicare: false, partDBase: 0, aca: false, acaBenchmark: 0 };
 
+  const gp = s.glidePath;
+  const allocationAt = (x: Account, age: number): Account['allocation'] => {
+    if (!gp?.enabled || x.kind === 'cash') return x.allocation;
+    const w = x.allocation, tot = w.stocks + w.bonds + w.cash || 1;
+    const s0 = w.stocks / tot;
+    const t = Math.max(0, Math.min(1, (age - gp.startAge) / Math.max(1, gp.endAge - gp.startAge)));
+    const stocks = s0 + (gp.endStocks - s0) * t;
+    return { stocks, bonds: Math.max(0, 1 - stocks - w.cash / tot), cash: w.cash / tot };
+  };
+
   for (let y = plan.startYear, i = 0; y <= end; y++, i++) {
     indexAt[y] = index;
+    for (const [id, bal] of Object.entries(opening)) if (byId.get(id)!.startYear === y) state.balance[id] = bal;
     const ri = sinceRules(y, index);
     const lim = rulesFor(y).rules.limits;
     const healthIndex = index * Math.pow(1.015, y - plan.startYear);
@@ -124,7 +175,10 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         : end);
       if (y < inc.startYear || y > stop) continue;
       if (inc.kind === 'windfall' && y !== inc.startYear) continue;
-      const amt = grow(inc.amount, inc.growth, inc.inflationAdjusted);
+      const evs = (plan.events ?? []).filter((e) => (e.kind === 'careerBreak' || e.kind === 'payChange') && e.personId === inc.ownerId);
+      if ((inc.kind === 'salary' || inc.kind === 'selfEmployment') && evs.some((e) => e.kind === 'careerBreak' && y >= e.year && y <= e.endYear)) continue;
+      let amt = grow(inc.amount, inc.growth, inc.inflationAdjusted);
+      if (inc.kind === 'salary' || inc.kind === 'selfEmployment') for (const e of evs) if (e.kind === 'payChange' && y >= e.year) amt *= e.factor;
       income[inc.id] = amt;
       if (inc.kind === 'salary') {
         wages += amt;
@@ -210,7 +264,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     for (const d of accounts) {
       if (d.kind !== 'debt' || state.balance[d.id] >= 0) continue;
       const owed = -state.balance[d.id] * (1 + (d.interestRate ?? 0));
-      const pay = Math.min(owed, d.payment ?? 0);
+      const pay = Math.min(owed, (d.payment ?? 0) + (d.extraPayment ?? 0) * index);
       state.balance[d.id] = -(owed - pay);
       expenses[d.id] = pay;
       totalExpenses += pay;
@@ -246,7 +300,13 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const living = plan.expenses.filter((e) => e.kind === 'living').reduce((t, e) => t + (expenses[e.id] ?? 0), 0);
       let target = living;
       if (s.spending === 'fixedPercent') target = portfolio * s.spendingRate;
-      else {
+      else if (s.spending === 'vpw') {
+        // Variable percentage withdrawal: the payment which spends the portfolio to zero over the years left at the
+        // portfolio's expected real return, recomputed each year.
+        const r = Math.max(0.0001, (a.returns.stocks * 0.6 + a.returns.bonds * 0.4) - a.inflation);
+        const n = Math.max(1, end - y + 1);
+        target = (portfolio * r) / (1 - Math.pow(1 + r, -n));
+      } else {
         if (guardrailSpend === null) {
           guardrailSpend = portfolio * s.spendingRate;
           guardrailRate = s.spendingRate;
@@ -425,7 +485,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     let investmentReturn = 0;
     for (const x of accounts) {
       if (LIQUID.includes(x.kind)) {
-        const r = portfolioReturn(x, path, i);
+        const r = portfolioReturn(x, path, i, allocationAt(x, ages[x.ownerId] ?? 0));
         const gain = Math.max(0, state.balance[x.id]) * r;
         state.balance[x.id] += gain;
         investmentReturn += gain;

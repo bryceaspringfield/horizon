@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage, TaxHealthPage } from './pages/Editors';
+import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage, TaxHealthPage, EventsPage } from './pages/Editors';
 import { Icon } from './icons';
-import { CashFlowPage, ComparePage, Dashboard, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
+import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
 import { useActivePlan, useStore } from './store';
 import { Card, Check, Select } from './ui';
 import { examplePlan } from './engine/defaults';
@@ -47,6 +47,7 @@ const PAGES = {
   accounts: ['Accounts', AccountsPage],
   income: ['Income', IncomePage],
   expenses: ['Expenses', ExpensesPage],
+  events: ['Life events', EventsPage],
   milestones: ['Milestones', MilestonesPage],
   strategy: ['Strategy', StrategyPage],
   taxhealth: ['Taxes and health', TaxHealthPage],
@@ -55,6 +56,7 @@ const PAGES = {
   cashflow: ['Cash flow', CashFlowPage],
   taxes: ['Taxes', TaxesPage],
   montecarlo: ['Monte Carlo', MonteCarloPage],
+  fire: ['FIRE metrics', FirePage],
   compare: ['Compare plans', ComparePage],
   progress: ['Progress', ProgressPage],
   table: ['Year table', TablePage],
@@ -63,8 +65,8 @@ const PAGES = {
 type PageKey = keyof typeof PAGES;
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
-  ['Your plan', ['people', 'accounts', 'income', 'expenses', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
-  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'compare', 'table']],
+  ['Your plan', ['people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
+  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'compare', 'table']],
   ['Tracking', ['progress', 'settings']],
 ];
 
@@ -77,8 +79,16 @@ export default function App() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const plan = useActivePlan();
+  const [menu, setMenu] = useState(false);
+  const go = (k: PageKey) => { setPage(k); setMenu(false); window.scrollTo(0, 0); };
   return (
-    <div className="app">
+    <div className={'app' + (menu ? ' menu-open' : '')}>
+      <div className="mobilebar">
+        <button className="ghost icon" aria-label="Menu" onClick={() => setMenu(!menu)}><Icon name="menu" /></button>
+        <div className="brand"><div className="logo"><Icon name="trend" size={15} /></div>Horizon</div>
+        <span className="pill" onClick={() => setSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}><Icon name={settings.theme === 'dark' ? 'sun' : 'moon'} size={15} /></span>
+      </div>
+      <div className="scrim" onClick={() => setMenu(false)} />
       <nav>
         <div className="brand"><div className="logo"><Icon name="trend" size={17} /></div>Horizon</div>
         <PlanMenu />
@@ -86,7 +96,7 @@ export default function App() {
           <div key={g} className="group">
             {g && <div className="glabel">{g}</div>}
             {keys.map((k) => (
-              <a key={k} className={k === page ? 'on' : ''} onClick={() => setPage(k)}>
+              <a key={k} className={k === page ? 'on' : ''} onClick={() => go(k)}>
                 <Icon name={k} />{PAGES[k][0]}
               </a>
             ))}

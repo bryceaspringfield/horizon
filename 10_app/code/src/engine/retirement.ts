@@ -35,3 +35,11 @@ export function rmdStartAge(birthYear: number): number {
   if (birthYear < 1960) return a.born1951to1959;
   return a.born1960orLater;
 }
+
+/** A rough PIA from a career at a steady real salary: the 35 best years of covered earnings (salary up to the wage
+ * base, zero for years not worked), averaged monthly, through the bend points. For when no SSA statement is at hand. */
+export function estimatePia(realSalary: number, yearsWorked: number, wageBase = rules.fica.wageBase): number {
+  const covered = Math.min(realSalary, wageBase);
+  const aime = (covered * Math.min(35, yearsWorked)) / 35 / 12;
+  return piaFromAime(aime);
+}

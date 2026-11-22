@@ -8,6 +8,7 @@ import { projectPlan, useProjection } from '../useProjection';
 import { Card, Chart, Num, Select, Stat, money, moneyAxis, moneyTooltip, pct } from '../ui';
 import { Icon } from '../icons';
 import { uid } from '../engine/defaults';
+import { fireMetrics } from '../engine/fire';
 
 const KIND_LABEL: Record<AccountKind, string> = {
   cash: 'Cash', taxable: 'Taxable', traditional: 'Traditional', roth: 'Roth', hsa: 'HSA', college529: '529', asset: 'Assets', debt: 'Debts',
@@ -330,6 +331,21 @@ export function ProgressPage() {
   const deleteSnapshot = useStore((s) => s.deleteSnapshot);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [vals, setVals] = useState<Record<string, number>>(() => Object.fromEntries(plan.accounts.map((a) => [a.id, a.balance])));
+  const importCsv = (file: File) => file.text().then((text) => {
+    const byDate: Record<string, Record<string, number>> = {};
+    let n = 0, unknown = new Set<string>();
+    for (const line of text.split(/\r?\n/)) {
+      const cells = line.split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
+      if (cells.length < 3 || !/^\d{4}-\d{2}-\d{2}$/.test(cells[0])) continue;
+      const balance = Number(cells.slice(2).join('').replace(/[$\s]/g, ''));
+      const acc = plan.accounts.find((a) => a.name.toLowerCase() === cells[1].toLowerCase());
+      if (!acc || !isFinite(balance)) { unknown.add(cells[1]); continue; }
+      (byDate[cells[0]] ??= {})[acc.id] = balance;
+      n++;
+    }
+    for (const [d, balances] of Object.entries(byDate)) addSnapshot({ id: uid(), date: d, balances });
+    alert(`Imported ${n} balances on ${Object.keys(byDate).length} dates.` + (unknown.size ? ` Not matched: ${[...unknown].join(', ')}.` : ''));
+  });
   const total = (s: Snapshot) => Object.entries(s.balances).reduce((t, [id, v]) => t + (plan.accounts.find((a) => a.id === id)?.kind === 'debt' ? -v : v), 0);
   return (
     <>
@@ -338,7 +354,13 @@ export function ProgressPage() {
           <label className="field"><span>Date</span><div className="input"><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div></label>
           {plan.accounts.map((a) => <Num key={a.id} label={a.name} value={vals[a.id]} onChange={(v) => setVals({ ...vals, [a.id]: v })} />)}
         </div>
-        <button onClick={() => addSnapshot({ id: uid(), date, balances: vals })}>Save snapshot</button>
+        <div className="row">
+          <button onClick={() => addSnapshot({ id: uid(), date, balances: vals })}>Save snapshot</button>
+          <label className="button ghost" style={{ background: 'var(--panel)', color: 'var(--text)', border: '1px solid var(--line)', boxShadow: 'none' }}>
+            Import CSV<input type="file" accept=".csv,text/csv" hidden onChange={(e) => e.target.files?.[0] && importCsv(e.target.files[0])} />
+          </label>
+        </div>
+        <p className="muted">CSV columns: date, account, balance (one row per account and date, e.g. 2026-01-31,401(k),125000). Accounts match by name.</p>
       </Card>
       <Card title="Actual net worth against the plan (nominal dollars)" wide>
         <Chart option={{
@@ -396,5 +418,40 @@ export function TablePage() {
         </table>
       </div>
     </Card>
+  );
+}
+
+export function FirePage() {
+  const { plan, proj } = useProjection();
+  const f = fireMetrics(plan, proj);
+  const age = (y: number | null) => (y === null ? 'Not within the plan' : `${y} (age ${y - plan.people[0].birthYear})`);
+  const bar = (label: string, target: number, year: number | null) => {
+    const share = Math.min(1, f.investedToday / target);
+    return (
+      <div style={{ marginBottom: 16 }}>
+        <div className="row" style={{ justifyContent: 'space-between' }}><b>{label}: {money(target, true)}</b><span className="muted">reached {age(year)}</span></div>
+        <div style={{ height: 10, borderRadius: 6, background: 'var(--line)', overflow: 'hidden', marginTop: 6 }}>
+          <div style={{ width: `${share * 100}%`, height: '100%', background: 'linear-gradient(90deg, var(--accent), var(--accent-2))' }} />
+        </div>
+        <div className="muted" style={{ marginTop: 4 }}>{pct(share, 0)} of the way today</div>
+      </div>
+    );
+  };
+  return (
+    <>
+      <div className="stats">
+        <Stat icon="fire" label="FI number" value={money(f.fiNumber, true)} sub={`${money(f.retirementSpending, true)} a year at ${pct(plan.strategy.safeWithdrawalRate, 1)}`} />
+        <Stat icon="coins" label="Invested today" value={money(f.investedToday, true)} />
+        <Stat icon="flag" label="Coast FI number" value={money(f.coastFiNumber, true)} sub={f.coastReached ? 'reached: no more saving needed' : 'not yet reached'} tone={f.coastReached ? 'good' : undefined} />
+        <Stat icon="trend" label="Financial independence" value={f.fiYear ?? 'Not reached'} sub={f.fiYear ? `age ${f.fiYear - plan.people[0].birthYear}` : undefined} tone={f.fiYear ? 'good' : 'bad'} />
+      </div>
+      <Card title="Progress to each FIRE target (today's dollars)">
+        {bar('Lean FI', f.leanFiNumber, f.leanFiYear)}
+        {bar('FI', f.fiNumber, f.fiYear)}
+        {bar('Fat FI', f.fatFiNumber, f.fatFiYear)}
+        {bar('Coast FI', f.coastFiNumber, f.coastReached ? plan.startYear : null)}
+        <p className="muted">FI is spending in the first retirement year over the safe withdrawal rate. Lean FI covers the living expenses alone (at least 60% of spending); Fat FI covers 150% of spending. Coast FI is the amount which, invested today with no more saving, grows to the FI number by retirement at the assumed real return.</p>
+      </Card>
+    </>
   );
 }
