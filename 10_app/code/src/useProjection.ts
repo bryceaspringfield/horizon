@@ -1,0 +1,31 @@
+// The active plan's deterministic projection, recomputed when the plan changes, and a helper turning a year's nominal
+// dollars into today's dollars when the "today's dollars" setting is on.
+import { useMemo } from 'react';
+import { simulate } from './engine/simulate';
+import type { Plan, Projection } from './engine/types';
+import { useActivePlan, useStore } from './store';
+
+export function deflators(plan: Plan, proj: Projection): number[] {
+  let k = 1;
+  return proj.years.map(() => {
+    const v = k;
+    k *= 1 + plan.assumptions.inflation;
+    return v;
+  });
+}
+
+export function useProjection() {
+  const plan = useActivePlan();
+  const real = useStore((s) => s.settings.realDollars);
+  return useMemo(() => {
+    const proj = simulate(structuredClone(plan));
+    const d = deflators(plan, proj);
+    const adj = (v: number, i: number) => (real ? v / d[i] : v);
+    return { plan, proj, adj, real };
+  }, [plan, real]);
+}
+
+export function projectPlan(plan: Plan) {
+  const proj = simulate(structuredClone(plan));
+  return { proj, d: deflators(plan, proj) };
+}

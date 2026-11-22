@@ -1,0 +1,122 @@
+// Small building blocks shared by every page: money and percent formatting, labeled inputs, cards, and a chart.
+import ReactECharts from 'echarts-for-react';
+import type { ReactNode } from 'react';
+import { useStore } from './store';
+
+export const money = (v: number, compact = false) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0, notation: compact ? 'compact' : 'standard' }).format(v || 0);
+export const pct = (v: number, d = 1) => `${((v || 0) * 100).toFixed(d)}%`;
+
+export function Card({ title, children, actions, wide }: { title?: string; children: ReactNode; actions?: ReactNode; wide?: boolean }) {
+  return (
+    <section className={'card' + (wide ? ' wide' : '')}>
+      {(title || actions) && (
+        <header>
+          <h3>{title}</h3>
+          <div className="actions">{actions}</div>
+        </header>
+      )}
+      {children}
+    </section>
+  );
+}
+
+export function Stat({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: ReactNode; tone?: 'good' | 'bad' }) {
+  return (
+    <div className={'stat ' + (tone ?? '')}>
+      <div className="label">{label}</div>
+      <div className="value">{value}</div>
+      {sub && <div className="sub">{sub}</div>}
+    </div>
+  );
+}
+
+type NumProps = { label: string; value: number | undefined; onChange: (v: number) => void; percent?: boolean; step?: number; hint?: string };
+
+export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
+  const shown = value === undefined ? '' : percent ? +(value * 100).toFixed(4) : value;
+  return (
+    <label className="field" title={hint}>
+      <span>{label}</span>
+      <div className="input">
+        <input
+          type="number"
+          step={step ?? (percent ? 0.1 : 1)}
+          value={shown}
+          onChange={(e) => {
+            const v = e.target.value === '' ? 0 : Number(e.target.value);
+            onChange(percent ? v / 100 : v);
+          }}
+        />
+        {percent && <em>%</em>}
+      </div>
+    </label>
+  );
+}
+
+export function Text({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <div className="input"><input value={value} onChange={(e) => onChange(e.target.value)} /></div>
+    </label>
+  );
+}
+
+export function Select<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: [T, string][]; onChange: (v: T) => void }) {
+  return (
+    <label className="field">
+      <span>{label}</span>
+      <div className="input">
+        <select value={value} onChange={(e) => onChange(e.target.value as T)}>
+          {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </div>
+    </label>
+  );
+}
+
+export function Check({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="check">
+      <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
+      {label}
+    </label>
+  );
+}
+
+/** A list of items, each a card of fields, with add and remove. */
+export function ListEditor<T extends { id?: string }>({ items, render, onAdd, onRemove, title, empty }: {
+  items: T[];
+  render: (item: T, i: number) => ReactNode;
+  onAdd: () => void;
+  onRemove: (i: number) => void;
+  title: (item: T) => string;
+  empty: string;
+}) {
+  return (
+    <div className="list">
+      {items.length === 0 && <p className="muted">{empty}</p>}
+      {items.map((it, i) => (
+        <details key={it.id ?? i} className="item">
+          <summary>
+            <span>{title(it)}</span>
+            <button className="ghost danger" onClick={(e) => { e.preventDefault(); onRemove(i); }}>Remove</button>
+          </summary>
+          <div className="grid">{render(it, i)}</div>
+        </details>
+      ))}
+      <button onClick={onAdd}>+ Add</button>
+    </div>
+  );
+}
+
+export const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#6366f1', '#14b8a6', '#f97316', '#64748b'];
+
+export function Chart({ option, height = 360 }: { option: object; height?: number }) {
+  const dark = useStore((s) => s.settings.theme === 'dark');
+  return <ReactECharts option={{ color: PALETTE, backgroundColor: 'transparent', ...option }} theme={dark ? 'dark' : undefined} style={{ height }} notMerge />;
+}
+
+export const moneyAxis = { type: 'value', axisLabel: { formatter: (v: number) => money(v, true) } };
+export const moneyTooltip = { trigger: 'axis', valueFormatter: (v: number) => money(v) };

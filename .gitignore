@@ -1,0 +1,5 @@
+node_modules/
+10_app/code/dist/
+.temp/
+.claude/skills
+*.log
