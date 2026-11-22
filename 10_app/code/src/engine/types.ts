@@ -43,6 +43,8 @@ export interface Account {
   payment?: number;
   /** Debt tied to an asset (a mortgage on a home): paid off when the asset is sold. */
   securedBy?: string;
+  /** Assets: real estate pays property tax, and its secured debt's interest is deductible when itemizing. */
+  realEstate?: boolean;
   /** An asset's planned sale year; the proceeds go to the cash account. */
   saleYear?: number;
   /** Yearly expense ratio or fee. */
@@ -126,11 +128,35 @@ export interface Strategy {
   rothConversionBracket: number;
   rothConversionStart?: number;
   rothConversionEnd?: number;
+  /** How a year's withdrawals are drawn: the order above, or from every account in proportion to its balance. */
+  withdrawalMethod: 'order' | 'proportional';
+  /** Each year, realize taxable gains up to the top of the 0% long-term capital gains band (resetting the basis). */
+  harvestZeroGains: boolean;
   /** Retirement spending rule: the plan's expenses, or a fixed share of the portfolio, or guardrails. */
   spending: 'expenses' | 'fixedPercent' | 'guardrails';
   spendingRate: number;
   /** Safe withdrawal rate the financial independence test uses. */
   safeWithdrawalRate: number;
+}
+
+export interface Deductions {
+  /** Itemize when the total beats the standard deduction: mortgage interest on debts secured by a home, property
+   * tax (a yearly share of the home's value), state income tax and property tax up to the SALT cap, and charity. */
+  itemize: boolean;
+  propertyTaxRate: number;
+  /** Yearly charitable giving, today's dollars. */
+  charity: number;
+}
+
+export interface Healthcare {
+  /** Medicare from 65: Part B and Part D premiums with the income-related surcharges (IRMAA) on income two years back. */
+  medicare: boolean;
+  /** Medicare Part D premium a month before surcharges, today's dollars. */
+  partDBase: number;
+  /** Insurance from retirement to 65: the benchmark (second-lowest silver) ACA premium a person a year, today's
+   * dollars, less the premium tax credit. */
+  aca: boolean;
+  acaBenchmark: number;
 }
 
 export interface Assumptions {
@@ -158,6 +184,8 @@ export interface Plan {
   milestones: Milestone[];
   strategy: Strategy;
   assumptions: Assumptions;
+  deductions: Deductions;
+  healthcare: Healthcare;
 }
 
 /** One year of a plan's projection. */
@@ -183,6 +211,11 @@ export interface YearResult {
     capitalGains: number;
     niit: number;
     penalty: number;
+    /** Medicare premiums with surcharges, and ACA premiums net of the credit, paid this year. */
+    medicare: number;
+    aca: number;
+    itemized: boolean;
+    deduction: number;
     total: number;
     taxableIncome: number;
     marginalRate: number;

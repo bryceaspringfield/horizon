@@ -1,6 +1,16 @@
 // A starting plan for a new user: a couple in their thirties, with every part of the model filled in, to edit.
 import type { Plan } from './types';
 
+/** Fills the fields a plan saved by an earlier version lacks, so old plans open. */
+export function upgradePlan(p: Plan): Plan {
+  const d = examplePlan(p.startYear);
+  p.deductions ??= { ...d.deductions, itemize: false, charity: 0 };
+  p.healthcare ??= { ...d.healthcare };
+  p.strategy.withdrawalMethod ??= 'order';
+  p.strategy.harvestZeroGains ??= false;
+  return p;
+}
+
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
 export function examplePlan(startYear = new Date().getFullYear()): Plan {
@@ -18,7 +28,7 @@ export function examplePlan(startYear = new Date().getFullYear()): Plan {
       { id: 'a_401k2', name: 'Partner 401(k)', kind: 'traditional', ownerId: 'p2', balance: 70000, allocation: { stocks: 0.9, bonds: 0.1, cash: 0 }, fee: 0.001 },
       { id: 'a_roth', name: 'Roth IRA', kind: 'roth', ownerId: 'p1', balance: 40000, allocation: { stocks: 1, bonds: 0, cash: 0 }, fee: 0.0005 },
       { id: 'a_hsa', name: 'HSA', kind: 'hsa', ownerId: 'p1', balance: 12000, allocation: { stocks: 1, bonds: 0, cash: 0 } },
-      { id: 'a_home', name: 'Home', kind: 'asset', ownerId: 'p1', balance: 450000, allocation: { stocks: 0, bonds: 0, cash: 0 }, appreciation: 0.03 },
+      { id: 'a_home', name: 'Home', kind: 'asset', ownerId: 'p1', balance: 450000, allocation: { stocks: 0, bonds: 0, cash: 0 }, appreciation: 0.03, realEstate: true },
       { id: 'a_mort', name: 'Mortgage', kind: 'debt', ownerId: 'p1', balance: 320000, allocation: { stocks: 0, bonds: 0, cash: 0 }, interestRate: 0.0625, payment: 23640, securedBy: 'a_home' },
     ],
     incomes: [
@@ -31,7 +41,7 @@ export function examplePlan(startYear = new Date().getFullYear()): Plan {
     ],
     expenses: [
       { id: 'e_living', name: 'Living expenses', kind: 'living', amount: 70000, startYear, growth: 0 },
-      { id: 'e_health', name: 'Healthcare after retirement', kind: 'healthcare', amount: 14000, startYear: you.birthYear + 60, growth: 0.015 },
+      { id: 'e_health', name: 'Out-of-pocket healthcare', kind: 'healthcare', amount: 4000, startYear: you.birthYear + 60, growth: 0.015 },
       { id: 'e_travel', name: 'Travel in early retirement', kind: 'travel', amount: 10000, startYear: you.birthYear + 60, endYear: you.birthYear + 75, growth: 0 },
       { id: 'e_car', name: 'New car', kind: 'oneTime', amount: 40000, startYear: startYear + 4, growth: 0 },
     ],
@@ -43,6 +53,8 @@ export function examplePlan(startYear = new Date().getFullYear()): Plan {
     strategy: {
       retirementAge: { p1: 60, p2: 60 },
       withdrawalOrder: ['cash', 'taxable', 'traditional', 'roth', 'hsa'],
+      withdrawalMethod: 'order',
+      harvestZeroGains: true,
       cashTarget: 30000,
       iraContribution: 0,
       rothIraContribution: 7500,
@@ -63,5 +75,7 @@ export function examplePlan(startYear = new Date().getFullYear()): Plan {
       state: 'MA',
       filingStatus: 'mfj',
     },
+    deductions: { itemize: true, propertyTaxRate: 0.011, charity: 2000 },
+    healthcare: { medicare: true, partDBase: 39, aca: true, acaBenchmark: 9000 },
   };
 }

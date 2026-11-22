@@ -3,3 +3,5 @@ node_modules/
 .temp/
 .claude/skills
 *.log
+# Raw CMS pages embed a CMS Mapbox token; their premium text is in the .txt beside them.
+20_tax_rules/input/*medicare*.html

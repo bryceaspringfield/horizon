@@ -96,6 +96,7 @@ export function AccountsPage() {
                   <Num label="Yearly fee" percent step={0.01} value={a.fee ?? 0} onChange={(v) => set((x) => { x.fee = v; })} />
                 </>}
                 {a.kind === 'asset' && <>
+                  <Check label="Real estate (property tax, deductible mortgage interest)" value={!!a.realEstate} onChange={(v) => set((x) => { x.realEstate = v; })} />
                   <Num label="Yearly appreciation" percent value={a.appreciation ?? 0.03} onChange={(v) => set((x) => { x.appreciation = v; })} />
                   <Num label="Sale year (0 for none)" value={a.saleYear ?? 0} onChange={(v) => set((x) => { x.saleYear = v || undefined; })} />
                 </>}
@@ -269,6 +270,9 @@ export function StrategyPage() {
           ))}
         </ol>
         <div className="grid">
+          <Select label="How to draw" value={s.withdrawalMethod ?? 'order'} options={[['order', 'In the order above'], ['proportional', 'In proportion to balances']]}
+            onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />
+          <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />
           <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)']]}
             onChange={(v) => update((p) => { p.strategy.spending = v; })} />
           {s.spending !== 'expenses' && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
@@ -283,6 +287,33 @@ export function StrategyPage() {
           <Num label="To year" value={s.rothConversionEnd ?? plan.startYear + 30} onChange={(v) => update((p) => { p.strategy.rothConversionEnd = v; })} />
         </div>
         <p className="muted">Each year in the window, traditional balances move to Roth until ordinary taxable income reaches the top of the chosen bracket ({pct(s.rothConversionBracket, 0)}).</p>
+      </Card>
+    </>
+  );
+}
+
+export function TaxHealthPage() {
+  const plan = useActivePlan();
+  const update = useUpdate();
+  const d = plan.deductions, h = plan.healthcare;
+  return (
+    <>
+      <Card title="Deductions">
+        <div className="grid">
+          <Check label="Itemize when it beats the standard deduction" value={d.itemize} onChange={(v) => update((p) => { p.deductions.itemize = v; })} />
+          <Num label="Property tax (share of home value)" percent step={0.05} value={d.propertyTaxRate} onChange={(v) => update((p) => { p.deductions.propertyTaxRate = v; })} />
+          <Num label="Charitable giving a year (today's $)" value={d.charity} onChange={(v) => update((p) => { p.deductions.charity = v; })} />
+        </div>
+        <p className="muted">Itemized deductions add mortgage interest on debts secured by real estate, charity, and state income and property taxes up to the SALT cap ($40,400 in 2026, rising 1% a year to 2029, falling by 30% of income above $505,000 to a $10,000 floor, and $10,000 from 2030). Property tax and charity also count as spending.</p>
+      </Card>
+      <Card title="Health insurance">
+        <div className="grid">
+          <Check label="Medicare from 65, with income surcharges (IRMAA)" value={h.medicare} onChange={(v) => update((p) => { p.healthcare.medicare = v; })} />
+          <Num label="Part D premium a month before surcharges" value={h.partDBase} onChange={(v) => update((p) => { p.healthcare.partDBase = v; })} />
+          <Check label="ACA marketplace coverage from retirement to 65" value={h.aca} onChange={(v) => update((p) => { p.healthcare.aca = v; })} />
+          <Num label="Benchmark silver premium a person a year" value={h.acaBenchmark} onChange={(v) => update((p) => { p.healthcare.acaBenchmark = v; })} />
+        </div>
+        <p className="muted">Medicare: the 2026 and 2027 Part B premiums ($202.90, $209.40 a month) and CMS's surcharge tiers on income from two years earlier. ACA: the benchmark premium less the premium tax credit, which caps it at 2.1% to 9.96% of income (2026) up to 400% of the poverty line and ends above it. Look up your benchmark at healthcare.gov.</p>
       </Card>
     </>
   );

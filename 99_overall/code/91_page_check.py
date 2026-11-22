@@ -16,7 +16,7 @@ from playwright.sync_api import sync_playwright
 H = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DIST = os.path.join(H, '10_app', 'code', 'dist')
 OUT = os.path.join(H, '99_overall', 'output', 'pages')
-PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'milestones', 'strategy', 'assumptions', 'networth',
+PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'milestones', 'strategy', 'taxhealth', 'assumptions', 'networth',
          'cashflow', 'taxes', 'montecarlo', 'compare', 'progress', 'table', 'settings']
 
 
@@ -37,7 +37,7 @@ def main():
             errors.clear()
             pg.goto(f'{url}#{name}')
             pg.reload()
-            pg.wait_for_timeout(1200)
+            pg.wait_for_timeout(3500)
             if name == 'montecarlo':
                 for method in ('normal', 'backtest'):
                     pg.select_option('main select', method)

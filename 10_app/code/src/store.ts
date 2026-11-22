@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { vaultStorage } from './vault';
-import { examplePlan, uid } from './engine/defaults';
+import { examplePlan, uid, upgradePlan } from './engine/defaults';
 import type { Plan } from './engine/types';
 
 export interface Snapshot {
@@ -79,10 +79,17 @@ export const useStore = create<AppState>()(
       addSnapshot: (s) => set((st) => ({ snapshots: [...st.snapshots, s].sort((a, b) => a.date.localeCompare(b.date)) })),
       deleteSnapshot: (id) => set((st) => ({ snapshots: st.snapshots.filter((s) => s.id !== id) })),
       setSettings: (s) => set((st) => ({ settings: { ...st.settings, ...s } })),
-      importAll: (data) => set({ plans: data.plans, snapshots: data.snapshots ?? [], settings: data.settings ?? get().settings, activeId: data.plans[0].id }),
+      importAll: (data) => set({ plans: data.plans.map(upgradePlan), snapshots: data.snapshots ?? [], settings: data.settings ?? get().settings, activeId: data.plans[0].id }),
     }),
     // The state is read only after the login screen (main.tsx) unlocks a vault, or at once when there is none.
-    { name: 'horizon-v1', storage: createJSONStorage(() => vaultStorage), skipHydration: true },
+    {
+      name: 'horizon-v1', storage: createJSONStorage(() => vaultStorage), skipHydration: true, version: 2,
+      migrate: (state) => {
+        const s = state as { plans?: Plan[] };
+        s.plans?.forEach(upgradePlan);
+        return s as AppState;
+      },
+    },
   ),
 );
 

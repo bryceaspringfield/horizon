@@ -44,3 +44,37 @@ describe('cash flow balance', () => {
     expect(Math.abs(inflow - outflow)).toBeLessThan(1);
   });
 });
+
+describe('the new plan features', () => {
+  const plan = examplePlan(2026);
+  it('shares one 401(k) limit between two salaries of one person', () => {
+    const p = structuredClone(plan);
+    p.incomes.push({ ...p.incomes[0], id: 'i_side', name: 'Second job', amount: 100000, contributionRate: 0.3 });
+    p.incomes[0].contributionRate = 0.3;
+    const y = simulate(p).years[0];
+    const own = y.contributions.a_401k - y.employerMatch * 0; // employer match lands in the same account
+    expect(own).toBeLessThanOrEqual(24500 + 120000 * 0.05 + 100000 * 0.05 + 1);
+  });
+  it('charges Medicare from 65 and ACA premiums between retirement and 65', () => {
+    const years = simulate(structuredClone(plan)).years;
+    const at66 = years.find((y) => y.ages.p1 === 66)!;
+    expect(at66.taxes.medicare).toBeGreaterThan(0);
+    const at61 = years.find((y) => y.ages.p1 === 61)!;
+    expect(at61.taxes.aca).toBeGreaterThan(0);
+    expect(years[0].taxes.aca).toBe(0);
+  });
+  it('withdraws in proportion to balances when asked', () => {
+    const p = structuredClone(plan);
+    p.strategy.withdrawalMethod = 'proportional';
+    const years = simulate(p).years;
+    const r = years.find((y) => y.ages.p1 === 62)!;
+    expect((r.withdrawals.a_roth ?? 0) > 0 && (r.withdrawals.a_401k ?? 0) > 0).toBe(true);
+  });
+  it('opens a plan saved before these features', async () => {
+    const { upgradePlan } = await import('../defaults');
+    const old = structuredClone(plan) as unknown as Record<string, unknown>;
+    delete old.deductions; delete old.healthcare;
+    const up = upgradePlan(old as never);
+    expect(simulate(up).years.length).toBeGreaterThan(50);
+  });
+});

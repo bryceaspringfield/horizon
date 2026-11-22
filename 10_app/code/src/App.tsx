@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage } from './pages/Editors';
+import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage, TaxHealthPage } from './pages/Editors';
+import { Icon } from './icons';
 import { CashFlowPage, ComparePage, Dashboard, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
 import { useActivePlan, useStore } from './store';
 import { Card, Check, Select } from './ui';
@@ -7,7 +8,7 @@ import { examplePlan } from './engine/defaults';
 import { hasVault, lock, openExport, removePassword, sealExport, setPassword } from './vault';
 
 /** The app's state as the store saves it. */
-const snapshotOfState = () => JSON.stringify({ state: useStore.getState(), version: 0 });
+const snapshotOfState = () => JSON.stringify({ state: useStore.getState(), version: 2 });
 
 function PasswordCard() {
   const [pw, setPw] = useState('');
@@ -22,7 +23,7 @@ function PasswordCard() {
     setMsg(protectedNow ? 'Password changed.' : 'Your plans are now encrypted with this password.');
   };
   return (
-    <Card title="Password protection">
+    <Card title="Password protection" actions={<span className={'badge' + (protectedNow ? '' : ' off')}><Icon name="lock" size={13} />{protectedNow ? 'On' : 'Off'}</span>}>
       <div className="lockbox">
         <p className="muted">{protectedNow
           ? 'On. Your plans are stored encrypted (AES-256-GCM, key from PBKDF2-SHA-256 with 600,000 iterations) and open only with your password. A lost password cannot be recovered; keep an encrypted backup.'
@@ -48,8 +49,9 @@ const PAGES = {
   expenses: ['Expenses', ExpensesPage],
   milestones: ['Milestones', MilestonesPage],
   strategy: ['Strategy', StrategyPage],
+  taxhealth: ['Taxes and health', TaxHealthPage],
   assumptions: ['Assumptions', AssumptionsPage],
-  networth: ['Net worth', NetWorthChart],
+  networth: ['Net worth', () => <NetWorthChart />],
   cashflow: ['Cash flow', CashFlowPage],
   taxes: ['Taxes', TaxesPage],
   montecarlo: ['Monte Carlo', MonteCarloPage],
@@ -61,7 +63,7 @@ const PAGES = {
 type PageKey = keyof typeof PAGES;
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
-  ['Your plan', ['people', 'accounts', 'income', 'expenses', 'milestones', 'strategy', 'assumptions']],
+  ['Your plan', ['people', 'accounts', 'income', 'expenses', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
   ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'compare', 'table']],
   ['Tracking', ['progress', 'settings']],
 ];
@@ -72,20 +74,40 @@ export default function App() {
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
   useEffect(() => { location.hash = page; }, [page]);
   const [title, Page] = PAGES[page];
+  const settings = useStore((s) => s.settings);
+  const setSettings = useStore((s) => s.setSettings);
+  const plan = useActivePlan();
   return (
     <div className="app">
       <nav>
-        <div className="brand">Horizon</div>
+        <div className="brand"><div className="logo"><Icon name="trend" size={17} /></div>Horizon</div>
         <PlanMenu />
         {GROUPS.map(([g, keys]) => (
           <div key={g} className="group">
             {g && <div className="glabel">{g}</div>}
-            {keys.map((k) => <a key={k} className={k === page ? 'on' : ''} onClick={() => setPage(k)}>{PAGES[k][0]}</a>)}
+            {keys.map((k) => (
+              <a key={k} className={k === page ? 'on' : ''} onClick={() => setPage(k)}>
+                <Icon name={k} />{PAGES[k][0]}
+              </a>
+            ))}
           </div>
         ))}
       </nav>
       <main>
-        <h2>{title}</h2>
+        <div className="topbar">
+          <div>
+            <h2>{title}</h2>
+            <div className="sub">{plan.name} · {plan.people.map((p) => p.name).join(' and ')} · {plan.assumptions.state}</div>
+          </div>
+          <div className="row">
+            <span className={'pill' + (settings.realDollars ? ' on' : '')} onClick={() => setSettings({ realDollars: !settings.realDollars })}>
+              {settings.realDollars ? "Today's dollars" : 'Future dollars'}
+            </span>
+            <span className="pill" onClick={() => setSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
+              <Icon name={settings.theme === 'dark' ? 'sun' : 'moon'} size={15} />
+            </span>
+          </div>
+        </div>
         <Page />
       </main>
     </div>
@@ -158,7 +180,7 @@ function SettingsPage() {
         </div>
       </Card>
       <Card title="What the model covers">
-        <p className="muted">2026 federal brackets, standard deduction, long-term capital gains and qualified dividends stacked on ordinary income, the 3.8% net investment income tax, FICA with the wage base and Additional Medicare Tax, taxation of Social Security benefits, 2026 state brackets for all states and DC, 401(k), IRA, and HSA limits with catch-up contributions, RMDs at 73 or 75, the 10% early withdrawal penalty, Social Security claiming adjustments and survivor benefits, and Roth conversions. Brackets and limits rise with the plan's inflation after 2026. Not modeled: itemized deductions, credits, the alternative minimum tax, local income taxes, Medicare premium surcharges (IRMAA), and state taxes on capital gains alone.</p>
+        <p className="muted">Federal tax with the 2026 and 2027 IRS tables (indexed by inflation after 2027): brackets, standard or itemized deductions (mortgage interest, charity, and state and property taxes under the SALT cap), long-term gains and qualified dividends stacked on ordinary income, the 3.8% net investment income tax, FICA with the wage base and Additional Medicare Tax, and the taxable part of Social Security. State tax with 2026 brackets for every state and DC. Retirement accounts with each year's 401(k), IRA, and HSA limits and catch-ups, one 401(k) limit a person, RMDs at 73 or 75, the 10% early withdrawal penalty, Roth conversions, and 0% gain harvesting. Social Security with claiming adjustments, spousal and survivor benefits. Medicare premiums with IRMAA, and ACA premiums with the premium tax credit. Not modeled: tax credits, the AMT, local income taxes, and state taxes on capital gains alone.</p>
       </Card>
     </>
   );

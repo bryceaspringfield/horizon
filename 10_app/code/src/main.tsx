@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { useStore } from './store';
 import { erase, hasVault, unlock, unlockRemembered } from './vault';
+import { Icon } from './icons';
 import './styles.css';
 
 /** The login screen while a password-protected vault is locked; the app once it opens. */
@@ -35,7 +36,7 @@ function Gate() {
   return (
     <div className="login">
       <form onSubmit={submit} className="card">
-        <div className="brand">Horizon</div>
+        <div className="brand"><div className="logo"><Icon name="lock" size={16} /></div>Horizon</div>
         <p className="muted">Your plans are encrypted on this device. Enter your password to open them.</p>
         <label className="field"><span>Password</span><div className="input"><input type="password" autoFocus value={pw} onChange={(e) => setPw(e.target.value)} /></div></label>
         <label className="check"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />Remember this device</label>

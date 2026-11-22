@@ -6,6 +6,7 @@ import { runMonteCarlo, type MonteCarloResult } from '../engine/montecarlo';
 import { useStore, type Snapshot } from '../store';
 import { projectPlan, useProjection } from '../useProjection';
 import { Card, Chart, Num, Select, Stat, money, moneyAxis, moneyTooltip, pct } from '../ui';
+import { Icon } from '../icons';
 import { uid } from '../engine/defaults';
 
 const KIND_LABEL: Record<AccountKind, string> = {
@@ -29,48 +30,86 @@ export function Dashboard() {
   const retireYear = Math.min(...plan.people.map((p) => p.birthYear + (plan.strategy.retirementAge[p.id] ?? 200)));
   const ri = proj.years.findIndex((y) => y.year === retireYear);
   const atRet = proj.years[ri] ?? first;
-  const peak = proj.years.reduce((m, y, i) => Math.max(m, adj(y.liquidNetWorth, i)), 0);
   const lifeTax = proj.years.reduce((t, y, i) => t + adj(y.taxes.total, i), 0);
+  const savingsRate = (() => {
+    const y = first, gross = Object.values(y.income).reduce((t, v) => t + v, 0) + y.employerMatch;
+    const saved = Object.values(y.contributions).reduce((t, v) => t + v, 0);
+    return gross > 0 ? saved / gross : 0;
+  })();
+  // A quick 300-trial Monte Carlo for the gauge; the Monte Carlo page runs the full version.
+  const mc = useMemo(() => runMonteCarlo(plan, 'normal', 300, 7), [plan]);
+  const pctOk = mc.successRate;
+  const tone = pctOk >= 0.85 ? 'var(--good)' : pctOk >= 0.7 ? 'var(--warn)' : 'var(--bad)';
+  const events = proj.years.flatMap((y) => y.milestonesReached.map((id) => ({ year: y.year, m: plan.milestones.find((m) => m.id === id)! })));
   return (
     <>
       <div className="stats">
-        <Stat label="Net worth today" value={money(first.netWorth)} />
-        <Stat label="Financial independence" value={proj.financialIndependenceYear ?? 'Not reached'} sub={proj.financialIndependenceYear ? `age ${proj.financialIndependenceYear - plan.people[0].birthYear}` : undefined} tone={proj.financialIndependenceYear ? 'good' : 'bad'} />
-        <Stat label={`Investments at retirement (${retireYear})`} value={money(adj(atRet.liquidNetWorth, Math.max(0, ri)), true)} />
-        <Stat label="Money lasts" value={proj.depletionYear ? `Runs out in ${proj.depletionYear}` : 'For life'} tone={proj.depletionYear ? 'bad' : 'good'} />
-        <Stat label="Peak investments" value={money(peak, true)} />
-        <Stat label="Lifetime taxes" value={money(lifeTax, true)} />
+        <Stat icon="coins" label="Net worth today" value={money(first.netWorth, true)} sub={`${money(first.liquidNetWorth, true)} invested`} />
+        <Stat icon="flag" label="Financial independence" value={proj.financialIndependenceYear ?? 'Not reached'}
+          sub={proj.financialIndependenceYear ? `at age ${proj.financialIndependenceYear - plan.people[0].birthYear}` : 'within the plan'} tone={proj.financialIndependenceYear ? 'good' : 'bad'} />
+        <Stat icon="trend" label={`Invested at retirement (${retireYear})`} value={money(adj(atRet.liquidNetWorth, Math.max(0, ri)), true)} sub={real ? "today's dollars" : 'future dollars'} />
+        <Stat icon="shield" label="Money lasts" value={proj.depletionYear ? String(proj.depletionYear) : 'For life'} sub={proj.depletionYear ? 'investments run out' : `through ${proj.years[proj.years.length - 1].year}`} tone={proj.depletionYear ? 'bad' : 'good'} />
+        <Stat icon="income" label="Savings rate" value={pct(savingsRate, 0)} sub="of this year's pay" />
+        <Stat icon="taxes" label="Lifetime taxes" value={money(lifeTax, true)} sub="income, payroll, and health surcharges" />
       </div>
-      <NetWorthChart />
+      <div className="cols">
+        <NetWorthChart hero />
+        <section className="card">
+          <header><h3>Chance of success</h3></header>
+          <div className="gauge">
+            <div className="ring" style={{ background: `conic-gradient(${tone} ${pctOk * 360}deg, var(--line) 0)` }}>
+              <div style={{ color: tone }}>{pct(pctOk, 0)}</div>
+            </div>
+            <div className="muted">of 300 market paths last for life</div>
+          </div>
+          <div className="stats" style={{ gridTemplateColumns: '1fr 1fr', marginTop: 16, marginBottom: 0 }}>
+            <Stat label="Median at the end" value={money(mc.endingReal.p50, true)} />
+            <Stat label="Bad case (10th pct.)" value={money(mc.endingReal.p10, true)} />
+          </div>
+        </section>
+      </div>
+      <div style={{ height: 18 }} />
+      {events.length > 0 && <Card title="Milestones">
+        <div className="timeline">
+          {events.map((e) => (
+            <div key={e.m.id} className="ev">
+              <div className="dot"><Icon name="flag" size={15} /></div>
+              <div><b>{e.m.name}</b><span>{e.year} · {plan.people.map((p) => `${p.name} ${e.year - p.birthYear}`).join(', ')}</span></div>
+            </div>
+          ))}
+        </div>
+      </Card>}
       <Card title="Income and spending" wide>
         <IncomeSpendingChart />
       </Card>
-      <p className="muted">All amounts in {dollarsNote(real)}; switch in Settings.</p>
     </>
   );
 }
 
-export function NetWorthChart() {
+export function NetWorthChart({ hero }: { hero?: boolean }) {
   const { plan, proj, adj, real } = useProjection();
   const kinds: AccountKind[] = ['cash', 'taxable', 'traditional', 'roth', 'hsa', 'college529', 'asset', 'debt'];
-  const series = kinds
+  const area = (color: string) => ({ color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + 'cc' }, { offset: 1, color: color + '33' }] } });
+  const colors: Record<string, string> = { cash: '#94a3b8', taxable: '#5b5bf0', traditional: '#f59e0b', roth: '#a855f7', hsa: '#14b8a6', college529: '#0ea5e9', asset: '#84cc16', debt: '#f43f5e' };
+  const series: Record<string, unknown>[] = kinds
     .map((k) => ({
-      name: KIND_LABEL[k],
-      type: 'bar',
-      stack: 'nw',
+      name: KIND_LABEL[k], type: 'line', stack: k === 'debt' ? 'debt' : 'nw', smooth: true, symbol: 'none', lineStyle: { width: 0 },
+      areaStyle: area(colors[k]), itemStyle: { color: colors[k] }, emphasis: { focus: 'series' },
       data: proj.years.map((y, i) => Math.round(adj(plan.accounts.filter((a) => a.kind === k).reduce((t, a) => t + (y.balances[a.id] ?? 0), 0), i))),
     }))
-    .filter((s) => s.data.some((v) => v !== 0));
-  series.push({ name: 'Net worth', type: 'line', data: proj.years.map((y, i) => Math.round(adj(y.netWorth, i))), stack: undefined as unknown as string,
-    ...({ markLine: { symbol: 'none', lineStyle: { type: 'dashed', color: '#888' }, data: milestoneMarks(plan, proj.years) } } as object) });
+    .filter((s) => (s.data as number[]).some((v) => v !== 0));
+  series.push({ name: 'Net worth', type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#1b2033' }, itemStyle: { color: '#1b2033' },
+    data: proj.years.map((y, i) => Math.round(adj(y.netWorth, i))),
+    markLine: { symbol: 'none', lineStyle: { type: 'dashed', color: '#8b8fa8' }, label: { show: !hero, color: '#6b7185' }, data: milestoneMarks(plan, proj.years) } });
   return (
-    <Card title={`Net worth by account type (${dollarsNote(real)})`} wide>
-      <Chart height={420} option={{
-        tooltip: moneyTooltip, legend: { top: 0 }, grid: { left: 70, right: 20, top: 40, bottom: 50 },
-        xAxis: { type: 'category', data: proj.years.map((y) => String(y.year)) }, yAxis: moneyAxis,
-        dataZoom: [{ type: 'slider', height: 18, bottom: 8 }], series,
+    <section className={'card' + (hero ? ' hero' : '')}>
+      <header><h3>Net worth by account type</h3><span className="muted">{dollarsNote(real)}</span></header>
+      <Chart height={hero ? 400 : 460} option={{
+        tooltip: moneyTooltip, legend: { top: 0 }, grid: { left: 70, right: 16, top: 44, bottom: hero ? 30 : 56 },
+        xAxis: { type: 'category', boundaryGap: false, data: proj.years.map((y) => String(y.year)) }, yAxis: moneyAxis,
+        dataZoom: hero ? undefined : [{ type: 'slider', height: 18, bottom: 10, borderColor: 'transparent' }], series,
       }} />
-    </Card>
+    </section>
   );
 }
 
@@ -83,11 +122,11 @@ function IncomeSpendingChart() {
       tooltip: moneyTooltip, legend: { top: 0 }, grid: { left: 70, right: 20, top: 40, bottom: 30 },
       xAxis: { type: 'category', data: yrs }, yAxis: moneyAxis,
       series: [
-        { name: 'Work and other income', type: 'bar', stack: 'in', data: inc((y) => Object.values(y.income).reduce((t, v) => t + v, 0)) },
+        { name: 'Work and other income', type: 'bar', stack: 'in', barMaxWidth: 14, data: inc((y) => Object.values(y.income).reduce((t, v) => t + v, 0)) },
         { name: 'Social Security', type: 'bar', stack: 'in', data: inc((y) => y.socialSecurity) },
         { name: 'Withdrawals', type: 'bar', stack: 'in', data: inc((y) => Object.values(y.withdrawals).reduce((t, v) => t + v, 0)) },
-        { name: 'Spending', type: 'line', data: inc((y) => y.totalExpenses) },
-        { name: 'Taxes', type: 'line', data: inc((y) => y.taxes.total) },
+        { name: 'Spending', type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2.5 }, data: inc((y) => y.totalExpenses) },
+        { name: 'Taxes', type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2, type: 'dashed' }, data: inc((y) => y.taxes.total) },
       ],
     }} />
   );
@@ -99,7 +138,7 @@ export function CashFlowPage() {
   const i = Math.max(0, proj.years.findIndex((y) => y.year === year));
   const y = proj.years[i];
   const name = (id: string) =>
-    plan.incomes.find((x) => x.id === id)?.name ?? plan.expenses.find((x) => x.id === id)?.name ?? plan.accounts.find((x) => x.id === id)?.name ?? (id === '__spending' ? 'Retirement spending' : id);
+    plan.incomes.find((x) => x.id === id)?.name ?? plan.expenses.find((x) => x.id === id)?.name ?? plan.accounts.find((x) => x.id === id)?.name ?? ({ __spending: 'Retirement spending', __medicare: 'Medicare premiums', __aca: 'ACA premiums', __charity: 'Charity', __propertyTax: 'Property tax' } as Record<string, string>)[id] ?? id;
   const links: { source: string; target: string; value: number }[] = [];
   const add = (source: string, target: string, v: number) => { if (v > 1) links.push({ source, target, value: Math.round(adj(v, i)) }); };
   for (const [id, v] of Object.entries(y.income)) add(name(id), 'Cash flow', v);
@@ -136,7 +175,7 @@ export function TaxesPage() {
   const s = (f: (t: (typeof proj.years)[0]['taxes']) => number) => proj.years.map((y, i) => Math.round(adj(f(y.taxes), i)));
   return (
     <>
-      <Card title={`Taxes by year (${dollarsNote(real)})`} wide>
+      <Card title={`Taxes and health premiums by year (${dollarsNote(real)})`} wide>
         <Chart option={{
           tooltip: moneyTooltip, legend: { top: 0 }, grid: { left: 70, right: 20, top: 40, bottom: 30 },
           xAxis: { type: 'category', data: yrs }, yAxis: moneyAxis,
@@ -147,6 +186,8 @@ export function TaxesPage() {
             { name: 'State', type: 'bar', stack: 't', data: s((t) => t.state) },
             { name: 'Payroll (FICA)', type: 'bar', stack: 't', data: s((t) => t.fica) },
             { name: 'Early withdrawal penalty', type: 'bar', stack: 't', data: s((t) => t.penalty) },
+            { name: 'Medicare premiums', type: 'bar', stack: 't', data: s((t) => t.medicare) },
+            { name: 'ACA premiums', type: 'bar', stack: 't', data: s((t) => t.aca) },
           ],
         }} />
       </Card>

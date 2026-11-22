@@ -1,0 +1,41 @@
+{
+  "_source": "Hand-entered 2026-11-22 from CMS's 2026 and 2027 Medicare Parts A & B fact sheets (input/*medicare*.html), IRS Rev. Proc. 2025-25 and 2026-26 (ACA applicable percentages), and the HHS poverty guidelines (48 states and DC). Each year's IRMAA tier uses modified AGI from two years earlier.",
+  "medicare": {
+    "2026": {
+      "partB": 202.90,
+      "tiers": {
+        "single": [109000, 137000, 171000, 205000, 500000],
+        "mfj": [218000, 274000, 342000, 410000, 750000]
+      },
+      "partBSurcharge": [0, 81.20, 202.90, 324.60, 446.30, 487.00],
+      "partDSurcharge": [0, 14.50, 37.50, 60.40, 83.30, 91.00]
+    },
+    "2027": {
+      "partB": 209.40,
+      "tiers": {
+        "single": [112000, 141000, 177000, 212000, 500000],
+        "mfj": [224000, 282000, 354000, 424000, 750000]
+      },
+      "partBSurcharge": [0, 83.70, 209.40, 335.00, 460.60, 502.40],
+      "partDSurcharge": [0, 15.40, 39.70, 64.00, 88.30, 96.40]
+    }
+  },
+  "aca": {
+    "2026": {
+      "povertyLine": {"first": 15650, "each": 5500},
+      "applicable": [[0, 1.33, 0.021, 0.021], [1.33, 1.5, 0.0314, 0.0419], [1.5, 2.0, 0.0419, 0.066], [2.0, 2.5, 0.066, 0.0844], [2.5, 3.0, 0.0844, 0.0996], [3.0, 4.0, 0.0996, 0.0996]]
+    },
+    "2027": {
+      "povertyLine": {"first": 15960, "each": 5680},
+      "applicable": [[0, 1.33, 0.0215, 0.0215], [1.33, 1.5, 0.0323, 0.043], [1.5, 2.0, 0.043, 0.0678], [2.0, 2.5, 0.0678, 0.0866], [2.5, 3.0, 0.0866, 0.1022], [3.0, 4.0, 0.1022, 0.1022]]
+    }
+  },
+  "salt": {
+    "_source": "Statutory (One Big Beautiful Bill Act, IRC 164(b)(7)): the cap is $40,000 in 2025 and rises 1% a year through 2029, the threshold $500,000 likewise; above the threshold the cap falls by 30% of the excess, to no less than $10,000; from 2030 the cap is $10,000 with no phase-down. Half for married filing separately.",
+    "cap": {"2025": 40000, "2026": 40400, "2027": 40804, "2028": 41212, "2029": 41624},
+    "threshold": {"2025": 500000, "2026": 505000, "2027": 510050, "2028": 515151, "2029": 520302},
+    "floor": 10000,
+    "phaseDownRate": 0.3,
+    "after2029": 10000
+  }
+}

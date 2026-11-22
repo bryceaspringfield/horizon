@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Builds the tax rules the app reads, from this stage's input/:
 
-  output/federal.json  federal_2026.json as entered by hand (brackets, deductions, limits, RMD table), checked for order
+  output/federal.json  every federal_YYYY.json as entered by hand (brackets, deductions, limits, RMD table), keyed by year
+  output/healthcare.json  Medicare premiums and IRMAA, ACA applicable percentages and poverty lines, and the SALT cap
   output/states.json   2026 state income tax brackets, standard deductions, and personal exemptions from the Tax
                        Foundation's workbook (sheet "2026"), keyed by postal code, plus whether each state taxes
                        Social Security benefits (state_social_security.json)
@@ -90,10 +91,18 @@ def states():
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    fed = json.load(open(os.path.join(IN, 'federal_2026.json')))
-    for status, b in fed['brackets'].items():
-        assert [x[0] for x in b] == sorted(x[0] for x in b), status
-    json.dump(fed, open(os.path.join(OUT, 'federal.json'), 'w'), indent=1)
+    # Every federal_YYYY.json, keyed by year; the app uses the newest year at or before each plan year.
+    years = {}
+    for name in sorted(os.listdir(IN)):
+        if name.startswith('federal_') and name.endswith('.json'):
+            fed = json.load(open(os.path.join(IN, name)))
+            for status, b in fed['brackets'].items():
+                assert [x[0] for x in b] == sorted(x[0] for x in b), (name, status)
+            years[str(fed['year'])] = fed
+    json.dump(years, open(os.path.join(OUT, 'federal.json'), 'w'), indent=1)
+    health = json.load(open(os.path.join(IN, 'healthcare.json')))
+    json.dump(health, open(os.path.join(OUT, 'healthcare.json'), 'w'), indent=1)
+    print('federal years:', ' '.join(years))
     st = states()
     json.dump(st, open(os.path.join(OUT, 'states.json'), 'w'), indent=1, sort_keys=True)
     none = sorted(k for k, v in st.items() if not v['brackets']['single'])

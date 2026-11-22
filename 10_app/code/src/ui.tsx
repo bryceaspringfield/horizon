@@ -2,6 +2,7 @@
 import ReactECharts from 'echarts-for-react';
 import type { ReactNode } from 'react';
 import { useStore } from './store';
+import { Icon } from './icons';
 
 export const money = (v: number, compact = false) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0, notation: compact ? 'compact' : 'standard' }).format(v || 0);
@@ -21,9 +22,10 @@ export function Card({ title, children, actions, wide }: { title?: string; child
   );
 }
 
-export function Stat({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: ReactNode; tone?: 'good' | 'bad' }) {
+export function Stat({ label, value, sub, tone, icon }: { label: string; value: ReactNode; sub?: ReactNode; tone?: 'good' | 'bad'; icon?: string }) {
   return (
     <div className={'stat ' + (tone ?? '')}>
+      {icon && <div className="ico"><Icon name={icon} /></div>}
       <div className="label">{label}</div>
       <div className="value">{value}</div>
       {sub && <div className="sub">{sub}</div>}
@@ -111,11 +113,29 @@ export function ListEditor<T extends { id?: string }>({ items, render, onAdd, on
   );
 }
 
-export const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#84cc16', '#6366f1', '#14b8a6', '#f97316', '#64748b'];
+export const PALETTE = ['#5b5bf0', '#14b8a6', '#f59e0b', '#a855f7', '#f43f5e', '#0ea5e9', '#ec4899', '#84cc16', '#6366f1', '#10b981', '#fb923c', '#94a3b8'];
 
-export function Chart({ option, height = 360 }: { option: object; height?: number }) {
+/** An ECharts chart with the app's look: muted axes, dashed grid lines, rounded tooltips, and the app palette. */
+export function Chart({ option, height = 360 }: { option: Record<string, unknown>; height?: number }) {
   const dark = useStore((s) => s.settings.theme === 'dark');
-  return <ReactECharts option={{ color: PALETTE, backgroundColor: 'transparent', ...option }} theme={dark ? 'dark' : undefined} style={{ height }} notMerge />;
+  const muted = dark ? '#959bb4' : '#6b7185', line = dark ? '#262d48' : '#e7e9f2';
+  const axis = (ax: unknown) => {
+    const style = (x: Record<string, unknown>) => ({
+      axisLine: { lineStyle: { color: line } }, axisTick: { show: false },
+      splitLine: { lineStyle: { color: line, type: 'dashed' } },
+      ...x, axisLabel: { color: muted, ...(x.axisLabel as object) },
+    });
+    return Array.isArray(ax) ? ax.map(style) : ax ? style(ax as Record<string, unknown>) : ax;
+  };
+  const full = {
+    color: PALETTE, backgroundColor: 'transparent', textStyle: { fontFamily: 'Inter, system-ui, sans-serif' },
+    ...option,
+    xAxis: axis(option.xAxis), yAxis: axis(option.yAxis),
+    legend: option.legend ? { icon: 'roundRect', itemWidth: 12, itemHeight: 12, textStyle: { color: muted }, ...(option.legend as object) } : undefined,
+    tooltip: option.tooltip ? { backgroundColor: dark ? '#1a2038' : '#fff', borderColor: line, borderRadius: 12, padding: [10, 14],
+      textStyle: { color: dark ? '#e8eaf4' : '#1b2033' }, extraCssText: 'box-shadow: 0 8px 24px rgba(20,24,60,.12);', ...(option.tooltip as object) } : undefined,
+  };
+  return <ReactECharts option={full} style={{ height }} notMerge />;
 }
 
 export const moneyAxis = { type: 'value', axisLabel: { formatter: (v: number) => money(v, true) } };
