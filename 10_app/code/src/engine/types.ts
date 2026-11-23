@@ -449,6 +449,9 @@ export interface Assumptions {
   taxCountry?: 'US' | 'UK' | 'AU' | 'CA' | 'DE' | 'NL' | 'ES';
   /** UK: a Scottish taxpayer, and a quarter of each pension withdrawal taken tax-free (engine/uk.ts). */
   scotland?: boolean;
+  /** Germany: church tax rate for members (0.08 in Bavaria and Baden-Wuerttemberg, 0.09 elsewhere), and no children. */
+  deChurch?: number;
+  deChildless?: boolean;
   ukLumpSum?: boolean;
   /** Canada: the province or territory, two letters (engine/ca.ts); Ontario where unset. */
   province?: string;

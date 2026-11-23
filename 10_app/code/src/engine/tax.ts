@@ -34,6 +34,9 @@ export interface TaxInput {
   wealthOther?: number;
   /** Spain's wealth tax: the main home's value (its first €300,000 exempt). */
   wealthHome?: number;
+  /** Germany: the church tax rate (0.08 or 0.09; none where unset), and care insurance's surcharge for the childless. */
+  deChurch?: number;
+  deChildless?: boolean;
   /** UK: a Scottish taxpayer; a quarter of pension withdrawals taken tax-free. Australia: people aged 60 or over. */
   scotland?: boolean;
   ukLumpSum?: boolean;

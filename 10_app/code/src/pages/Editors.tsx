@@ -1018,6 +1018,8 @@ export function AssumptionsPage() {
     <Card title="Tax country">
       <div className="grid">
         <Select label="Taxes follow" value={a.taxCountry ?? 'US'} options={[['US', 'United States (federal and state)'], ['UK', 'United Kingdom (England, Wales, Northern Ireland)'], ['AU', 'Australia (residents)'], ['CA', 'Canada'], ['DE', 'Germany'], ['NL', 'Netherlands'], ['ES', 'Spain']]} onChange={(v) => update((p) => { p.assumptions.taxCountry = v === 'US' ? undefined : v; })} />
+        {a.taxCountry === 'DE' && <Select label="Church tax" value={String(a.deChurch ?? 0)} options={[['0', 'Not a member'], ['0.08', '8% (Bavaria, Baden-Wuerttemberg)'], ['0.09', '9% (other states)']]} onChange={(v) => update((p) => { p.assumptions.deChurch = Number(v) || undefined; })} />}
+        {a.taxCountry === 'DE' && <Check label="No children (care insurance surcharge)" value={!!a.deChildless} onChange={(v) => update((p) => { p.assumptions.deChildless = v || undefined; })} />}
         {a.taxCountry === 'UK' && <Check label="Scottish taxpayer" value={!!a.scotland} onChange={(v) => update((p) => { p.assumptions.scotland = v || undefined; })} />}
         {a.taxCountry === 'UK' && <Check label="Take a quarter of each pension withdrawal tax-free" value={!!a.ukLumpSum} onChange={(v) => update((p) => { p.assumptions.ukLumpSum = v || undefined; })} />}
         {a.taxCountry === 'CA' && <Select label="Province or territory" value={a.province ?? 'ON'} options={Object.entries(PROVINCES).map(([k, v]) => [k, v.name] as [string, string])} onChange={(v) => update((p) => { p.assumptions.province = v === 'ON' ? undefined : v; })} />}

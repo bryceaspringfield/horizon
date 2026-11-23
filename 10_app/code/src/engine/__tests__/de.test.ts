@@ -14,3 +14,14 @@ describe('German income tax, 2026', () => {
     expect(deSoli(60000, false)).toBeCloseTo(0.055 * 60000, 2);
   });
 });
+
+import { deTax } from '../de';
+describe('church tax', () => {
+  it('adds 9% of income tax and lowers the flat rate on investment income', () => {
+    const base = { year: 2026, status: 'single', index: 1, wages: 0, selfEmployment: 0, otherOrdinary: 60000, interest: 11000, qualifiedDividends: 0, longTermGains: 0, socialSecurity: 0, preTaxDeductions: 0, earlyWithdrawals: 0, over65: 0 } as any;
+    const without = deTax(base), withChurch = deTax({ ...base, deChurch: 0.09 });
+    expect(withChurch.capitalGains).toBeCloseTo(10000 * (0.25 / 1.0225) * (1.055 + 0.09), 2);
+    // no wages, so the taxable income is the 60,000 of other income: church tax is 9% of its tariff
+    expect(withChurch.federal - without.federal).toBeCloseTo(0.09 * deTariff(60000), 2);
+  });
+});

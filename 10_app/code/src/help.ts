@@ -313,4 +313,6 @@ export const HELP: Record<string, string> = {
   "Count in": "Each square is a week, a month, or a year of the chosen life; past squares are shaded, and the squares of events and milestones are marked.",
   "Start the plan from the current year": "The projection starts this year from today's balances, each time you open the plan. Leave it off to keep the plan's own start year, a fixed forecast your recorded balances can be compared with.",
   "Year alignment": "How the report labels each year: the calendar year, or the UK tax year from April or the Australian tax year from July that starts in it (2026-27).",
+  "Church tax": "Members of a church that levies tax pay 8% of income tax in Bavaria and Baden-Wuerttemberg and 9% elsewhere, also on investment income.",
+  "No children (care insurance surcharge)": "Employees aged 23 or more without children pay 0.6% more of their pay for care insurance.",
 };
