@@ -51,7 +51,7 @@ def main():
         name = pg.locator('main input').first
         name.fill('Secret Plan Zeta'); pg.wait_for_timeout(500)
         pg.goto(url + 'settings'); pg.reload(); pg.wait_for_timeout(1500)
-        pw = pg.locator('.lockbox input[type=password]')
+        pw = pg.locator('section.card:has(h3:has-text("Password protection")) input[type=password]')
         pw.nth(0).fill('correct horse 42'); pw.nth(1).fill('correct horse 42')
         pg.click('text=Protect with a password'); pg.wait_for_timeout(3000)
         store = pg.evaluate('JSON.stringify(Object.assign({}, localStorage))')

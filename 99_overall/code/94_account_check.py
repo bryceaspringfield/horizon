@@ -173,6 +173,41 @@ def main():
             f = device()
             ok, err = sign_in(f, 'tester', 'a brand new passphrase')
             step('deleted account cannot sign in', not ok, '; '.join(err))
+
+            # 7. A sign-up which saves on this device only; the plans then move to the server, and back with the account deleted.
+            ls = lambda pg, k: pg.evaluate("k => localStorage.getItem(k)", k)
+            name_of = lambda pg: pg.locator('label.field:has-text("Plan name") input').input_value()
+            g = device()
+            g.goto(app); g.wait_for_selector('text=Create account')
+            g.click('button:has-text("Create account")')
+            g.check('input[name=where][value=device]')
+            hidden = g.locator('input[name=username]').count() == 0
+            g.check('input[name=agree]'); g.click('form button[type=submit]')
+            g.wait_for_selector('text=Welcome to Horizon', timeout=30000)
+            g.click('button:has-text("explore an example plan")'); g.wait_for_selector('nav')
+            g.goto(app + 'people'); g.wait_for_timeout(1500)
+            g.locator('label.field:has-text("Plan name") input').fill(NAME + ' G'); g.wait_for_timeout(1000)
+            step('sign-up can save on this device only', hidden and ls(g, 'horizon-mode') == 'local' and ls(g, 'horizon-account') is None
+                 and NAME in (ls(g, 'horizon-v1') or ''), f"username hidden {hidden}, mode {ls(g, 'horizon-mode')}")
+            g.goto(app + 'settings'); g.wait_for_timeout(1500)
+            g.fill('input[name=moveuser]', 'mover'); g.fill('input[name=movepw]', 'a long moving password'); g.fill('input[name=movepw2]', 'a long moving password')
+            g.click('button:has-text("Move my plans to Horizon")'); g.wait_for_timeout(9000)
+            h = device()
+            ok, err = sign_in(h, 'mover', 'a long moving password')
+            h.goto(app + 'people'); h.wait_for_timeout(2000)
+            v = name_of(h) if ok else ''
+            step('plans on a device move to the server', ok and v == NAME + ' G' and ls(g, 'horizon-v1') is None and ls(g, 'horizon-mode') == 'account',
+                 f"{v}; device copy {ls(g, 'horizon-v1') is not None}; {'; '.join(err)}")
+            g.goto(app + 'settings'); g.wait_for_timeout(2500)
+            card = g.locator('section.card:has(h3:has-text("Where your plans are saved"))')
+            card.locator('input[type=checkbox]').check(); g.fill('input[name=movepw]', 'a long moving password')
+            g.click('button:has-text("Move my plans to this device only")'); g.wait_for_timeout(9000)
+            g.goto(app + 'people'); g.wait_for_timeout(1500)
+            v = name_of(g)
+            i = device()
+            ok2, _ = sign_in(i, 'mover', 'a long moving password')
+            step('plans move back to the device, and the account is deleted', v == NAME + ' G' and ls(g, 'horizon-mode') == 'local' and not ok2,
+                 f"{v}; mode {ls(g, 'horizon-mode')}; account still signs in {ok2}")
             step('no page errors', not errors, '; '.join(errors[:3]))
             b.close()
     finally:

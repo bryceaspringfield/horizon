@@ -98,6 +98,15 @@ export function removePassword(data: string): void {
   sessionSalt = null;
 }
 
+/** Removes this device's own copy of the plans (after they moved to an account); no reload. */
+export function clearDevice(): void {
+  localStorage.removeItem(VAULT_KEY);
+  localStorage.removeItem(REMEMBER_KEY);
+  localStorage.removeItem(PLAIN_KEY);
+  sessionKey = null;
+  sessionSalt = null;
+}
+
 export function lock(): void {
   localStorage.removeItem(REMEMBER_KEY);
   sessionKey = null;

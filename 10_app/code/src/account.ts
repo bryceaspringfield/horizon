@@ -10,6 +10,7 @@
 // edits upload a second and a half after the last change, naming the version they replace, and a save from another
 // device in between is reported as a conflict instead of being overwritten.
 import { SYNC_URL } from './syncConfig';
+import { clearDevice, hasVault, PLAIN_KEY } from './vault';
 
 const ITERATIONS = 600_000;
 const SESSION_KEY = 'horizon-account';
@@ -194,6 +195,40 @@ export async function deleteAccount(password: string): Promise<string | null> {
   if (!r?.ok) return r?.data?.error ?? 'The server cannot be reached.';
   forget();
   localStorage.removeItem(MODE_KEY);
+  location.reload();
+  return null;
+}
+
+/** Moves plans kept on this device to a new account on Horizon's server; the device's own copy is removed. */
+export async function moveToServer(username: string, password: string, remember: boolean, data: string): Promise<string | null> {
+  const err = await signUp(username, password, remember, data);
+  if (err) return err;
+  clearDevice();
+  location.reload();
+  return null;
+}
+
+/** Moves the account's plans to this device alone. With the password, the account and its server copy are deleted;
+ *  without it, the server keeps its copy and this device signs out. */
+export async function moveToDevice(deletePassword: string | null): Promise<string | null> {
+  if (!session || plain === null) return 'Not signed in.';
+  if (hasVault()) return 'This device still holds older password-protected plans. Sign out and open or erase those first.';
+  const data = pending ?? plain;
+  if (deletePassword) {
+    const s = await api('/salt', 'POST', { username: session.username }).catch(() => null);
+    if (!s?.ok) return 'The server cannot be reached.';
+    const k = await keys(deletePassword, s.data.salt);
+    const r = await api('/delete', 'POST', { auth: k.auth }, session.token).catch(() => null);
+    if (!r?.ok) return r?.data?.error ?? 'The server cannot be reached.';
+  } else {
+    if (timer) clearTimeout(timer);
+    if (pending) { pending = null; await upload(data); }
+    await api('/logout', 'POST', {}, session.token).catch(() => null);
+  }
+  if (timer) clearTimeout(timer);
+  forget();
+  localStorage.setItem(PLAIN_KEY, data);
+  localStorage.setItem(MODE_KEY, 'local');
   location.reload();
   return null;
 }

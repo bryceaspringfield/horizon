@@ -2,8 +2,7 @@
 
 Asked by Bryce on 2026-11-23, in the order to build.
 
-- [ ] Where plans are saved: at sign-up (browser and installed app), a choice between this device and Horizon's server, changeable later in Settings (device to account uploads the plans; account to device downloads them and offers to delete the server copy).
-- [ ] Installable app: a web app manifest and service worker (an Install button, offline use) for Windows, Mac, Linux, and Android; then native installers built by GitHub Actions (.exe, .dmg, AppImage, .apk).
+- [ ] Native installers built by GitHub Actions (.exe, .dmg, AppImage, .apk), for people who prefer a download to the browser's Install button (the installable web app is live).
 - [ ] Import from ProjectionLab: read its exported JSON (Account Settings, Export Data) into Horizon plans (people, accounts, incomes, expenses, milestones, assumptions), with a report of what came across and what did not. Needs a real export file to test.
 - [ ] Currencies: a plan currency (symbol and format), a currency on each account, income, and expense, and exchange-rate assumptions (a rate today and a yearly drift).
 - [ ] Non-US tax systems, each from its tax authority's published rates, with its account types: Canada (federal and provinces; RRSP, TFSA, FHSA, CPP and OAS), the United Kingdom (income tax, National Insurance, dividend and capital gains allowances; ISA, SIPP, State Pension), Australia (income tax, Medicare levy; superannuation, Age Pension), Germany, the Netherlands (box 1, 2, 3), and Spain; then a custom bracket model for any other country.

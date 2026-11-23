@@ -9,11 +9,12 @@ import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWort
 import { useActivePlan, useDark, useStore } from './store';
 import { Card, Check, Select } from './ui';
 import { examplePlan } from './engine/defaults';
-import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
+import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, moveToDevice, moveToServer, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
+import { install, installed, useInstallOffer } from './install';
 import { hasVault, lock, openExport, removePassword, sealExport, setPassword } from './vault';
 
 /** The app's state as the store saves it. */
-const snapshotOfState = () => JSON.stringify({ state: useStore.getState(), version: 2 });
+const snapshotOfState = () => JSON.stringify({ state: useStore.getState(), version: 3 });
 
 const SYNC_LABEL: Record<SyncStatus, string> = { saved: 'Saved', saving: 'Saving…', offline: 'Offline, will retry', conflict: 'Changed on another device', signedOut: 'Signed out' };
 
@@ -55,6 +56,71 @@ function AccountCard() {
           <button className="ghost danger" onClick={async () => { const p = prompt('Delete the account and its plans on the server? Enter your password to confirm.'); if (p) setMsg((await deleteAccount(p)) ?? ''); }}>Delete account</button>
         </div>
       </div>
+    </Card>
+  );
+}
+
+/** Where the plans are saved, and the switch between this device and Horizon's server. */
+function StorageCard() {
+  const [user, setUser] = useState('');
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [remove, setRemove] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [busy, setBusy] = useState(false);
+  const run = async (f: () => Promise<string | null>) => { setBusy(true); setMsg((await f()) ?? ''); setBusy(false); };
+  if (signedIn()) return (
+    <Card title="Where your plans are saved" actions={<span className="badge">Horizon's server</span>}>
+      <div className="lockbox">
+        <p className="muted">Your plans are saved encrypted on Horizon's server, under the account <b>{accountName()}</b>. You can move them to this device alone: they are downloaded into this browser's storage, and this device signs out.</p>
+        <Check label="Also delete the account and its copy on the server" value={remove} onChange={setRemove} />
+        {remove && <label className="field"><span>Your password, to confirm the deletion</span><div className="input"><input type="password" name="movepw" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} /></div></label>}
+        {msg && <p className="error">{msg}</p>}
+        <div className="row"><button disabled={busy || (remove && !pw)} onClick={() => run(() => moveToDevice(remove ? pw : null))}>Move my plans to this device only</button></div>
+      </div>
+    </Card>
+  );
+  const toServer = () => {
+    if (!user) return setMsg('Choose a username.');
+    if (pw.length < 10) return setMsg('Use a password of at least 10 characters.');
+    if (pw !== pw2) return setMsg('The passwords differ.');
+    run(() => moveToServer(user, pw, false, snapshotOfState()));
+  };
+  return (
+    <Card title="Where your plans are saved" actions={<span className="badge">This device only</span>}>
+      <div className="lockbox">
+        <p className="muted">Your plans are saved in this browser's storage, and nothing is sent anywhere. You can move them to Horizon's server: they are encrypted in this browser with a key made from your password, and you can then sign in from any device. The server cannot read them, and a lost password cannot be recovered.</p>
+        <label className="field"><span>Username</span><div className="input"><input name="moveuser" autoComplete="username" value={user} onChange={(e) => setUser(e.target.value)} /></div></label>
+        <label className="field"><span>Password</span><div className="input"><input type="password" name="movepw" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} /></div></label>
+        <label className="field"><span>Password again</span><div className="input"><input type="password" name="movepw2" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></div></label>
+        {msg && <p className="error">{msg}</p>}
+        <div className="row">
+          <button disabled={busy} onClick={toServer}>Move my plans to Horizon's server</button>
+          <button className="ghost" onClick={() => { localStorage.removeItem(MODE_KEY); location.reload(); }}>Sign in to an existing account</button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+/** Installing Horizon as an app on this device. */
+function InstallCard() {
+  const offer = useInstallOffer();
+  if (installed()) return (
+    <Card title="Install Horizon" actions={<span className="badge">Installed</span>}>
+      <p className="muted">Horizon runs as an installed app on this device, and it opens with no connection. Plans saved on Horizon's server sync when the connection returns.</p>
+    </Card>
+  );
+  return (
+    <Card title="Install Horizon">
+      <p className="muted">Horizon installs as an app on Windows, macOS, Linux, Android, iPhone, and iPad. The installed app has an icon and a window of its own, and it opens with no connection.</p>
+      {offer && <div className="row"><button onClick={install}>Install Horizon on this device</button></div>}
+      <ul className="muted small">
+        <li>Chrome or Edge on Windows, macOS, and Linux: the install icon at the right end of the address bar, or the browser menu, then "Install Horizon".</li>
+        <li>Android (Chrome): the browser menu, then "Add to Home screen" or "Install app".</li>
+        <li>iPhone and iPad (Safari): the Share button, then "Add to Home Screen".</li>
+        <li>macOS (Safari): the File menu, then "Add to Dock".</li>
+      </ul>
     </Card>
   );
 }
@@ -289,10 +355,12 @@ function SettingsPage() {
           <Select label="Theme" value={settings.theme} options={[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />
         </div>
       </Card>
-      <AccountCard />
+      <StorageCard />
+      {signedIn() && <AccountCard />}
       {!signedIn() && <PasswordCard />}
+      <InstallCard />
       <Card title="Your data">
-        <p className="muted">Everything stays in this browser's storage; nothing is sent anywhere. To use another device, export an encrypted backup and import it there.</p>
+        <p className="muted">{signedIn() ? 'A backup file is your own copy of every plan, apart from the server\'s. Keep one in case the password is lost.' : 'Everything stays in this browser\'s storage; nothing is sent anywhere. To use another device, export an encrypted backup and import it there, or move your plans to Horizon\'s server above.'}</p>
         <div className="row">
           <button onClick={() => exportAll(true)}>Export encrypted backup</button>
           <button className="ghost" onClick={() => exportAll(false)}>Export unencrypted</button>
