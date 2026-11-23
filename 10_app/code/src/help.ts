@@ -243,4 +243,8 @@ export const HELP: Record<string, string> = {
   "Changes on": "The date the new amount starts, such as a raise on April 1. The year's pay blends the old amount before the date and the new one after.",
   "New yearly amount": "The yearly amount from the date on.",
   "In": "Whether the new amount is in today's dollars or in the dollars of that date. An announced raise or a known new salary is in the dollars of its date.",
+  "New band through plan year": "Adds a horizon band running through this plan year (1 is the first year). Each band can set its own inflation and returns; the values below the table apply after the last band.",
+  "Plan years": "The plan years a band covers, counted from the first year (1).",
+  "Paid in full every month (a card)": "Check this for a credit card you pay off in full each month. The card then never carries a balance or charges interest; its spending is counted in your expenses.",
+  "Choose Roth or traditional each year": "Each year, put contributions on the Roth side while your tax rate that year is at or below the rate expected in retirement, and on the traditional (pre-tax) side once it is higher. The plan estimates the retirement rate from a first projection. Applies to 401(k) and IRA contributions.",
 };

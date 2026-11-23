@@ -1,5 +1,6 @@
 // The pages reading the projection: the dashboard, net worth and cash-flow charts, taxes, Monte Carlo, plan
 // comparison, progress against the plan, and the year-by-year table.
+import { useDark } from '../store';
 import { useMemo, useState } from 'react';
 import type { AccountKind, Plan } from '../engine/types';
 import { runMonteCarlo, type MonteCarloResult } from '../engine/montecarlo';
@@ -139,6 +140,7 @@ function IncomeSpendingChart() {
 }
 
 export function CashFlowPage() {
+  const dark = useDark();
   const { plan, proj, adj, real } = useProjection();
   const [year, setYear] = useState(plan.startYear);
   const i = Math.max(0, proj.years.findIndex((y) => y.year === year));
@@ -170,7 +172,10 @@ export function CashFlowPage() {
       </div>
       <Chart height={520} option={{
         tooltip: { trigger: 'item', valueFormatter: (v: number) => money(v) },
-        series: [{ type: 'sankey', data: nodes, links, nodeGap: 10, emphasis: { focus: 'adjacency' }, lineStyle: { color: 'gradient', curveness: 0.5 }, label: { fontSize: 11 } }],
+        series: [{ type: 'sankey', data: nodes, links, nodeGap: 14, left: 8, right: 210, top: 10, bottom: 10, emphasis: { focus: 'adjacency' }, lineStyle: { color: 'gradient', curveness: 0.5, opacity: 0.35 },
+          // plain labels in the theme's text color (an outline blurred them), each with its amount, and room on the right for long names
+          label: { color: dark ? '#e8eaf4' : '#1d2033', fontSize: 13, fontWeight: 500, textBorderWidth: 0, textShadowBlur: 0, lineHeight: 17,
+            formatter: (p: { name: string; value: number }) => p.name + '\n{v|' + money(p.value) + '}', rich: { v: { color: dark ? '#9aa1bb' : '#6b7185', fontSize: 12, fontWeight: 400 } } } }],
       }} />
     </Card>
   );
@@ -284,8 +289,7 @@ export function MonteCarloPage() {
           }} />
         </Card>}
       </>}
-      {!result && <p className="muted">Runs the plan through many return paths and reports how often the money lasts. Red bars in a backtest mark start years in which it ran out.</p>}
-    </>
+          </>
   );
 }
 
@@ -310,7 +314,6 @@ export function ComparePage() {
             {p.id === mainId ? '★ ' : ''}{p.name}
           </label>
         ))}
-        <p className="muted">Make a copy of a plan in the plan menu, change one thing (retirement age, spending, a Roth conversion bracket), and compare.</p>
       </Card>
       {runs.length > 0 && <>
         <Card title={`Net worth (${dollarsNote(real)})`} wide>
@@ -375,7 +378,6 @@ export function ProgressPage() {
             Import CSV<input type="file" accept=".csv,text/csv" hidden onChange={(e) => e.target.files?.[0] && importCsv(e.target.files[0])} />
           </label>
         </div>
-        <p className="muted">CSV columns: date, account, balance (one row per account and date, e.g. 2026-01-31,401(k),125000). Accounts match by name.</p>
       </Card>
       <Card title="Actual net worth against the plan (nominal dollars)" wide>
         <Chart option={{
@@ -465,7 +467,6 @@ export function FirePage() {
         {bar('FI', f.fiNumber, f.fiYear)}
         {bar('Fat FI', f.fatFiNumber, f.fatFiYear)}
         {bar('Coast FI', f.coastFiNumber, f.coastReached ? plan.startYear : null)}
-        <p className="muted">FI is spending in the first retirement year over the safe withdrawal rate. Lean FI covers the living expenses alone (at least 60% of spending); Fat FI covers 150% of spending. Coast FI is the amount which, invested today with no more saving, grows to the FI number by retirement at the assumed real return.</p>
       </Card>
     </>
   );

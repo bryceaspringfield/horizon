@@ -73,7 +73,6 @@ export function CardsPage() {
           </section>
         ))}
       </div>
-      <p className="muted">{CATALOG_NOTE} Catalog of {CATALOG_DATE}.</p>
     </>
   );
 }

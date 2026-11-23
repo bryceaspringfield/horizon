@@ -26,7 +26,7 @@ export function Setup() {
   const set = (patch: Partial<SetupAnswers>) => setA((x) => ({ ...x, ...patch }));
   const people: ['you' | 'partner', string][] = a.hasPartner ? [['you', a.you.name || 'You'], ['partner', a.partner.name || 'Your partner']] : [['you', 'You']];
   const setPerson = (k: 'you' | 'partner', patch: Partial<SetupPerson>) => setA((x) => ({ ...x, [k]: { ...x[k], ...patch } }));
-  const age = (p: SetupPerson) => year - p.birthYear;
+  const age = (p: SetupPerson) => (p.birthYear ? year - p.birthYear : 0);
 
   const personFields = (k: 'you' | 'partner', title: string) => (
     <div className="grid" key={k}>
@@ -37,19 +37,17 @@ export function Setup() {
 
   const body = [
     <>
-      <p className="muted">A few questions set Horizon up for your situation. Rough numbers are fine, and you can change everything later.</p>
       {personFields('you', 'You')}
       <Check label="I am planning with a spouse or partner" value={a.hasPartner}
         onChange={(v) => set({ hasPartner: v, filingStatus: v ? 'mfj' : 'single' })} />
       {a.hasPartner && personFields('partner', 'Partner')}
       <div className="grid">
-        <Select label="State you live in" value={a.state} options={Object.keys(statesJson).sort().map((s) => [s, s] as [string, string])} onChange={(v) => set({ state: v })} />
+        <Select label="State you live in" value={a.state} options={[['', 'Choose'], ...Object.keys(statesJson).sort().map((s) => [s, s] as [string, string])]} onChange={(v) => set({ state: v })} />
         <Select<FilingStatus> label="Tax filing status" value={a.filingStatus}
           options={[['single', 'Single'], ['mfj', 'Married filing jointly'], ['hoh', 'Head of household']]} onChange={(v) => set({ filingStatus: v })} />
       </div>
     </>,
     <>
-      <p className="muted">Yearly pay before taxes, in today's dollars. Leave a salary at 0 for someone without paid work.</p>
       {people.map(([k, title]) => (
         <div key={k} className="setupgroup">
           <h4>{title}</h4>
@@ -66,7 +64,6 @@ export function Setup() {
       ))}
     </>,
     <>
-      <p className="muted">Balances today. Leave an account at 0 if you do not have one.</p>
       <div className="grid">
         <Num label="Checking and savings" value={a.cash} step={1000} onChange={(v) => set({ cash: v })} />
         <Num label="Taxable brokerage accounts" value={a.brokerage} step={1000} onChange={(v) => set({ brokerage: v })} />
@@ -94,7 +91,6 @@ export function Setup() {
           <Num label="Monthly payment (principal and interest)" value={a.mortgagePayment} step={50} onChange={(v) => set({ mortgagePayment: v })} />
         </div>
       )}
-      <p className="muted">Other debts, such as student loans, car loans, and credit cards, added together.</p>
       <div className="grid">
         <Num label="Other debts, total balance" value={a.otherDebt} step={1000} onChange={(v) => set({ otherDebt: v })} />
         <Num label="Average interest rate" value={a.otherDebtRate} percent onChange={(v) => set({ otherDebtRate: v })} />
@@ -102,7 +98,6 @@ export function Setup() {
       </div>
     </>,
     <>
-      <p className="muted">Yearly spending on everything except {a.ownsHome ? 'the mortgage, ' : ''}debt payments and taxes: {a.ownsHome ? '' : 'rent, '}food, transport, insurance, travel, and the rest. A rough figure is fine.</p>
       <div className="grid">
         <Num label="Yearly living expenses" value={a.living} step={1000} onChange={(v) => set({ living: v })} />
         <Num label="Yearly Roth IRA contributions" value={a.rothIra} step={500} onChange={(v) => set({ rothIra: v })} />
@@ -110,7 +105,6 @@ export function Setup() {
       </div>
     </>,
     <>
-      <p className="muted">Check the summary, then create your plan. Every figure can be changed later on the plan's pages.</p>
       <table className="setupsummary">
         <tbody>
           {people.map(([k, title]) => (
@@ -136,7 +130,7 @@ export function Setup() {
         {body[step]}
         <div className="row setupnav">
           {step > 0 && <button type="button" className="ghost" onClick={() => setStep(step - 1)}>Back</button>}
-          <button type="submit">{last ? 'Create my plan' : 'Next'}</button>
+          <button type="submit" disabled={last && (!a.state || !a.you.birthYear)}>{last ? 'Create my plan' : 'Next'}</button>
         </div>
         <button type="button" className="ghost" onClick={() => finish(examplePlan(), false)}>Skip the setup and explore an example plan</button>
         <ProjectionLabButton replace ghost />

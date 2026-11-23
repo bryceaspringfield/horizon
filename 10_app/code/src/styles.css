@@ -315,3 +315,10 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent); tex
 /* The a-year / a-month switch inside amount fields (2026-11-23) */
 .input .unit { border: 0; background: var(--accent-soft); color: var(--accent); font: inherit; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 7px; margin-left: 6px; cursor: pointer; white-space: nowrap; }
 .input .unit:hover { background: var(--accent); color: #fff; }
+
+/* Assumptions by horizon (2026-11-23) */
+.horizons { display: grid; gap: 6px; margin-bottom: 12px; }
+.hrow { display: grid; grid-template-columns: 110px repeat(4, minmax(80px, 1fr)) 80px; gap: 8px; align-items: center; }
+.hrow.head { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.hrow .field { margin: 0; }
+.hrow .field > span:empty { display: none; }

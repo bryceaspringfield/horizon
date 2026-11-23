@@ -29,7 +29,6 @@ export function EstatePage() {
           <Select label="Heirs are" value={e.heirs ?? 'children'} options={[['children', 'Children or grandchildren'], ['siblings', 'Siblings'], ['others', 'Others (nieces, friends)']]} onChange={(v) => update((p) => { p.estate = { ...e, heirs: v }; })} />
           <Num label="Number of heirs" value={e.heirCount ?? 2} onChange={(v) => update((p) => { p.estate = { ...e, heirCount: Math.max(1, v) }; })} />
         </div>
-        <p className="muted">The federal estate tax exemption is $15,000,000 a person in 2026 and $15,480,000 in 2027 (IRS), indexed by inflation after; a married couple gets two through portability. State estate taxes (12 states and DC) and inheritance taxes (5 states) use the Tax Foundation's table of October 1, 2026, for the state of residence at the last death, with each state's own brackets and method from its statute or tax form: the old federal credit table in Massachusetts, Rhode Island, Maryland (at most 16%), and Illinois (with its 40% limit), New York's cliff past 105% of its exemption, and the bracket tables of the rest. Heirs must empty an inherited traditional IRA within ten years and pay income tax on it; taxable accounts and real estate pass with a stepped-up basis and Roth accounts pass tax-free.</p>
       </Card>
       <Card title="Estate tax if the estate passed in each year (future dollars)">
         <Chart height={280} option={{ tooltip: moneyTooltip, grid: { left: 70, right: 16, top: 20, bottom: 30 },
@@ -53,7 +52,6 @@ export function OptimizePage() {
         <div className="grid">
           <Select label="Find the strategy with" value={target} options={[['legacy', 'The largest net legacy'], ['taxes', 'The lowest lifetime taxes']]} onChange={setTarget} />
         </div>
-        <p className="muted">Tries 60 combinations of Roth conversions (none, or up to the 12%, 22%, 24%, or 32% bracket), withdrawal order or proportional withdrawals, a withdrawal shield (none, under 22%, under the first IRMAA tier), and realizing gains in the 0% band. Strategies in which the money runs out rank last.</p>
       </Card>
       {results && <Card title="Best strategies">
         <div className="scroll">

@@ -1,4 +1,5 @@
 // A starting plan for a new user: a couple in their thirties, with every part of the model filled in, to edit.
+import { consensus } from './assumptions';
 import type { Plan } from './types';
 
 /** Fills the fields a plan saved by an earlier version lacks, so old plans open. */
@@ -12,6 +13,18 @@ export function upgradePlan(p: Plan): Plan {
 }
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
+
+/** A plan with nothing entered (Bryce, 2026-11-23: a new account or plan starts empty): one unnamed person, and no
+ * accounts, income, expenses, benefits, events, milestones, or transfers. The birth year is needed to run the plan. */
+export function emptyPlan(startYear = new Date().getFullYear()): Plan {
+  const p = examplePlan(startYear);
+  return {
+    ...p, name: 'New plan',
+    people: [{ id: 'p1', name: '', birthYear: startYear - 30, lifeExpectancy: 95 }],
+    accounts: [], incomes: [], expenses: [], socialSecurity: [], milestones: [], events: [],
+    strategy: { ...p.strategy, retirementAge: { p1: 65 }, transfers: [] },
+  };
+}
 
 export function examplePlan(startYear = new Date().getFullYear()): Plan {
   const you = { id: 'p1', name: 'You', birthYear: startYear - 35, lifeExpectancy: 92 };
@@ -67,11 +80,8 @@ export function examplePlan(startYear = new Date().getFullYear()): Plan {
       safeWithdrawalRate: 0.04,
     },
     assumptions: {
-      inflation: 0.025,
-      returns: { stocks: 0.085, bonds: 0.045, cash: 0.035 },
-      volatility: { stocks: 0.17, bonds: 0.06, cash: 0.01 },
-      correlation: 0.1,
-      dividendYield: 0.015,
+      // the analysts' consensus by horizon (engine/assumptions.ts, data/market_assumptions.json)
+      ...consensus(),
       state: 'MA',
       filingStatus: 'mfj',
     },

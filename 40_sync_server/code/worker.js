@@ -16,6 +16,7 @@
 //   POST /logout                                      -> {}
 //   POST /delete   {auth}                             -> {}
 //   GET  /admin/stats  (Bearer: the ADMIN_KEY secret)  -> counts only: accounts, and sessions seen lately
+//   POST /admin/reset  (Bearer: ADMIN_KEY) {confirm}    -> deletes every account and session
 // Ten wrong logins in a row lock a username for 15 minutes.
 
 const ORIGINS = ['https://bryceaspringfield.github.io', 'http://localhost:5173', 'http://localhost:4173', 'http://127.0.0.1:8765'];
@@ -149,6 +150,19 @@ export class Accounts {
       if (r === 'locked') return json({ error: 'Too many wrong passwords. Try again in 15 minutes.' }, 429);
       if (r !== 'ok') return json({ error: 'Wrong username or password.' }, 401);
       return json({ token: await this.newSession(u.name), data: u.data, version: u.version });
+    }
+
+    // Deletes every account and session (Bryce, 2026-11-23: a clean start to try the new-user experience). Needs the
+    // admin key and the body {"confirm": "delete every account"}; answers with the counts deleted.
+    if (route === 'POST /admin/reset') {
+      const key = /^Bearer (.+)$/.exec(req.headers.get('Authorization') ?? '')?.[1] ?? '';
+      if (!this.env.ADMIN_KEY || !same(await sha256(key), await sha256(this.env.ADMIN_KEY))) return json({ error: 'not found' }, 404);
+      if (body.confirm !== 'delete every account') return json({ error: 'confirm' }, 400);
+      const one = (q) => Object.values(this.sql.exec(q).toArray()[0])[0];
+      const accounts = one('SELECT COUNT(*) FROM users'), sessions = one('SELECT COUNT(*) FROM sessions');
+      this.sql.exec('DELETE FROM sessions');
+      this.sql.exec('DELETE FROM users');
+      return json({ deleted_accounts: accounts, deleted_sessions: sessions });
     }
 
     if (route === 'GET /admin/stats') {

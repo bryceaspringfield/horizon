@@ -11,6 +11,7 @@ import { Card, Check, ListEditor, Num, Select, Text, money, pct } from '../ui';
 import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../engine/currency';
 import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
+import { MARKET, consensus } from '../engine/assumptions';
 import { SPEND_CATEGORIES, categoryOf, type RewardRate, type SpendCategory } from '../engine/cards';
 
 const ACCOUNT_KINDS: [AccountKind, string][] = [
@@ -51,9 +52,6 @@ function ExpatCard() {
         <Check label="Claim the foreign earned income exclusion" value={e.exclusion} onChange={(v) => update((p) => { p.assumptions.expat = { ...e, exclusion: v }; })} />
         {e.exclusion && <Num label="Yearly housing cost abroad (today's $)" step={500} value={e.housing} hint="Rent, utilities, and insurance abroad. The part between 16% and 30% of the exclusion limit is excluded too." onChange={(v) => update((p) => { p.assumptions.expat = { ...e, housing: v }; })} />}
       </div>
-      <p className="muted">{abroad
-        ? 'The exclusion leaves out up to $132,900 a person (2026) of pay marked "Earned while living abroad" on the Income page. Foreign income tax entered on an income is credited toward US tax on that income, and credit left unused carries forward ten years. With the exclusion claimed, foreign tax on the excluded pay earns no credit.'
-        : 'Mark a salary or self-employment income as "Earned while living abroad" on the Income page, and enter the foreign income tax paid on it. Horizon then applies the foreign tax credit, and the exclusion where you claim it here.'}</p>
     </Card>
   );
 }
@@ -71,7 +69,6 @@ function CurrencyCard() {
       <div className="grid">
         <Select label="Plan currency" value={home} options={options} onChange={(v) => update((p) => { p.currency = v === 'USD' ? undefined : v; })} />
       </div>
-      <p className="muted">Every result is shown in the plan's currency. Changing it relabels the plan's amounts and converts none of them. An account, an income, or an expense can be held in another currency, chosen on its own page; each such currency gets an exchange rate here.</p>
       {foreign.map((c) => {
         const f = plan.assumptions.fx?.[c] ?? { rate: 1, drift: 0 };
         const set = (patch: Partial<typeof f>) => update((p) => { p.assumptions.fx = { ...p.assumptions.fx, [c]: { ...f, ...patch } }; });
@@ -332,10 +329,13 @@ export function AccountsPage() {
                   {a.realEstate && <Check label="The home you live in (its sale excludes $250,000 of gain a person)" value={!!a.primaryResidence} onChange={(v) => set((x) => { x.primaryResidence = v || undefined; })} />}
                 </>}
                 {a.kind === 'debt' && <>
+                  <Check label="Paid in full every month (a card)" value={!!a.paidInFull} onChange={(v) => set((x) => { x.paidInFull = v || undefined; if (v) { x.balance = 0; x.interestRate = undefined; x.payment = undefined; } })} />
+                  {!a.paidInFull && <>
                   <Num label="Interest rate" percent value={a.interestRate ?? 0} onChange={(v) => set((x) => { x.interestRate = v; })} />
                   <Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
                   <Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
                   <Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
+                  </>}
                   <Num label="Annual fee" value={a.annualFee ?? 0} onChange={(v) => set((x) => { x.annualFee = v || undefined; })} />
                   <RatesEditor rates={a.rewards} onChange={(r) => set((x) => { x.rewards = r.length ? r : undefined; })} />
                   {!a.rewards?.length && <>
@@ -433,7 +433,6 @@ export function IncomePage() {
         />
       </Card>
       <Card title="Social Security">
-        <p className="muted">Enter the monthly benefit at full retirement age (67) from your statement at ssa.gov/myaccount.</p>
         {plan.people.map((person) => {
           const i = plan.socialSecurity.findIndex((s) => s.ownerId === person.id);
           const ss = plan.socialSecurity[i];
@@ -539,9 +538,8 @@ export function EventsPage() {
             <>
               <Select label="Event" value={e.kind} options={EVENT_KINDS} onChange={(v) => update((p) => { p.events![i] = { ...newEvent(v, e.year, p.people[0].id), id: e.id }; })} />
               <Text label="Name" value={e.name} onChange={(v) => set((x) => { x.name = v; })} />
-              <Num label="Year" value={e.year} onChange={(v) => set((x) => { x.year = v; })} />
-              <label className="field"><span>Exact date (optional)</span><div className="input"><input type="date" value={e.date ?? ''} onChange={(ev) => set((x) => { x.date = ev.target.value || undefined; if (ev.target.value) x.year = Number(ev.target.value.slice(0, 4)); })} /></div></label>
-              {'endYear' in e && <label className="field"><span>Exact end date (optional)</span><div className="input"><input type="date" value={e.endDate ?? ''} onChange={(ev) => set((x) => { x.endDate = ev.target.value || undefined; if (ev.target.value && 'endYear' in x) (x as { endYear: number }).endYear = Number(ev.target.value.slice(0, 4)); })} /></div></label>}
+              <label className="field"><span>Date</span><div className="input"><input type="date" value={e.date ?? e.year + '-01-01'} onChange={(ev) => { const d = ev.target.value; if (d) set((x) => { x.date = d; x.year = Number(d.slice(0, 4)); }); }} /></div></label>
+              {'endYear' in e && <label className="field"><span>End date</span><div className="input"><input type="date" value={e.endDate ?? ''} onChange={(ev) => set((x) => { x.endDate = ev.target.value || undefined; if (ev.target.value && 'endYear' in x) (x as { endYear: number }).endYear = Number(ev.target.value.slice(0, 4)); })} /></div></label>}
               {e.kind === 'homePurchase' && <>
                 <Num label="Price (today's $)" value={e.price} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.price = v; })} />
                 <Num label="Down payment" percent value={e.downPayment} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.downPayment = v; })} />
@@ -558,7 +556,6 @@ export function EventsPage() {
               {(e.kind === 'careerBreak' || e.kind === 'payChange') && (
                 <Select label="Person" value={e.personId} options={people} onChange={(v) => set((x) => { if (x.kind === 'careerBreak' || x.kind === 'payChange') x.personId = v; })} />
               )}
-              {e.kind === 'careerBreak' && <Num label="Back to work after" value={e.endYear} onChange={(v) => set((x) => { if (x.kind === 'careerBreak') x.endYear = v; })} />}
               {e.kind === 'rentalProperty' && <>
                 <Num label="Price (today's $)" value={e.price} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.price = v; })} />
                 <Num label="Down payment" percent value={e.downPayment} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.downPayment = v; })} />
@@ -594,7 +591,6 @@ export function EventsPage() {
           );
         }}
       />
-      <p className="muted">A home purchase adds the home, its mortgage (payment from the rate and term), the down payment and closing costs, and property tax; a child adds yearly costs to 18 and college after, paid first from a 529 account if you have one; a career break stops that person's pay; a pay change scales it from that year on; a rental adds the property, its mortgage, and net rent as taxable income; a move changes the state income tax from that year; an inheritance arrives as cash, or as an inherited IRA emptied over ten years as taxable income; a recurring purchase repeats every few years; a separation takes the person who leaves out of the plan (their pay and Social Security), keeps a share of every account, scales the expenses, files single (or head of household with children), and can add support payments.</p>
     </Card>
   );
 }
@@ -676,11 +672,11 @@ export function StrategyPage() {
           <Num label="Traditional IRA a year" value={s.iraContribution} onChange={(v) => update((p) => { p.strategy.iraContribution = v; })} />
           <Num label="Roth IRA a year" value={s.rothIraContribution} onChange={(v) => update((p) => { p.strategy.rothIraContribution = v; })} />
           <Num label="HSA a year" value={s.hsaContribution} onChange={(v) => update((p) => { p.strategy.hsaContribution = v; })} />
+          <Check label="Choose Roth or traditional each year" value={!!s.autoRoth} onChange={(v) => update((p) => { p.strategy.autoRoth = v || undefined; })} />
           <Check label="Backdoor Roth (no income limit on the Roth IRA)" value={!!s.backdoorRoth} onChange={(v) => update((p) => { p.strategy.backdoorRoth = v; })} />
           <Num label="Mega backdoor Roth a year" value={s.megaBackdoor ?? 0} onChange={(v) => update((p) => { p.strategy.megaBackdoor = v; })} />
           <Select label="Leftover pay goes to" value={s.surplusTo ?? 'invest'} options={[['invest', 'Investing (taxable account)'], ['debt', 'Paying debts down first']]} onChange={(v) => update((p) => { p.strategy.surplusTo = v; })} />
         </div>
-        <p className="muted">Each contribution is capped at the year's IRS limit, catch-up included. Pay left after expenses and contributions fills the cash target, then goes to the taxable account.</p>
       </Card>
       <Card title="Withdrawals in retirement">
         <ol className="order">
@@ -729,7 +725,6 @@ export function StrategyPage() {
           </>}
           <Check label="Give to charity from IRAs from 71 (qualified charitable distributions)" value={!!s.qcd} onChange={(v) => update((p) => { p.strategy.qcd = v; })} />
         </div>
-        <p className="muted">A qualified charitable distribution pays the plan's yearly charity (Taxes and health) straight from a traditional IRA, up to $111,000 a person in 2026 ($114,000 in 2027), counts toward the RMD, and is left out of income. An HSA pays the year's healthcare expenses and premiums tax-free; HSA money spent on anything else is income, with a 20% penalty before 65.</p>
       </Card>
       <TransfersCard />
       <Card title="Asset allocation over time (glide path)">
@@ -741,7 +736,6 @@ export function StrategyPage() {
             <Num label="Stocks at the end" percent value={s.glidePath.endStocks} onChange={(v) => update((p) => { p.strategy.glidePath!.endStocks = v; })} />
           </>}
         </div>
-        <p className="muted">Each invested account starts from its own mix and moves in a straight line to the end share by its owner's age; the rest goes to bonds.</p>
       </Card>
       <Card title="Roth conversions">
         <div className="grid">
@@ -765,7 +759,6 @@ export function StrategyPage() {
           <Check label="72(t) SEPP withdrawals before 59½ (no penalty)" value={!!s.sepp?.enabled} onChange={(v) => update((p) => { p.strategy.sepp = { startYear: p.startYear + 10, ...p.strategy.sepp, enabled: v }; })} />
           {s.sepp?.enabled && <Num label="SEPP from year" value={s.sepp.startYear} onChange={(v) => update((p) => { p.strategy.sepp!.startYear = v; })} />}
         </div>
-        <p className="muted">Each year in the window, traditional balances move to Roth until ordinary taxable income reaches the top of the chosen bracket ({pct(s.rothConversionBracket, 0)}).</p>
       </Card>
     </>
   );
@@ -799,7 +792,6 @@ function TransfersCard() {
           );
         }}
       />
-      <p className="muted">Each transfer moves up to the amount while the source has it, with the tax the move causes: traditional to Roth is a conversion, traditional to anything else is taxable income (with the 10% penalty before 59½), a taxable account's sale realizes its gains, and HSA money is spent outside healthcare. A transfer to a debt pays it down.</p>
     </Card>
   );
 }
@@ -834,11 +826,9 @@ export function TaxHealthPage() {
           {!!d.mortgageDebtLimit && <Num label="Home debt limit ($1,000,000 for loans from before December 16, 2017)" step={50000} value={d.mortgageDebtLimit} onChange={(v) => update((p) => { p.deductions.mortgageDebtLimit = v || undefined; })} />}
           <Num label="Charitable giving a year (today's $)" value={d.charity} onChange={(v) => update((p) => { p.deductions.charity = v; })} />
         </div>
-        <p className="muted">Itemized deductions add mortgage interest on debts secured by real estate, charity, and state income and property taxes up to the SALT cap ($40,400 in 2026, rising 1% a year to 2029, falling by 30% of income above $505,000 to a $10,000 floor, and $10,000 from 2030). Property tax and charity also count as spending.</p>
       </Card>
       <Card title="Local income tax">
         <LocalTaxFields value={plan.assumptions.local} onChange={(v) => update((p) => { p.assumptions.local = v; })} />
-        <p className="muted">New York City uses its resident brackets (3.078% to 3.876%). The city presets are each city's 2025 resident rate; check your city's current rate and edit it. A move event can set the local tax of the new place.</p>
       </Card>
       <Card title="Health insurance">
         <div className="grid">
@@ -848,7 +838,6 @@ export function TaxHealthPage() {
           <Check label="ACA marketplace coverage from retirement to 65" value={h.aca} onChange={(v) => update((p) => { p.healthcare.aca = v; })} />
           <Num label="Benchmark silver premium a person a year" value={h.acaBenchmark} onChange={(v) => update((p) => { p.healthcare.acaBenchmark = v; })} />
         </div>
-        <p className="muted">Medicare: the 2026 and 2027 Part B premiums ($202.90, $209.40 a month) and CMS's surcharge tiers on income from two years earlier. ACA: the benchmark premium less the premium tax credit, which caps it at 2.1% to 9.96% of income (2026) up to 400% of the poverty line and ends above it. Look up your benchmark at healthcare.gov.</p>
       </Card>
     </>
   );
@@ -862,7 +851,26 @@ export function AssumptionsPage() {
     <>
     <CurrencyCard />
     <ExpatCard />
-    <Card title="Market and inflation assumptions">
+    <Card title="By horizon">
+        <div className="horizons">
+          <div className="hrow head"><span>Plan years</span><span>Inflation</span><span>Stocks</span><span>Bonds</span><span>Cash</span><span /></div>
+          {(a.horizons ?? []).map((h, k, all) => (
+            <div className="hrow" key={k}>
+              <span>{(k ? all[k - 1].through + 1 : 1) + (h.through > (k ? all[k - 1].through + 1 : 1) ? ' to ' + h.through : '')}</span>
+              {(['inflation', 'stocks', 'bonds', 'cash'] as const).map((key) => (
+                <Num key={key} label="" percent value={h[key] ?? (key === 'inflation' ? a.inflation : a.returns[key])} onChange={(v) => update((p) => { p.assumptions.horizons![k][key] = v; })} />
+              ))}
+              <button className="ghost danger" onClick={() => update((p) => { p.assumptions.horizons!.splice(k, 1); })}>Remove</button>
+            </div>
+          ))}
+          <div className="hrow"><span>After</span><span>{pct(a.inflation)}</span><span>{pct(a.returns.stocks)}</span><span>{pct(a.returns.bonds)}</span><span>{pct(a.returns.cash)}</span><span /></div>
+        </div>
+        <div className="row">
+          <Num label="New band through plan year" value={0} onChange={(v) => { if (v > 0) update((p) => { (p.assumptions.horizons ??= []).push({ through: Math.round(v) }); p.assumptions.horizons.sort((x, y) => x.through - y.through); }); }} />
+          <button className="ghost" onClick={() => update((p) => { Object.assign(p.assumptions, consensus()); })}>Use the analysts' consensus ({MARKET.asOf})</button>
+        </div>
+      </Card>
+      <Card title="Market and inflation assumptions">
       <div className="grid">
         <Num label="Inflation" percent value={a.inflation} onChange={(v) => update((p) => { p.assumptions.inflation = v; })} />
         <Num label="Stock return" percent value={a.returns.stocks} onChange={(v) => update((p) => { p.assumptions.returns.stocks = v; })} />
@@ -887,7 +895,6 @@ export function AssumptionsPage() {
           <Num label="Stocks fall by" percent value={a.crash.drop} onChange={(v) => update((p) => { p.assumptions.crash!.drop = v; })} />
         </>}
       </div>
-      <p className="muted">Returns are nominal yearly averages. From 1928 to 2025, the S&P 500 returned 11.9% a year on average (10.0% compounded), 10-year Treasuries 4.8%, T-bills 3.4%, and inflation averaged 3.1% (Damodaran, NYU Stern).</p>
     </Card>
     </>
   );

@@ -1,0 +1,20 @@
+{
+  "asOf": "2026-11-23",
+  "note": "Consensus market assumptions by horizon. Each band runs from the plan's first year to the year given (inclusive); the last band runs on.",
+  "sources": {
+    "inflation": "Cleveland Fed expected inflation, November 2026 (FRED EXPINF1YR to EXPINF30YR): 1y 3.04%, 2y 2.87%, 3y 2.79%, 5y 2.72%, 10y 2.67%, 20y 2.65%, 30y 2.66%; each band is the forward rate between horizons.",
+    "stocks": "US large cap, nominal: median of 14 firms' 10-year forecasts, 6.5% (PortfolioLab, November 2026: J.P. Morgan 2027 LTCMA 7.5%, BlackRock 9.0%, Vanguard 4.8% to 6.8%, and others); 20-year: Horizon Actuarial survey average, 7.0%.",
+    "bonds": "US aggregate bonds: median of 14 firms' 10-year forecasts, 4.8%; 20-year: Horizon Actuarial survey average, 5.1%.",
+    "cash": "Median of 9 firms' cash forecasts, 3.5% (PortfolioLab, November 2026).",
+    "volatility": "Standard deviation of yearly returns in the app's history (Damodaran): stocks 16.0% over 1976 to 2025 (19.4% since 1928), 10-year Treasuries 7.9% since 1928.",
+    "correlation": "Stocks with 10-year Treasuries, 1928 to 2025: 0.02 (1976 to 2025: 0.05; 2000 to 2025: -0.37).",
+    "dividendYield": "S&P 500 dividend yield, 1.17% on November 20, 2026 (multpl.com)."
+  },
+  "base": { "inflation": 0.0266, "stocks": 0.07, "bonds": 0.051, "cash": 0.035, "volStocks": 0.16, "volBonds": 0.08, "correlation": 0.02, "dividendYield": 0.0117 },
+  "bands": [
+    { "through": 1, "inflation": 0.0304, "stocks": 0.065, "bonds": 0.048, "cash": 0.035 },
+    { "through": 3, "inflation": 0.0266, "stocks": 0.065, "bonds": 0.048, "cash": 0.035 },
+    { "through": 10, "inflation": 0.0261, "stocks": 0.065, "bonds": 0.048, "cash": 0.035 },
+    { "through": 20, "inflation": 0.0264, "stocks": 0.07, "bonds": 0.051, "cash": 0.035 }
+  ]
+}

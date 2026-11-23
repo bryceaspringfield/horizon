@@ -108,6 +108,9 @@ def main():
         su.goto(url); su.wait_for_selector('text=Welcome to Horizon')
         su.locator('label.field:has-text("first name") input').fill('Avery')
         su.locator('label.field:has-text("Age") input').fill('40')
+        st = su.locator('.field:has(> span:text-is("State you live in"))')
+        if st.count():
+            st.locator('.ddbtn').click(); su.locator('.ddlist [data-value="MA"]').click()
         su.click('button:has-text("Next")')
         su.locator('label.field:has-text("Yearly salary") input').fill('95000')
         su.click('button:has-text("Next")')

@@ -1,6 +1,7 @@
 // Many paths of returns and inflation through one plan: random paths from the plan's assumptions (normal returns
 // with the stock-bond correlation), random paths drawn from history (blocks of consecutive years, so crashes and
 // recoveries stay together), and every historical start year in sequence (a backtest).
+import { assumptionAt } from './assumptions';
 import history from '../data/returns.json';
 import { lastYear, simulate } from './simulate';
 import type { Plan, Projection, ReturnPath } from './types';
@@ -62,10 +63,11 @@ export function normalPath(plan: Plan, n: number, rand: () => number): ReturnPat
   const rho = a.correlation;
   for (let i = 0; i < n; i++) {
     const z1 = gaussian(rand), z2 = gaussian(rand), z3 = gaussian(rand);
-    p.stocks.push(Math.max(-0.95, a.returns.stocks + a.volatility.stocks * z1));
-    p.bonds.push(Math.max(-0.5, a.returns.bonds + a.volatility.bonds * (rho * z1 + Math.sqrt(1 - rho * rho) * z2)));
-    p.cash.push(Math.max(-0.02, a.returns.cash + a.volatility.cash * z3));
-    p.inflation.push(a.inflation + 0.012 * gaussian(rand));
+    // each year's means follow the horizon bands (engine/assumptions.ts)
+    p.stocks.push(Math.max(-0.95, assumptionAt(a, 'stocks', i) + a.volatility.stocks * z1));
+    p.bonds.push(Math.max(-0.5, assumptionAt(a, 'bonds', i) + a.volatility.bonds * (rho * z1 + Math.sqrt(1 - rho * rho) * z2)));
+    p.cash.push(Math.max(-0.02, assumptionAt(a, 'cash', i) + a.volatility.cash * z3));
+    p.inflation.push(assumptionAt(a, 'inflation', i) + 0.012 * gaussian(rand));
   }
   return p;
 }

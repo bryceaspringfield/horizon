@@ -41,3 +41,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Households: each with a place and members over time (moves on dates or life events); shared costs scale with household size by an economies-of-scale rule, not per head; costs others pay count as zero for that person; children and pets add their own.
 - Insurance coverage imported or prefilled: premiums, deductible, out-of-pocket maximum, copays, employer HSA money; employer presets (MIT's 2026 benefits first).
 - Prefilled costs: tuition by university and program (College Scorecard), rent by metro (HUD fair market rents, Zillow ZORI), home prices (Zillow ZHVI), essentials by place.
+
+## ProjectionLab parity from the live app (Bryce, 2026-11-23)
+- Open ProjectionLab as a guest (Playwright) and record every screen, setting, and chart: tax-bracket optimization, drawdown order, gain harvesting, Roth conversions, flexible spending, tax strategy, estate planning, compare and what-if; build each one Horizon lacks.

@@ -48,16 +48,16 @@ export interface SetupAnswers {
 }
 
 const person = (name: string, age: number, year: number): SetupPerson => ({
-  name, birthYear: year - age, salary: 0, contributionRate: 0.06, employerMatch: 0.5, matchLimit: 0.06, retirementAge: 65,
+  name, birthYear: age ? year - age : 0, salary: 0, contributionRate: 0, employerMatch: 0, matchLimit: 0, retirementAge: 0,
   socialSecurity: 0, traditional: 0, roth: 0,
 });
 
 export function blankAnswers(year = new Date().getFullYear()): SetupAnswers {
   return {
-    you: person('', 35, year), hasPartner: false, partner: person('', 35, year), filingStatus: 'single', state: 'MA',
+    you: person('', 0, year), hasPartner: false, partner: person('', 0, year), filingStatus: 'single', state: '',
     cash: 0, brokerage: 0, brokerageBasis: 0, hsa: 0,
-    ownsHome: false, homeValue: 0, mortgageBalance: 0, mortgageRate: 0.065, mortgagePayment: 0,
-    otherDebt: 0, otherDebtRate: 0.07, otherDebtPayment: 0,
+    ownsHome: false, homeValue: 0, mortgageBalance: 0, mortgageRate: 0, mortgagePayment: 0,
+    otherDebt: 0, otherDebtRate: 0, otherDebtPayment: 0,
     living: 0, rothIra: 0, hsaContribution: 0,
   };
 }
@@ -69,6 +69,8 @@ export function setupBenefit(p: SetupPerson): number {
 }
 
 export function planFromAnswers(a: SetupAnswers, year = new Date().getFullYear()): Plan {
+  // a blank age or retirement age falls back to a neutral value (the setup asks for both); a blank state stays blank
+  for (const p of [a.you, a.partner]) { if (!p.birthYear) p.birthYear = year - 30; if (!p.retirementAge) p.retirementAge = 65; }
   const base = examplePlan(year);
   const people = [{ id: 'p1', a: a.you, fallback: 'You' }, ...(a.hasPartner ? [{ id: 'p2', a: a.partner, fallback: 'Partner' }] : [])];
   const none = { stocks: 0, bonds: 0, cash: 0 };
@@ -118,12 +120,8 @@ export function planFromAnswers(a: SetupAnswers, year = new Date().getFullYear()
     socialSecurity: people.map(({ id, a: p }) => ({ ownerId: id, pia: setupBenefit(p), claimAge: 67 })),
     expenses: [
       { id: 'e_living', name: 'Living expenses', kind: 'living', amount: a.living, startYear: year, growth: 0 },
-      { id: 'e_health', name: 'Out-of-pocket healthcare', kind: 'healthcare', amount: 4000, startYear: Math.max(year, oldest + 60), growth: 0.015 },
     ],
-    milestones: [
-      { id: 'm_fi', name: 'Financial independence', kind: 'financialIndependence' },
-      { id: 'm_ret', name: 'Retirement', kind: 'age', personId: 'p1', age: a.you.retirementAge },
-    ],
+    milestones: [],
     strategy: {
       ...base.strategy,
       retirementAge: Object.fromEntries(people.map((p) => [p.id, p.a.retirementAge])),

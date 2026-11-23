@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { examplePlan } from '../defaults';
+import { examplePlan as example } from '../defaults';
+
+// these tests check mechanics on flat assumptions: the horizon bands (engine/assumptions.ts) are left out
+const examplePlan = (...args: Parameters<typeof example>) => { const p = example(...args); delete p.assumptions.horizons; return p; };
 import { simulate } from '../simulate';
 import { computeTax } from '../tax';
 import type { Plan } from '../types';
@@ -44,7 +47,7 @@ describe('transfers and gifts', () => {
     const p = base();
     p.strategy.transfers = [{ id: 't', name: 'Convert', from: 'a_401k', to: 'a_roth', amount: 10000, startYear: 2027, endYear: 2028 }];
     const y = at(p, 2027);
-    expect(y.transfers).toBeCloseTo(10000 * 1.025, -1);
+    expect(y.transfers).toBeCloseTo(10000 * (1 + p.assumptions.inflation), -1);
     expect(y.rothConversion).toBeGreaterThanOrEqual(y.transfers! - 1);
     expect(at(p, 2029).transfers).toBe(0);
   });
@@ -56,7 +59,7 @@ describe('transfers and gifts', () => {
     q.strategy.qcd = false;
     const year = p.people[0].birthYear + 71;
     const a = at(p, year), b = at(q, year);
-    expect(a.qcd).toBeCloseTo(20000 * Math.pow(1.025, year - 2026), -1);
+    expect(a.qcd).toBeCloseTo(20000 * Math.pow(1 + p.assumptions.inflation, year - 2026), -1);
     expect(a.taxes.taxableIncome).toBeLessThan(b.taxes.taxableIncome);
   });
 });

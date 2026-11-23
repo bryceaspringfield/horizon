@@ -43,6 +43,8 @@ export interface Account {
   appreciation?: number;
   /** Credit cards (debts): the share of the year's spending charged to the card, and the cash back it earns on that
    * spending (0.015 for 1.5%). Cash back is a rebate on purchases, not taxed income (IRS). */
+  /** Credit cards: paid in full every month, so the card never carries a balance or charges interest. */
+  paidInFull?: boolean;
   cardSpendShare?: number;
   cashBackRate?: number;
   /** Credit cards: earning rates by category or overall (engine/cards.ts), and the yearly fee; with rates set, the card
@@ -265,6 +267,9 @@ export interface Milestone {
 export type WithdrawalStep = 'cash' | 'taxable' | 'traditional' | 'roth' | 'hsa';
 
 export interface Strategy {
+  /** Choose Roth or traditional for each year's contributions: Roth while the year's marginal rate is at or below the
+   * expected rate in retirement, traditional above it (engine/simulate.ts rothSplit). */
+  autoRoth?: boolean;
   /** The most converted to Roth in a year (today's dollars), under the bracket fill; unset, no cap. */
   rothConversionCap?: number;
   /** Retirement: the first year of no salary, per person, by age. */
@@ -375,6 +380,9 @@ export interface Assumptions {
   volatility: { stocks: number; bonds: number; cash: number };
   /** Correlation of stocks and bonds. */
   correlation: number;
+  /** Assumptions by horizon (engine/assumptions.ts): bands from the first year through a year count, each setting any of
+   * inflation and the three returns; the single values above fill the rest and every year after the last band. */
+  horizons?: import('./assumptions').HorizonBand[];
   /** Share of a taxable account's return paid as dividends and interest each year. */
   dividendYield: number;
   state: string;

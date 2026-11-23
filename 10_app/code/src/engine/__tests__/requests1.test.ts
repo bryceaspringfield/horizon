@@ -1,7 +1,10 @@
 // Requests from ProjectionLab's board, first batch: RSU cliffs, bonuses, the 401(k) Roth split, inflation-linked
 // accounts, a later withdrawal order, and capital loss carryforward.
 import { describe, expect, it } from 'vitest';
-import { examplePlan } from '../defaults';
+import { examplePlan as example } from '../defaults';
+
+// these tests check mechanics on flat assumptions: the horizon bands (engine/assumptions.ts) are left out
+const examplePlan = (...args: Parameters<typeof example>) => { const p = example(...args); delete p.assumptions.horizons; return p; };
 import { meanPath, simulate } from '../simulate';
 import type { Plan } from '../types';
 

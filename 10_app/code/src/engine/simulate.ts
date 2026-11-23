@@ -6,6 +6,7 @@
 // raises the tax, which needs more withdrawal) in a few passes. A surplus fills the cash target and the rest goes to
 // the first taxable account. Balances then earn the year's returns, a taxable account's dividends are taxed in the
 // same year, assets appreciate and are sold in their sale year, and debts accrue interest.
+import { assumptionAt } from './assumptions';
 import { resolve, shareOfYear, yearOf } from './dates';
 import { cardRewards, cardable, categoryOf, type SpendCategory } from './cards';
 import { convertCurrencies } from './currency';
@@ -30,10 +31,10 @@ export function meanPath(plan: Plan): ReturnPath {
   const n = lastYear(plan) - plan.startYear + 1;
   const a = plan.assumptions;
   return {
-    stocks: Array(n).fill(a.returns.stocks),
-    bonds: Array(n).fill(a.returns.bonds),
-    cash: Array(n).fill(a.returns.cash),
-    inflation: Array(n).fill(a.inflation),
+    stocks: Array.from({ length: n }, (_, i) => assumptionAt(a, 'stocks', i)),
+    bonds: Array.from({ length: n }, (_, i) => assumptionAt(a, 'bonds', i)),
+    cash: Array.from({ length: n }, (_, i) => assumptionAt(a, 'cash', i)),
+    inflation: Array.from({ length: n }, (_, i) => assumptionAt(a, 'inflation', i)),
   };
 }
 
@@ -119,7 +120,29 @@ export function expandEvents(plan: Plan): Plan {
   return plan;
 }
 
+/** The Roth share of workplace and IRA contributions by year when the plan chooses it (strategy.autoRoth): Roth in a year
+ * whose marginal rate is at or below the expected marginal rate in retirement, traditional above it. A first projection on
+ * the mean path gives each year's marginal rate and the retirement rate (the average over years without pay); cached per
+ * plan, since Monte Carlo runs the plan many times. */
+const ROTH_SPLIT = new WeakMap<Plan, Record<number, number>>();
+export function rothSplit(plan: Plan): Record<number, number> {
+  let m = ROTH_SPLIT.get(plan);
+  if (m) return m;
+  const first = simulateOnce(plan, meanPath(plan), {});
+  const pay = plan.incomes.filter((i) => i.kind === 'salary' || i.kind === 'selfEmployment').map((i) => i.id);
+  const retired = first.years.filter((y) => pay.every((id) => !(y.income[id] > 0)));
+  const retRate = retired.length ? retired.reduce((t, y) => t + y.taxes.marginalRate, 0) / retired.length : 0.12;
+  m = {};
+  for (const y of first.years) m[y.year] = y.taxes.marginalRate <= retRate + 1e-9 ? 1 : 0;
+  ROTH_SPLIT.set(plan, m);
+  return m;
+}
+
 export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Projection {
+  return simulateOnce(plan, path, plan.strategy.autoRoth ? rothSplit(plan) : undefined);
+}
+
+function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, number>): Projection {
   expandEvents(plan);
   const a = plan.assumptions;
   const s = plan.strategy;
@@ -338,7 +361,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
           const employee = Math.max(0, Math.min(amt * cRate, limit - (deferredBy[inc.ownerId] ?? 0)));
           deferredBy[inc.ownerId] = (deferredBy[inc.ownerId] ?? 0) + employee;
           // The deferral, split between the pre-tax and the Roth side; a Roth deferral leaves take-home pay, after tax.
-          const rothShare = Math.max(0, Math.min(1, inc.contributionRothShare ?? (inc.contributionRoth ? 1 : 0)));
+          const rothShare = rothByYear && rothByYear[y] !== undefined ? rothByYear[y] : Math.max(0, Math.min(1, inc.contributionRothShare ?? (inc.contributionRoth ? 1 : 0)));
           for (const [roth, part] of [[false, employee * (1 - rothShare)], [true, employee * rothShare]] as const) {
             const acc = plan401(inc.ownerId, roth);
             if (!acc || part <= 0) continue;
@@ -377,7 +400,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         const employer = Math.max(0, Math.min(amt * Math.min(0.2, inc.employerContributionRate ?? 0), total415 - deferral, amt - premium - deferral));
         if (deferral + employer > 0) {
           deferredBy[inc.ownerId] = (deferredBy[inc.ownerId] ?? 0) + deferral;
-          const rothShare = Math.max(0, Math.min(1, inc.contributionRothShare ?? (inc.contributionRoth ? 1 : 0)));
+          const rothShare = rothByYear && rothByYear[y] !== undefined ? rothByYear[y] : Math.max(0, Math.min(1, inc.contributionRothShare ?? (inc.contributionRoth ? 1 : 0)));
           const tAcc = plan401(inc.ownerId, false), rAcc = plan401(inc.ownerId, true);
           const toRoth = rAcc ? deferral * rothShare : 0, toTrad = tAcc ? deferral - toRoth + employer : 0;
           if (rAcc && toRoth > 0) { deposit(rAcc.id, toRoth); untaxedIncome -= toRoth; }
@@ -575,7 +598,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       }
     }
     for (const d of accounts) {
-      if (d.kind !== 'debt' || state.balance[d.id] >= 0) continue;
+      if (d.kind !== 'debt' || d.paidInFull || state.balance[d.id] >= 0) continue;
       const owed = -state.balance[d.id] * (1 + (d.interestRate ?? 0));
       const pay = Math.min(owed, (d.payment ?? 0) + (d.extraPayment ?? 0) * index);
       state.balance[d.id] = -(owed - pay);

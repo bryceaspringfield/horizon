@@ -12,7 +12,7 @@ const appStorage = {
   setItem: (n: string, v: string) => (signedIn() ? accountStorage.setItem(n, v) : vaultStorage.setItem(n, v)),
   removeItem: (n: string) => (signedIn() ? accountStorage.removeItem() : vaultStorage.removeItem(n)),
 };
-import { examplePlan, uid, upgradePlan } from './engine/defaults';
+import { emptyPlan, examplePlan, uid, upgradePlan } from './engine/defaults';
 import type { Plan } from './engine/types';
 
 export interface Snapshot {
@@ -83,7 +83,7 @@ export function useUndo(): { canUndo: boolean; canRedo: boolean } {
   return { canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 };
 }
 
-const first = examplePlan();
+const first = emptyPlan();
 
 export const useStore = create<AppState>()(
   persist(
@@ -112,7 +112,7 @@ export const useStore = create<AppState>()(
         }),
       setActive: (id) => set({ activeId: id }),
       addPlan: (p) => {
-        const plan = p ?? { ...examplePlan(), name: 'New plan' };
+        const plan = p ?? emptyPlan();
         set((st) => ({ plans: [...st.plans, plan], activeId: plan.id }));
       },
       duplicatePlan: (id) => {
@@ -125,7 +125,7 @@ export const useStore = create<AppState>()(
         set((st) => {
           remember(st.plans);
           const plans = st.plans.filter((p) => p.id !== id);
-          if (plans.length === 0) plans.push(examplePlan());
+          if (plans.length === 0) plans.push(emptyPlan());
           return { plans, activeId: st.activeId === id ? plans[0].id : st.activeId, compareIds: st.compareIds.filter((x) => x !== id) };
         }),
       setCompare: (ids) => set({ compareIds: ids }),
