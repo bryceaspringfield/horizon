@@ -12,16 +12,10 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - [ ] Currencies: say "today's money" in place of "today's dollars" on every page for a plan in another currency (the top bar does already); a foreign debt's payment follows the exchange rate's yearly change.
 - [ ] Foreign earnings of US persons, the parts left: the higher housing caps of high-cost cities (IRS Notice, yearly), the credit under the AMT, and deductions tied to excluded pay; confirm the 2026 exclusion limit ($132,900) in Rev. Proc. 2025-32.
 ## Unusual money situations (Bryce, 2026-11-23)
-- Bonuses and churning: credit card, bank, and brokerage opening bonuses with their spend or deposit requirement and payout date; referral bonuses; class action settlement payouts.
-- Reimbursed expenses: the spending, the cash back earned on it, and the expected repayment date. HSA/FSA spending (FSA use-it-or-lose-it), and cash on hand as its own holding.
-- Collectibles (plushes, cards, coins: 28% collectibles gain rate) and resellable items (bike, monitor) as assets with a value, yearly change, and sale year.
-- Budgeting: monthly categories against the plan; reminders when essentials are missing (groceries, phone, rent or mortgage, glasses or contacts, health insurance).
 - Estimates: pay by occupation, metro area, and experience (BLS OEWS); essential costs by place; a questionnaire on how the user wants to live, filling in income and expenses.
 - Household changes: a partner moving in and sharing rent and essentials from a year; a parent moving nearby to a separate home, whose place-bound benefits (a county housing subsidy) end at the move, living on Social Security; support given to family.
 
 ## Cards, churning, credit, and deals (Bryce, 2026-11-23)
-- Card rewards engine: cash back by spending category and overall, caps, and bonus rates which end on a date and fall to a lower rate; spending broken down by category.
-- Card finder: a card catalog (cash back overall and by category, minimum rate filters, travel rewards, perks such as concierge, insurance, and hotel upgrades, APR, annual fee, credit needed, state limits); the card with the most added value given the user's cards and spending; options the user cannot get (state, credit score, issuer rules such as 5/24) filtered out.
 - Churn planner from bankrewards.io's listings: bonuses with their requirements, deadlines, eligibility by state, and early-closure fees; a schedule which meets each requirement with planned spending and deposits.
 - Credit scores: a projection from utilization, account age, inquiries, new accounts, and payment history; authorized users (the user on a parent's cards, a partner on the user's), and how each card plan changes the score.
 - Spending savings: paying in another currency, retention offers when cancelling, browser coupons, cash-back portals which stack with card rewards (cashbackmonitor.com's offers).
