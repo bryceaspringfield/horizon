@@ -331,7 +331,9 @@ export interface Strategy {
   /** Leftover pay after the cash target: invest it, or pay debts down first (highest rate first). */
   surplusTo?: 'invest' | 'debt';
   /** Retirement spending rule: the plan's expenses, or a fixed share of the portfolio, or guardrails. */
-  spending: 'expenses' | 'fixedPercent' | 'guardrails' | 'vpw' | 'textbook';
+  spending: 'expenses' | 'fixedPercent' | 'guardrails' | 'vpw' | 'textbook' | 'cape';
+  /** Spending rule 'cape': the market's CAPE ratio today, the base rate, and the weight on the earnings yield (1/CAPE). */
+  cape?: { now: number; base: number; weight: number };
   spendingRate: number;
   /** Safe withdrawal rate the financial independence test uses. */
   safeWithdrawalRate: number;

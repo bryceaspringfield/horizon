@@ -284,4 +284,7 @@ export const HELP: Record<string, string> = {
   "Payouts start in": "The first year of income; later than the purchase for a deferred annuity.",
   "Annuitant": "The person whose life the income lasts for.",
   "Payout rises with inflation": "An inflation-adjusted payout starts lower and keeps its buying power; a level one stays fixed in dollars.",
+  "CAPE ratio today": "The S&P 500's cyclically adjusted price-to-earnings ratio now (Shiller's CAPE); the plan moves it with real stock returns.",
+  "Base withdrawal rate": "The part of the CAPE rule's withdrawal rate paid whatever stocks cost: 1.75% in Early Retirement Now's version.",
+  "Weight on the earnings yield": "How much of the earnings yield (1 over CAPE) adds to the withdrawal rate: 0.5 in Early Retirement Now's version.",
 };

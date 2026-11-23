@@ -216,6 +216,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
   // the fractional year from which each reached milestone counts (the start of the year after it is reached)
   const reachedAt: Record<string, number> = {};
   let guardrailSpend: number | null = null;
+  let capeNow = plan.strategy.cape?.now ?? 30; // moves with real stock returns over real earnings growth of 1.5% a year
   let flexHigh: number | null = null, flexStart: number | null = null;
   let guardrailRate: number | null = null;
   /** Cumulative inflation at the start of each plan year, and modified AGI by year (Medicare looks two years back). */
@@ -700,6 +701,10 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         const r = Math.max(0.0001, (a.returns.stocks * 0.6 + a.returns.bonds * 0.4) - a.inflation);
         const n = Math.max(1, end - y + 1);
         target = (portfolio * r) / (1 - Math.pow(1 + r, -n));
+      } else if (s.spending === 'cape') {
+        // CAPE-based rule (Early Retirement Now): a base rate plus a weight times the earnings yield, 1/CAPE.
+        const c = s.cape ?? { now: 30, base: 0.0175, weight: 0.5 };
+        target = portfolio * (c.base + c.weight / Math.max(1, capeNow));
       } else if (s.spending === 'textbook') {
         // The textbook rule: the chosen share of the portfolio in the first retirement year, then that amount with
         // inflation, whatever the markets do.
@@ -1131,6 +1136,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     });
     magiBy[y] = tax.agi;
     index *= 1 + path.inflation[i];
+    capeNow *= (1 + path.stocks[i]) / ((1 + path.inflation[i]) * 1.015);
     ssIndex *= 1 + (a.announcedCola === false ? path.inflation[i] : SS_COLA[y + 1] ?? path.inflation[i]);
   }
 
