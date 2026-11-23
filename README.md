@@ -49,7 +49,7 @@ after estate tax and heirs' income tax, plan comparison, a plot builder, progres
 table with CSV export, and a printable plan report. One plan is the main plan: Horizon opens on it, compares
 against it, and plans can follow its starting finances or keep custom starting conditions.
 
-State estate (12 states and DC) and inheritance (5 states) taxes come from the Tax Foundation table of October 1, 2026, with the rate between each state's lowest and top rates taken to rise evenly. Not modeled: non-US tax systems (in `todo.md`).
+State estate (12 states and DC) and inheritance (5 states) taxes: exemptions from the Tax Foundation table of October 1, 2026, and each state's brackets and method from its own statute or tax form (listed in `.claude/context/sources.md`). Not modeled: non-US tax systems (in `todo.md`).
 
 ## Run it locally
 

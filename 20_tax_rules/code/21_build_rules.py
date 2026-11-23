@@ -89,6 +89,34 @@ def states():
     return out
 
 
+def credit_table():
+    """The federal state death tax credit table of 26 U.S.C. 2011(b) as [start, rate] rows, parsed from the 2012 Code
+    text (the table Massachusetts, Rhode Island, Maryland, and Illinois still use), with its published tax at each start
+    checked against the rows before it."""
+    text = open(os.path.join(IN, 'usc26-2011-2012.txt'), encoding='utf-8', errors='ignore').read()
+    cells = re.findall(r'<td class="left">(.*?)</td>\s*<td class="right">(.*?)</td>', text, re.S)
+    rows = [[0, 0, 0.0]]
+    for left, right in cells:
+        if '8/10ths of 1%' in right:
+            # The first taxed row, "8/10ths of 1% of the amount by which the adjusted taxable estate exceeds $40,000".
+            rows.append([40000, 0, 0.008])
+            continue
+        start = int(re.findall(r'\$([\d,]+)', left)[0].replace(',', ''))
+        base = int(re.match(r'\s*\$([\d,]+) plus', right).group(1).replace(',', ''))
+        rate = float(re.search(r'plus ([\d.]+)%', right).group(1)) / 100
+        rows.append([start, base, rate])
+    assert len(rows) == 21 and rows[-1][:2] == [10040000, 1082800] and rows[-1][2] == 0.16, rows[-1]
+    check_rows('2011', rows)
+    return [[r[0], r[2]] for r in rows]
+
+
+def check_rows(code, rows):
+    """Each row's published tax at its start must equal the tax the rows before it give."""
+    for (a, base_a, rate_a), (b, base_b, _) in zip(rows, rows[1:]):
+        want = base_a + rate_a * (b - a)
+        assert abs(want - base_b) < 1, (code, b, base_b, want)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     # Every federal_YYYY.json, keyed by year; the app uses the newest year at or before each plan year.
@@ -103,8 +131,14 @@ def main():
     health = json.load(open(os.path.join(IN, 'healthcare.json')))
     json.dump(health, open(os.path.join(OUT, 'healthcare.json'), 'w'), indent=1)
     death = json.load(open(os.path.join(IN, 'state_death_taxes.json')))
+    death['credit2011'] = credit_table()
     for code, e in death['estate'].items():
-        assert 0 <= e['low'] <= e['top'] <= 0.2 and e['exemption'] > 0, code
+        assert e['exemption'] > 0 and e['method'] in ('excess', 'whole', 'credit', 'ny', 'md', 'il'), code
+        rows = e.get('rows')
+        if rows:
+            check_rows(code, rows)
+            e['brackets'] = [[r[0], r[2]] for r in rows]
+            del e['rows']
     json.dump(death, open(os.path.join(OUT, 'state_death_taxes.json'), 'w'), indent=1)
     print('federal years:', ' '.join(years))
     st = states()

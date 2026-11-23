@@ -1,91 +1,356 @@
 {
- "_source": "Hand-entered 2026-11-22 from estate-inheritance-taxes.html (Tax Foundation, as of October 1, 2026): each exemption and rate range, which states index exemptions (CT, ME, NY, RI, DC), and where the top rate starts (HI $10M, WA $9M, MN and NY $10.1M). Elsewhere the top rate is taken to start at $10.04M, the top of the old federal state death tax credit table (IRC 2011) the 0.8%-16% states use. Between the exemption and that point the model raises the rate evenly from the lowest to the top rate: an approximation of each state's own brackets. Inheritance tax rates by heir class are each state's statutory class rates (PA 4.5% lineal, 12% siblings, 15% others; NE 1% over $100,000, 11% over $40,000 for collateral relatives, 15% over $25,000 others, siblings in the 1% class; NJ and KY exempt children, siblings at 11% and 4% at the low end, others 15% and 6%; MD exempts children and siblings, others 10%).",
+ "_source": "Hand-entered 2026-11-22. Exemptions, indexing (CT, ME, NY, RI, DC), and portability (HI, MD) from estate-inheritance-taxes.html (Tax Foundation, as of October 1, 2026). Each state's method and brackets come from its own statute or form, named in the entry's source: excess (brackets on the estate above the exemption), whole (brackets on the whole estate, 0% below the exemption), credit (the old federal state death tax credit table, parsed from usc26-2011-2012.txt, on the estate less $60,000, less the table tax on the exemption), ny (the whole-estate table with the 105% phase-out of the credit), md, and il. Rows are [start, published tax at the start, marginal rate]; 21_build_rules.py checks each published tax against the rows before it. Inheritance tax rates by heir class are each state's statutory class rates (PA 4.5% lineal, 12% siblings, 15% others; NE 1% over $100,000, 11% over $40,000 for collateral relatives, 15% over $25,000 others, siblings in the 1% class; NJ and KY exempt children, siblings at 11% and 4% at the low end, others 15% and 6%; MD exempts children and siblings, others 10%).",
  "estate": {
   "CT": {
    "exemption": 15000000,
-   "low": 0.12,
-   "top": 0.12,
-   "topAt": 0,
-   "indexed": true
+   "indexed": true,
+   "method": "excess",
+   "source": "Tax Foundation table (flat 12% above the exclusion, which matches the federal exemption)",
+   "brackets": [
+    [
+     0,
+     0.12
+    ]
+   ]
   },
   "HI": {
    "exemption": 5490000,
-   "low": 0.1,
-   "top": 0.2,
-   "topAt": 10000000,
-   "portable": true
+   "portable": true,
+   "method": "excess",
+   "source": "hi-m6ins.pdf: Hawaii Form M-6 instructions, tax rate schedule as of January 1, 2020, on the net taxable estate (after the exclusion)",
+   "brackets": [
+    [
+     0,
+     0.1
+    ],
+    [
+     1000000.0,
+     0.11
+    ],
+    [
+     2000000.0,
+     0.12
+    ],
+    [
+     3000000.0,
+     0.13
+    ],
+    [
+     4000000.0,
+     0.14
+    ],
+    [
+     5000000.0,
+     0.157
+    ],
+    [
+     10000000.0,
+     0.2
+    ]
+   ]
   },
   "IL": {
    "exemption": 4000000,
-   "low": 0.008,
-   "top": 0.16,
-   "topAt": 10040000
+   "method": "il",
+   "source": "il-estate-fact-sheet.pdf (Illinois Attorney General): the lesser of the 26 U.S.C. 2011 credit and 40% of the estate over $4,000,000, each with the Illinois tax itself deducted from the estate (interrelated); the fact sheet's $5,000,000 estate owes $285,714"
   },
   "ME": {
    "exemption": 7160000,
-   "low": 0.08,
-   "top": 0.12,
-   "topAt": 13160000,
-   "indexed": true
+   "indexed": true,
+   "method": "excess",
+   "source": "me-36-4103.html: 36 M.R.S. section 4103(1), on the excess over the Maine exclusion amount",
+   "brackets": [
+    [
+     0,
+     0.08
+    ],
+    [
+     3000000.0,
+     0.1
+    ],
+    [
+     6000000.0,
+     0.12
+    ]
+   ]
   },
   "MD": {
    "exemption": 5000000,
-   "low": 0.008,
-   "top": 0.16,
-   "topAt": 10040000,
-   "portable": true
+   "portable": true,
+   "method": "md",
+   "source": "md-estate-tip42.pdf (Register of Wills tip 42): the 26 U.S.C. 2011 credit on the taxable estate less $60,000, capped at 16% of the excess over the exemption"
   },
   "MA": {
    "exemption": 2000000,
-   "low": 0.008,
-   "top": 0.16,
-   "topAt": 10040000
+   "method": "credit",
+   "source": "usc26-2011-2012.txt (26 U.S.C. 2011(b) as of 2012, the table Massachusetts freezes) on the taxable estate less $60,000, less a credit of $99,600, the table tax on $2,000,000 (M.G.L. c. 65C, 2A; checked against published examples: $2.5M owes $39,200, $5M owes $292,000)"
   },
   "MN": {
    "exemption": 3000000,
-   "low": 0.13,
-   "top": 0.16,
-   "topAt": 10100000
+   "method": "excess",
+   "source": "mn-291.03.html (Minn. Stat. 291.03 subd. 1(b), 2018 on) on the Minnesota taxable estate, which mn-291.016.html (subd. 3) reduces by the exclusion amount",
+   "brackets": [
+    [
+     0,
+     0.13
+    ],
+    [
+     7100000.0,
+     0.136
+    ],
+    [
+     8100000.0,
+     0.144
+    ],
+    [
+     9100000.0,
+     0.152
+    ],
+    [
+     10100000.0,
+     0.16
+    ]
+   ]
   },
   "NY": {
    "exemption": 7350000,
-   "low": 0.0306,
-   "top": 0.16,
-   "topAt": 10100000,
    "indexed": true,
-   "cliff": 1.05
+   "cliff": 1.05,
+   "method": "ny",
+   "source": "ny-et706.pdf (Form ET-706 page 6 tax table, on the whole New York taxable estate) and ny-et706i.pdf (line 3, the applicable credit: the whole tax up to the exclusion, the tax on the exclusion times 1 less the excess over 5% of it up to 105%, none above)",
+   "brackets": [
+    [
+     0,
+     0.0306
+    ],
+    [
+     500000.0,
+     0.05
+    ],
+    [
+     1000000.0,
+     0.055
+    ],
+    [
+     1500000.0,
+     0.065
+    ],
+    [
+     2100000.0,
+     0.08
+    ],
+    [
+     2600000.0,
+     0.088
+    ],
+    [
+     3100000.0,
+     0.096
+    ],
+    [
+     3600000.0,
+     0.104
+    ],
+    [
+     4100000.0,
+     0.112
+    ],
+    [
+     5100000.0,
+     0.12
+    ],
+    [
+     6100000.0,
+     0.128
+    ],
+    [
+     7100000.0,
+     0.136
+    ],
+    [
+     8100000.0,
+     0.144
+    ],
+    [
+     9100000.0,
+     0.152
+    ],
+    [
+     10100000.0,
+     0.16
+    ]
+   ]
   },
   "OR": {
    "exemption": 1000000,
-   "low": 0.1,
-   "top": 0.16,
-   "topAt": 9500000
+   "method": "whole",
+   "source": "ors-118.html: ORS 118.010(4), on the whole Oregon taxable estate",
+   "brackets": [
+    [
+     0,
+     0
+    ],
+    [
+     1000000.0,
+     0.1
+    ],
+    [
+     1500000.0,
+     0.1025
+    ],
+    [
+     2500000.0,
+     0.105
+    ],
+    [
+     3500000.0,
+     0.11
+    ],
+    [
+     4500000.0,
+     0.115
+    ],
+    [
+     5500000.0,
+     0.12
+    ],
+    [
+     6500000.0,
+     0.13
+    ],
+    [
+     7500000.0,
+     0.14
+    ],
+    [
+     8500000.0,
+     0.15
+    ],
+    [
+     9500000.0,
+     0.16
+    ]
+   ]
   },
   "RI": {
    "exemption": 1838056,
-   "low": 0.008,
-   "top": 0.16,
-   "topAt": 10040000,
-   "indexed": true
+   "indexed": true,
+   "method": "credit",
+   "source": "usc26-2011-2012.txt on the taxable estate less $60,000, less a credit equal to the table tax on the exemption ($87,940 in 2026 for $1,838,056, Division of Taxation ADV 2025-27; published examples $3M owes $94,060, $5M owes $303,660)"
   },
   "VT": {
    "exemption": 5000000,
-   "low": 0.16,
-   "top": 0.16,
-   "topAt": 0
+   "method": "excess",
+   "source": "Tax Foundation table (flat 16% above $5,000,000)",
+   "brackets": [
+    [
+     0,
+     0.16
+    ]
+   ]
   },
   "WA": {
    "exemption": 3000000,
-   "low": 0.1,
-   "top": 0.2,
-   "topAt": 9000000
+   "method": "excess",
+   "source": "rcw-83.100.040.html: RCW 83.100.040(2)(a)(iii), deaths on or after July 1, 2026 (the 35% table of (ii) ran July 1, 2025 to June 30, 2026), on the Washington taxable estate after the exclusion",
+   "brackets": [
+    [
+     0,
+     0.1
+    ],
+    [
+     1000000.0,
+     0.14
+    ],
+    [
+     2000000.0,
+     0.15
+    ],
+    [
+     3000000.0,
+     0.16
+    ],
+    [
+     4000000.0,
+     0.18
+    ],
+    [
+     6000000.0,
+     0.19
+    ],
+    [
+     7000000.0,
+     0.195
+    ],
+    [
+     9000000.0,
+     0.2
+    ]
+   ]
   },
   "DC": {
    "exemption": 4988400,
-   "low": 0.112,
-   "top": 0.16,
-   "topAt": 10040000,
-   "indexed": true
+   "indexed": true,
+   "method": "whole",
+   "source": "dc-47-3702.html: D.C. Code 47-3702(a-1)(1): 0% up to the zero bracket amount (the exemption), each dollar above it at the rate of the bracket it falls in by the whole taxable estate",
+   "brackets": [
+    [
+     0,
+     0.0
+    ],
+    [
+     1000000.0,
+     0.064
+    ],
+    [
+     1500000.0,
+     0.072
+    ],
+    [
+     2000000.0,
+     0.08
+    ],
+    [
+     2500000.0,
+     0.088
+    ],
+    [
+     3000000.0,
+     0.096
+    ],
+    [
+     3500000.0,
+     0.104
+    ],
+    [
+     4000000.0,
+     0.112
+    ],
+    [
+     5000000.0,
+     0.12
+    ],
+    [
+     6000000.0,
+     0.128
+    ],
+    [
+     7000000.0,
+     0.136
+    ],
+    [
+     8000000.0,
+     0.144
+    ],
+    [
+     9000000.0,
+     0.152
+    ],
+    [
+     10000000.0,
+     0.16
+    ]
+   ]
   }
  },
  "inheritance": {
@@ -159,5 +424,91 @@
     0.1
    ]
   }
- }
+ },
+ "credit2011": [
+  [
+   0,
+   0.0
+  ],
+  [
+   40000,
+   0.008
+  ],
+  [
+   90000,
+   0.016
+  ],
+  [
+   140000,
+   0.024
+  ],
+  [
+   240000,
+   0.032
+  ],
+  [
+   440000,
+   0.04
+  ],
+  [
+   640000,
+   0.048
+  ],
+  [
+   840000,
+   0.055999999999999994
+  ],
+  [
+   1040000,
+   0.064
+  ],
+  [
+   1540000,
+   0.07200000000000001
+  ],
+  [
+   2040000,
+   0.08
+  ],
+  [
+   2540000,
+   0.08800000000000001
+  ],
+  [
+   3040000,
+   0.096
+  ],
+  [
+   3540000,
+   0.10400000000000001
+  ],
+  [
+   4040000,
+   0.11199999999999999
+  ],
+  [
+   5040000,
+   0.12
+  ],
+  [
+   6040000,
+   0.128
+  ],
+  [
+   7040000,
+   0.136
+  ],
+  [
+   8040000,
+   0.14400000000000002
+  ],
+  [
+   9040000,
+   0.152
+  ],
+  [
+   10040000,
+   0.16
+  ]
+ ]
 }

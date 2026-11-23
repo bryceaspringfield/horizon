@@ -13,10 +13,11 @@ describe('state estate taxes (2026 table)', () => {
     expect(stateEstateTax('MA', 1900000, 1, false)).toBe(0);
     expect(stateEstateTax('TX', 50000000, 1, false)).toBe(0);
   });
-  it('taxes the whole New York estate past 105% of the exemption', () => {
-    const under = stateEstateTax('NY', 7350000 * 1.04, 1, false);
-    const over = stateEstateTax('NY', 7350000 * 1.06, 1, false);
-    expect(over).toBeGreaterThan(under * 5);
+  it('phases New York\'s credit out between 100% and 105% of the exemption, then taxes the whole estate', () => {
+    const a = stateEstateTax('NY', 7350000 * 1.005, 1, false), b = stateEstateTax('NY', 7350000 * 1.04, 1, false);
+    expect(a).toBeLessThan(b);
+    const e = 7350000 * 1.06;
+    expect(stateEstateTax('NY', e, 1, false)).toBeCloseTo(650800 + 0.136 * (e - 7100000), 0);
   });
   it('rises to the top rate: Washington\'s 20% applies at the margin above $9M', () => {
     const a = stateEstateTax('WA', 12000000, 1, false), b = stateEstateTax('WA', 13000000, 1, false);
@@ -25,6 +26,37 @@ describe('state estate taxes (2026 table)', () => {
   it('gives a Hawaii couple two exemptions and a Massachusetts couple one', () => {
     expect(stateEstateTax('HI', 10000000, 1, true)).toBe(0);
     expect(stateEstateTax('MA', 3000000, 1, true)).toBeGreaterThan(0);
+  });
+});
+
+describe('state estate taxes against published figures', () => {
+  it('Massachusetts: $39,200 on $2.5M and $292,000 on $5M', () => {
+    expect(stateEstateTax('MA', 2500000, 1, false)).toBeCloseTo(39200, 0);
+    expect(stateEstateTax('MA', 5000000, 1, false)).toBeCloseTo(292000, 0);
+  });
+  it('Rhode Island (2026 exemption $1,838,056): $94,060 on $3M and $303,660 on $5M', () => {
+    expect(stateEstateTax('RI', 3000000, 1, false)).toBeCloseTo(94060, -1);
+    expect(stateEstateTax('RI', 5000000, 1, false)).toBeCloseTo(303660, -1);
+  });
+  it('Illinois: $285,714 on $5M (Attorney General fact sheet)', () => {
+    expect(stateEstateTax('IL', 5000000, 1, false)).toBeCloseTo(285714, 0);
+  });
+  it('New York: the ET-706 worksheet example (exclusion $7,160,000, estate $7,354,036, credit $208,011)', () => {
+    const t = stateEstateTax('NY', 7354036, 7160000 / 7350000, false);
+    expect(t).toBeGreaterThan(685349 - 208011 - 5);
+    expect(t).toBeLessThan(685349 - 208011 + 5);
+  });
+  it('Hawaii: $1,385,000 on a net taxable estate of $10M; Oregon: $1,022,500 on $9.5M', () => {
+    expect(stateEstateTax('HI', 15490000, 1, false)).toBeCloseTo(1385000, 0);
+    expect(stateEstateTax('OR', 9500000, 1, false)).toBeCloseTo(1022500, 0);
+  });
+  it('DC taxes each dollar above its exemption at its bracket by the whole estate; Maryland caps the credit at 16%', () => {
+    expect(stateEstateTax('DC', 6000000, 1, false)).toBeCloseTo((5000000 - 4988400) * 0.112 + 1000000 * 0.12, 0);
+    expect(stateEstateTax('MD', 6000000, 1, false)).toBeCloseTo(160000, 0);
+  });
+  it('Minnesota and Maine tax the excess over the exemption at their brackets', () => {
+    expect(stateEstateTax('MN', 3000000 + 8100000, 1, false)).toBeCloseTo(1059000, 0);
+    expect(stateEstateTax('ME', 7160000 + 6000000, 1, false)).toBeCloseTo(540000, 0);
   });
 });
 
