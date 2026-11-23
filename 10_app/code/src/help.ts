@@ -338,4 +338,7 @@ export const HELP: Record<string, string> = {
   "Count consumer debt principal as spending": "Whether paying down cards and loans counts as spending, or only their interest.",
   "Effective rate includes local income tax": "Count city and county income tax in the effective tax rate.",
   "Effective rate includes property tax": "Count property tax in the effective tax rate.",
+  "Effective rate's income includes return of capital": "Count the untaxed part of taxable account withdrawals, your original contributions, as income in the effective tax rate.",
+  "Effective rate's income includes tax-free withdrawals": "Count qualified Roth and HSA withdrawals as income in the effective tax rate.",
+  "Effective rate's income includes non-taxable sale proceeds": "Count the untaxed part of what an asset sale brings in as income in the effective tax rate.",
 };

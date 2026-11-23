@@ -431,7 +431,9 @@ export interface Assumptions {
     /** Spending counts mortgage payments in full, only their interest, or none of them; and consumer debts' principal or not. */
     spendingDebts?: { mortgage?: 'all' | 'interest' | 'none'; debtPrincipal?: boolean };
     /** The effective tax rate leaves out local income tax, or adds property tax. */
-    rateWithoutLocal?: boolean; rateWithProperty?: boolean };
+    rateWithoutLocal?: boolean; rateWithProperty?: boolean;
+    /** The effective rate's income adds return of capital, tax-free withdrawals, and non-taxable sale proceeds. */
+    rateReturnOfCapital?: boolean; rateTaxFree?: boolean; rateSaleProceeds?: boolean };
   /** Plan everyone to one age, or to one calendar year, except people who keep their own (Person.ownPlanTo). */
   planTo?: { mode: 'person' | 'age' | 'year'; age?: number; year?: number };
   /** One retirement age for everyone, except people who keep their own (Person.ownRetirementAge). */

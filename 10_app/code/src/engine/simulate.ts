@@ -648,7 +648,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     }
     // Flexible spending: the discretionary share of each expense is cut while the portfolio sits under its high by the
     // chosen share, and raised while it sits above where it began by the chosen share (all in today's dollars).
-    let flexChange = 0, notSpending = 0;
+    let flexChange = 0, notSpending = 0, saleGross = 0;
     const discretionary = plan.expenses.reduce((t, e) => t + (expenses[e.id] ?? 0) * (e.discretionary ?? 0), 0);
     if (s.flex?.enabled && y >= (s.flex.from ?? -Infinity) && y <= (s.flex.to ?? Infinity)) {
       const realPortfolio = liquid(state, accounts, y, (id) => ages[id]) / index;
@@ -1075,6 +1075,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       } else if (x.kind === 'asset') {
         if (x.saleYear && y === x.saleYear) {
           let proceeds = state.balance[x.id] * (1 - (x.sellingCosts ?? 0));
+          saleGross += proceeds;
           for (const d of accounts) if (d.kind === 'debt' && d.securedBy === x.id) { proceeds += state.balance[d.id]; state.balance[d.id] = 0; }
           state.balance[x.id] = 0;
           state.balance[cashAcc.id] += proceeds;
@@ -1189,7 +1190,11 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         ordinaryTaxable: tax.ordinaryTaxable,
         marginalRate: tax.marginalRate,
         withheld: (() => { let w = 0; for (const x of accounts) { const d = withdrawals[x.id] ?? 0; if (x.kind === 'traditional') w += d * (a.withholdTraditional ?? 0); else if (x.kind === 'taxable') w += d * (a.withholdTaxable ?? 0); } return w || undefined; })(),
-        effectiveRate: ((b) => (b > 0 ? (tax.total - (a.metrics?.rateWithoutLocal ? tax.local ?? 0 : 0) + (a.metrics?.rateWithProperty ? propertyTax : 0)) / b : 0))(a.metrics?.taxRateBase === 'agi' ? tax.agi : a.metrics?.taxRateBase === 'taxable' ? tax.taxableIncome : gross),
+        effectiveRate: ((b) => (b > 0 ? (tax.total - (a.metrics?.rateWithoutLocal ? tax.local ?? 0 : 0) + (a.metrics?.rateWithProperty ? propertyTax : 0)) / b : 0))(a.metrics?.taxRateBase === 'agi' ? tax.agi : a.metrics?.taxRateBase === 'taxable' ? tax.taxableIncome : gross + (() => {
+          // the Metrics settings' extra income: return of capital, tax-free withdrawals, and non-taxable sale proceeds
+          const m = a.metrics, sum = (kinds: string[]) => accounts.filter((x) => kinds.includes(x.kind)).reduce((t, x) => t + (withdrawals[x.id] ?? 0), 0);
+          return (m?.rateReturnOfCapital ? Math.max(0, sum(['taxable']) - gains) : 0) + (m?.rateTaxFree ? sum(['roth', 'hsa']) : 0) + (m?.rateSaleProceeds ? Math.max(0, saleGross - assetGain) : 0);
+        })()),
       },
       investmentReturn,
       shortfall,
