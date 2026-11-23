@@ -32,6 +32,8 @@ export interface TaxInput {
   /** Extra flat rates on ordinary income and on capital gains and qualified dividends (other taxes the model leaves out). */
   extraIncomeRate?: number;
   extraGainsRate?: number;
+  /** Australia: no private hospital cover (the Medicare levy surcharge applies). */
+  auNoCover?: boolean;
   /** The Netherlands' box 3: bank balances and other taxable investments at the start of the year. */
   wealthCash?: number;
   wealthOther?: number;

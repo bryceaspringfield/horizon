@@ -22,3 +22,10 @@ describe('super after 60', () => {
     expect(auTax({ ...base, over60: 0 }).total).toBeGreaterThan(10000);
   });
 });
+
+describe('Medicare levy reduction and surcharge', () => {
+  it('phases the levy in above the low-income threshold and adds the surcharge without cover', () => {
+    expect(auPerson(30000).medicare).toBeCloseTo(0.1 * (30000 - 28011), 2);
+    expect(auPerson(130000, false, true).medicare).toBeCloseTo(0.02 * 130000 + 0.0125 * 130000, 2);
+  });
+});

@@ -465,6 +465,8 @@ export interface Assumptions {
   taxCountry?: 'US' | 'UK' | 'AU' | 'CA' | 'DE' | 'NL' | 'ES';
   /** UK: a Scottish taxpayer, and a quarter of each pension withdrawal taken tax-free (engine/uk.ts). */
   scotland?: boolean;
+  /** Australia: no private hospital cover, so the Medicare levy surcharge applies. */
+  auNoCover?: boolean;
   /** Rates from history: the projection uses each year's actual returns and inflation from this year on (1928 to 2025). */
   historicalStart?: number;
   /** Extra flat tax rates on income and on capital gains, and the shares withheld from traditional and taxable withdrawals. */

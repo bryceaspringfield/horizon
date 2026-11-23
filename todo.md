@@ -50,7 +50,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Netherlands: box 1 rates and credits from the state pension age; box 2.
 - Spain: every region's own income tax scale and wealth tax allowance in place of the reference scale.
 - UK: the lump sum allowance's £268,275 cap on tax-free pension withdrawals; the April 2027 rise in savings rates.
-- Australia: the low-income Medicare levy reduction and the Medicare levy surcharge.
 - Tax strategy: several targets at once (bracket, IRMAA, ACA, an income ceiling) with constraints, in place of one shield.
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)

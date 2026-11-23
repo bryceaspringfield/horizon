@@ -341,4 +341,5 @@ export const HELP: Record<string, string> = {
   "Effective rate's income includes return of capital": "Count the untaxed part of taxable account withdrawals, your original contributions, as income in the effective tax rate.",
   "Effective rate's income includes tax-free withdrawals": "Count qualified Roth and HSA withdrawals as income in the effective tax rate.",
   "Effective rate's income includes non-taxable sale proceeds": "Count the untaxed part of what an asset sale brings in as income in the effective tax rate.",
+  "No private hospital cover (Medicare levy surcharge)": "Without private hospital cover, incomes over $105,000 single or $210,000 for a family pay an extra 1% to 1.5% Medicare levy surcharge.",
 };
