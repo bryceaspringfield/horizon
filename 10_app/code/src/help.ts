@@ -350,4 +350,9 @@ export const HELP: Record<string, string> = {
   "24% bracket": "Hold traditional withdrawals under this limit too.",
   "IRMAA tier 1": "Hold traditional withdrawals under this limit too.",
   "ACA limit": "Hold traditional withdrawals under this limit too.",
+  "Asset type": "Choosing a type fills in a typical yearly change in value: real estate 3%, vehicles a 15% loss, valuables 2%.",
+  "Debt type": "Choosing a type fills in a typical interest rate if none is set yet; change it to your loan's rate.",
+  "Paid by the hour": "Enter an hourly rate and the hours you work a week; the yearly pay is rate times hours times 52.",
+  "Hourly rate": "Pay for each hour worked.",
+  "Hours a week": "The hours you work in a usual week.",
 };

@@ -46,6 +46,9 @@ export interface Allocation {
 
 export interface Account {
   id: string;
+  /** Debts and real assets: the type (ProjectionLab's lists), which sets the defaults shown when it is chosen. */
+  debtType?: 'mortgage' | 'homeEquity' | 'auto' | 'student' | 'card' | 'personal' | 'medical' | 'other';
+  assetType?: 'realEstate' | 'vehicle' | 'valuables' | 'other';
   /** Taxable accounts: the share of bond income from in-state municipal bonds, free of income tax. */
   municipalShare?: number;
   /** Debts: a line of credit (a HELOC) with this limit, drawn on when the other accounts run dry. */
@@ -181,6 +184,8 @@ export interface Income {
   employerMatch?: number;
   /** The Netherlands: income from a substantial shareholding (5% or more of a company), taxed in box 2. */
   nlBox2?: boolean;
+  /** Salary paid by the hour: the rate and the hours a week; the yearly amount is rate x hours x 52. */
+  hourly?: { rate: number; hours: number };
   /** Salary: the employer's yearly deposit into the owner's HSA (today's dollars), free of income and payroll tax. */
   employerHsa?: number;
   /** Salary: the share of pay the employer matches at most (e.g., 100% of the first 6%). */

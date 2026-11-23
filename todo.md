@@ -50,4 +50,3 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - UK: the April 2027 rise in savings rates (2 points).
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)
-- From ProjectionLab's add forms (99_overall/output/pl_live/forms/): an hourly wage income (rate and hours); life chapters, bands from one milestone to the next on the life map; debt types (mortgage, home equity, auto, student, card, personal, medical, secured) with their defaults; real asset types (real estate, vehicles that lose value, valuables, other) with their defaults.

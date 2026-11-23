@@ -61,6 +61,18 @@ export function TimelinePage() {
           </ul>
         </div>
       </Card>
+      <Card title="Chapters">
+        <ul className="lifelist">
+          {(() => {
+            const cuts = marks.filter((m) => m.kind === 'milestone' || m.kind === 'retire' || m.kind === 'death').filter((m) => m.t >= born);
+            const starts = [{ t: born, label: 'Early life' }, ...cuts.map((m) => ({ t: m.t, label: m.label }))];
+            return starts.slice(0, -1).map((c, j) => {
+              const end = starts[j + 1].t, yrs = Math.max(0, end - c.t);
+              return <li key={j}><b>{c.label}</b><small>{yrs >= 1 ? Math.round(yrs) + ' years' : Math.round(yrs * 12) + ' months'}, to {starts[j + 1].label}</small></li>;
+            });
+          })()}
+        </ul>
+      </Card>
       <Card title="Life in years" wide>
         <div className="timeline">
           {proj.years.map((y) => {

@@ -182,6 +182,11 @@ function StepsEditor({ steps, nominal, onChange }: { steps?: Step[]; nominal?: b
   );
 }
 
+/** Debt types with a typical interest rate filled in when chosen (left as set if one is already entered). */
+const DEBT_TYPES: [NonNullable<Account['debtType']>, string, number][] = [['mortgage', 'Mortgage', 0.065], ['homeEquity', 'Home equity loan', 0.085], ['auto', 'Auto loan', 0.075], ['student', 'Student loan', 0.065], ['card', 'Credit card', 0.22], ['personal', 'Personal loan', 0.12], ['medical', 'Medical debt', 0], ['other', 'Other debt', 0.08]];
+/** Real asset types and the yearly change in value filled in when chosen: real estate rises, vehicles lose value. */
+const ASSET_DEFAULTS: Record<NonNullable<Account['assetType']>, { appreciation: number }> = { realEstate: { appreciation: 0.03 }, vehicle: { appreciation: -0.15 }, valuables: { appreciation: 0.02 }, other: { appreciation: 0 } };
+
 /** A strategy's impact: lifetime taxes and net legacy with it and without (engine/impact.ts). */
 function ImpactCard({ focus }: { focus: StrategyFocus }) {
   const plan = useActivePlan();
@@ -399,6 +404,7 @@ export function AccountsPage() {
                 {a.kind === 'taxable' && <Check label="Pay dividends and interest out to cash (not reinvested)" value={!!a.dividendsPaidOut} onChange={(v) => set((x) => { x.dividendsPaidOut = v; })} />}
                 {a.kind === 'taxable' && <Num label="Foreign tax withheld on dividends" percent value={a.foreignWithholding ?? 0} hint="The share of this account's dividends a foreign country withholds; it counts toward the US foreign tax credit." onChange={(v) => set((x) => { x.foreignWithholding = v || undefined; })} />}
                 {a.kind === 'asset' && <>
+                  <Select label="Asset type" value={a.assetType ?? 'other'} options={[['realEstate', 'Real estate'], ['vehicle', 'Vehicle'], ['valuables', 'Valuables'], ['other', 'Other']]} onChange={(v) => set((x) => { x.assetType = v; const d = ASSET_DEFAULTS[v]; x.appreciation = d.appreciation; x.realEstate = v === 'realEstate' || undefined; })} />
                   <Check label="Real estate (property tax, deductible mortgage interest)" value={!!a.realEstate} onChange={(v) => set((x) => { x.realEstate = v; })} />
                   {!a.realEstate && <Check label="A collectible (coins, cards, plush toys, art)" value={!!a.collectible} onChange={(v) => set((x) => { x.collectible = v || undefined; })} />}
                   <Num label="Yearly appreciation" percent value={a.appreciation ?? 0.03} onChange={(v) => set((x) => { x.appreciation = v; })} />
@@ -411,6 +417,7 @@ export function AccountsPage() {
                   {a.realEstate && <Check label="The home you live in (its sale excludes $250,000 of gain a person)" value={!!a.primaryResidence} onChange={(v) => set((x) => { x.primaryResidence = v || undefined; })} />}
                 </>}
                 {a.kind === 'debt' && <>
+                  <Select label="Debt type" value={a.debtType ?? 'other'} options={DEBT_TYPES.map(([k, l]) => [k, l] as [NonNullable<Account['debtType']>, string])} onChange={(v) => set((x) => { x.debtType = v; const r = DEBT_TYPES.find((d) => d[0] === v)?.[2]; if (r !== undefined && !x.interestRate) x.interestRate = r; })} />
                   <Check label="Paid in full every month (a card)" value={!!a.paidInFull} onChange={(v) => set((x) => { x.paidInFull = v || undefined; if (v) { x.balance = 0; x.interestRate = undefined; x.payment = undefined; } })} />
                   {!a.paidInFull && <>
                   <Num label="Interest rate" percent value={a.interestRate ?? 0} onChange={(v) => set((x) => { x.interestRate = v; })} />
@@ -481,6 +488,11 @@ export function IncomePage() {
                 <Num label="Real growth a year" percent value={x.growth} onChange={(v) => set((y) => { y.growth = v; })} />
                 <WhenField label="Starts" value={x.start} year={x.startYear} onChange={(r) => set((y) => { y.start = r; })} onYear={(v) => set((y) => { y.startYear = v ?? y.startYear; })} />
                 <WhenField label="Ends" value={x.end} year={x.endYear} defaultLabel={x.kind === 'salary' || x.kind === 'selfEmployment' ? 'At retirement' : 'For life'} onChange={(r) => set((y) => { y.end = r; })} onYear={(v) => set((y) => { y.endYear = v; })} />
+                {x.kind === 'salary' && <Check label="Paid by the hour" value={!!x.hourly} onChange={(v) => set((y) => { y.hourly = v ? { rate: 25, hours: 40 } : undefined; if (v) y.amount = 25 * 40 * 52; })} />}
+                {x.kind === 'salary' && x.hourly && <>
+                  <Num label="Hourly rate" value={x.hourly.rate} onChange={(v) => set((y) => { y.hourly = { ...y.hourly!, rate: v }; y.amount = v * y.hourly.hours * 52; })} />
+                  <Num label="Hours a week" value={x.hourly.hours} onChange={(v) => set((y) => { y.hourly = { ...y.hourly!, hours: v }; y.amount = y.hourly.rate * v * 52; })} />
+                </>}
                 {x.kind === 'salary' && <>
                   <Num label="Keeps pace with inflation from year (0: from the start)" value={x.indexFrom ?? 0} onChange={(v) => set((y) => { y.indexFrom = v || undefined; })} />
                   <Num label="Paychecks a year" value={x.paychecks ?? 26} onChange={(v) => set((y) => { y.paychecks = Math.max(1, Math.round(v)); })} />
