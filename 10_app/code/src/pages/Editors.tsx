@@ -16,8 +16,9 @@ const ACCOUNT_KINDS: [AccountKind, string][] = [
   ['roth', 'Roth 401(k) / IRA'], ['hsa', 'HSA'], ['college529', '529 college savings'], ['asset', 'Asset (home, car)'], ['debt', 'Debt (mortgage, loan)'],
 ];
 const INCOME_KINDS: [IncomeKind, string][] = [
-  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['bonus', 'Bonus (taxed as wages)'], ['other', 'Other'],
+  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['bonus', 'Bonus (taxed as wages)'], ['accountBonus', 'Account or referral bonus (one-time)'], ['settlement', 'Settlement payout (one-time)'], ['other', 'Other'],
 ];
+const BONUS_SOURCES: [NonNullable<Income['bonusSource']>, string][] = [['card', 'Credit card'], ['bank', 'Bank'], ['brokerage', 'Brokerage'], ['referral', 'Referral']];
 const EXPENSE_KINDS: [ExpenseKind, string][] = [
   ['living', 'Living expenses'], ['housing', 'Housing'], ['healthcare', 'Healthcare'], ['education', 'Education'], ['travel', 'Travel'], ['insurance', 'Insurance'], ['longTermCare', 'Long-term care'], ['childcare', 'Childcare (counts toward the care credit)'], ['oneTime', 'One-time'], ['other', 'Other'],
 ];
@@ -204,6 +205,7 @@ export function AccountsPage() {
                 {a.kind === 'taxable' && <Num label="Foreign tax withheld on dividends" percent value={a.foreignWithholding ?? 0} hint="The share of this account's dividends a foreign country withholds; it counts toward the US foreign tax credit." onChange={(v) => set((x) => { x.foreignWithholding = v || undefined; })} />}
                 {a.kind === 'asset' && <>
                   <Check label="Real estate (property tax, deductible mortgage interest)" value={!!a.realEstate} onChange={(v) => set((x) => { x.realEstate = v; })} />
+                  {!a.realEstate && <Check label="A collectible (coins, cards, plush toys, art)" value={!!a.collectible} onChange={(v) => set((x) => { x.collectible = v || undefined; })} />}
                   <Num label="Yearly appreciation" percent value={a.appreciation ?? 0.03} onChange={(v) => set((x) => { x.appreciation = v; })} />
                   <Num label="Yearly rent, if rented (today's $)" value={a.rent ?? 0} onChange={(v) => set((x) => { x.rent = v || undefined; })} />
                   {!!a.rent && <Num label="Vacancy" percent value={a.vacancy ?? 0.05} onChange={(v) => set((x) => { x.vacancy = v; })} />}
@@ -218,6 +220,8 @@ export function AccountsPage() {
                   <Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
                   <Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
                   <Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
+                  <Num label="Share of spending on this card" percent value={a.cardSpendShare ?? 0} onChange={(v) => set((x) => { x.cardSpendShare = v || undefined; })} />
+                  <Num label="Cash back" percent value={a.cashBackRate ?? 0} onChange={(v) => set((x) => { x.cashBackRate = v || undefined; })} />
                   <PayoffYear id={a.id} />
                   <Select label="Secured by" value={a.securedBy ?? ''} options={[['', 'Nothing'], ...assets]} onChange={(v) => set((x) => { x.securedBy = v || undefined; })} />
                 </>}
@@ -252,7 +256,11 @@ export function IncomePage() {
                 <Num label="Foreign income tax paid on it" percent value={x.foreignTaxRate ?? 0} hint="Income tax a foreign country takes from this income, as a share of it. A US taxpayer gets the foreign tax credit for it." onChange={(v) => set((y) => { y.foreignTaxRate = v || undefined; })} />
                 {(x.kind === 'salary' || x.kind === 'selfEmployment') && <Check label="Earned while living abroad (a US person)" value={!!x.abroad} onChange={(v) => set((y) => { y.abroad = v || undefined; })} />}
                 {x.kind === 'salary' && x.abroad && <Check label="US Social Security and Medicare tax still applies (a US employer)" value={!!x.usPayroll} onChange={(v) => set((y) => { y.usPayroll = v || undefined; })} />}
-                <Select label="Type" value={x.kind} options={INCOME_KINDS} onChange={(v) => set((y) => { y.kind = v; })} />
+                <Select label="Type" value={x.kind} options={INCOME_KINDS} onChange={(v) => set((y) => { y.kind = v; if (v === 'accountBonus') { y.bonusSource ??= 'bank'; y.taxable = true; } if (v === 'settlement') y.taxable = true; })} />
+                {x.kind === 'accountBonus' && <>
+                  <Select label="Bonus from" value={x.bonusSource ?? 'bank'} options={BONUS_SOURCES} onChange={(v) => set((y) => { y.bonusSource = v; y.taxable = v !== 'card'; })} />
+                  <Text label="Requirement" value={x.requirement ?? ''} onChange={(v) => set((y) => { y.requirement = v || undefined; })} />
+                </>}
                 <Select label="Owner" value={x.ownerId} options={owner} onChange={(v) => set((y) => { y.ownerId = v; })} />
                 <Num label={x.nominal ? 'Yearly amount (start year\'s $)' : "Yearly amount (today's $)"} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
                 <Num label="Real growth a year" percent value={x.growth} onChange={(v) => set((y) => { y.growth = v; })} />
@@ -329,6 +337,9 @@ export function ExpensesPage() {
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
               <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
               <Num label="Discretionary share" percent value={x.discretionary ?? 0} hint="The part which could be cut in a bad stretch. Flexible spending (Strategy) uses it." onChange={(v) => set((y) => { y.discretionary = Math.max(0, Math.min(1, v)) || undefined; })} />
+              <Num label="Paid back to you" percent value={x.reimbursedShare ?? 0} onChange={(v) => set((y) => { y.reimbursedShare = v ? Math.min(1, v) : undefined; })} />
+              {!!x.reimbursedShare && <Num label="Paid back after (years; 0 the same year)" value={x.reimbursedAfterYears ?? 0} onChange={(v) => set((y) => { y.reimbursedAfterYears = Math.max(0, v); })} />}
+              {(x.kind === 'healthcare' || x.kind === 'childcare') && <Check label="Paid through a workplace FSA" value={!!x.fsa} onChange={(v) => set((y) => { y.fsa = v || undefined; })} />}
               <Select label="Type" value={x.kind} options={EXPENSE_KINDS} onChange={(v) => set((y) => { y.kind = v; })} />
               <Num label={(x.kind === 'oneTime' ? 'Amount' : 'Yearly amount') + (x.nominal ? " (that year's $)" : " (today's $)")} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
               <Num label={x.kind === 'oneTime' ? 'Year' : 'Start year'} value={x.startYear} onChange={(v) => set((y) => { y.startYear = v; })} />

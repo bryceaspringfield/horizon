@@ -18,3 +18,16 @@ describe('more than two people', () => {
     expect(y0.socialSecurity - b0.socialSecurity).toBeGreaterThan(1500 * 12 * 0.9);
   });
 });
+
+describe('credit card cash back', () => {
+  it('credits the card\'s rate on its share of spending, untaxed', () => {
+    const plan = examplePlan();
+    const base = simulate(plan).years[0];
+    plan.accounts.push({ id: 'card', name: 'Visa', kind: 'debt', ownerId: plan.people[0].id, balance: 0, allocation: { stocks: 0, bonds: 0, cash: 0 },
+      cardSpendShare: 0.5, cashBackRate: 0.02 });
+    const y = simulate(plan).years[0];
+    const spend = plan.expenses.reduce((t, e) => t + (base.expenses[e.id] ?? 0), 0);
+    expect(y.income.cb_card).toBeCloseTo(spend * 0.5 * 0.02, 0);
+    expect(y.income.cb_card).toBeGreaterThan(0);
+  });
+});

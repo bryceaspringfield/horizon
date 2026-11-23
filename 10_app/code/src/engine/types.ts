@@ -38,6 +38,13 @@ export interface Account {
   allocation: Allocation;
   /** Assets: a fixed yearly appreciation in place of market returns. */
   appreciation?: number;
+  /** Credit cards (debts): the share of the year's spending charged to the card, and the cash back it earns on that
+   * spending (0.015 for 1.5%). Cash back is a rebate on purchases, not taxed income (IRS). */
+  cardSpendShare?: number;
+  cashBackRate?: number;
+  /** Assets: a collectible (coins, trading cards, plush toys, art), whose sale gain is taxed as ordinary income (the
+   * collectibles rate is capped at 28%; ordinary rates reach 28% only past the 24% bracket). */
+  collectible?: boolean;
   /** Debts: yearly interest rate and the fixed yearly payment. */
   interestRate?: number;
   payment?: number;
@@ -84,7 +91,7 @@ export interface Step {
   amount: number;
 }
 
-export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu' | 'bonus';
+export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu' | 'bonus' | 'accountBonus' | 'settlement';
 
 export interface Income {
   id: string;
@@ -106,6 +113,11 @@ export interface Income {
   employerMatch?: number;
   /** Salary: the share of pay the employer matches at most (e.g., 100% of the first 6%). */
   matchLimit?: number;
+  /** Account bonuses (one-time, paid in startYear): where the bonus comes from. A card's spending bonus is a rebate
+   * (untaxed); a bank's is interest and a brokerage's or a referral's other income (taxed, 1099-INT or 1099-MISC). */
+  bonusSource?: 'card' | 'bank' | 'brokerage' | 'referral';
+  /** Account bonuses: what earns the bonus, for the user's own tracking (spend $4,000 in 3 months; keep $15,000 for 90 days). */
+  requirement?: string;
   /** Whether the income is taxed as ordinary income (a Roth-like annuity or a gift is not). */
   taxable: boolean;
   /** RSUs: the grant vests in equal parts over these years from startYear; vested shares are taxed as wages and kept
@@ -152,6 +164,12 @@ export interface Expense {
   id: string;
   name: string;
   kind: ExpenseKind;
+  /** Spending to be paid back (a work trip, a purchase for someone): the share repaid, and the years after the spending
+   * when the repayment arrives (0: the same year). The repayment is untaxed; the card's cash back on the spending stays. */
+  reimbursedShare?: number;
+  reimbursedAfterYears?: number;
+  /** Paid through a workplace health or dependent-care FSA: the amount (up to the year's limit) leaves taxable pay. */
+  fsa?: boolean;
   /** Yearly amount in today's dollars (a one-time expense: its full amount). */
   amount: number;
   startYear: number;

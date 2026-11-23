@@ -1,0 +1,188 @@
+Returns	Analysis	Select	<Select label="Returns" value={settings.mcMethod} options={[['normal', 'Random, from your assumptions'], ['historicalBlocks', 'Random 5-year blocks of 1928–2025'], ['backtest', 'Every historical start year']]}
+Trials	Analysis	Num	{settings.mcMethod !== 'backtest' && <Num label="Trials" value={settings.mcTrials} onChange={(v) => setSettings({ mcTrials: Math.max(50, Math.min(10000, v)) })} />}
+Currency	Editors	Select	return <Select label="Currency" value={value ?? home} options={options} onChange={(v) => {
+Claim the foreign earned income exclusion	Editors	Check	<Check label="Claim the foreign earned income exclusion" value={e.exclusion} onChange={(v) => update((p) => { p.assumptions.expat = { ...e, exclusion: v }; })} />
+Yearly housing cost abroad (today's $)	Editors	Num	{e.exclusion && <Num label="Yearly housing cost abroad (today's $)" step={500} value={e.housing} hint="Rent, utilities, and insurance abroad. The part between 16% and 30% of the exclusion limit is excluded too." onChange={(v) => update((p) => { p.assumptions.e
+Plan currency	Editors	Select	<Select label="Plan currency" value={home} options={options} onChange={(v) => update((p) => { p.currency = v === 'USD' ? undefined : v; })} />
+From year	Editors	Num	<Num label="From year" value={st.year} onChange={(v) => onChange(list.map((x, k) => (k === j ? { ...x, year: v } : x)))} />
+Plan name	Editors	Text	<Text label="Plan name" value={plan.name} onChange={(v) => update((p) => { p.name = v; })} />
+First year	Editors	Num	<Num label="First year" value={plan.startYear} onChange={(v) => update((p) => { p.startYear = v; })} />
+Filing status	Editors	Select	<Select label="Filing status" value={plan.assumptions.filingStatus} options={[['mfj', 'Married filing jointly'], ['single', 'Single'], ['hoh', 'Head of household']]}
+State	Editors	Select	<Select label="State" value={plan.assumptions.state} options={Object.keys(statesJson).sort().map((k) => [k, k] as [string, string])}
+Name	Editors	Text	<Text label="Name" value={person.name} onChange={(v) => update((p) => { p.people[i].name = v; })} />
+Birth year	Editors	Num	<Num label="Birth year" value={person.birthYear} onChange={(v) => update((p) => { p.people[i].birthYear = v; })} />
+Plan to age	Editors	Num	<Num label="Plan to age" value={person.lifeExpectancy} onChange={(v) => update((p) => { p.people[i].lifeExpectancy = v; })} />
+Retirement age	Editors	Num	<Num label="Retirement age" value={plan.strategy.retirementAge[person.id]} onChange={(v) => update((p) => { p.strategy.retirementAge[person.id] = v; })} />
+Type	Editors	Select	<Select label="Type" value={a.kind} options={ACCOUNT_KINDS} onChange={(v) => set((x) => { x.kind = v; })} />
+Owner	Editors	Select	<Select label="Owner" value={a.ownerId} options={owner} onChange={(v) => set((x) => { x.ownerId = v; })} />
+Cost basis	Editors	Num	{a.kind === 'taxable' && <Num label="Cost basis" value={a.costBasis} onChange={(v) => set((x) => { x.costBasis = v; })} />}
+Stocks	Editors	Num	<Num label="Stocks" percent value={a.allocation.stocks} onChange={(v) => set((x) => { x.allocation.stocks = v; x.allocation.bonds = Math.max(0, 1 - v - x.allocation.cash); })} />
+Bonds	Editors	Num	<Num label="Bonds" percent value={a.allocation.bonds} onChange={(v) => set((x) => { x.allocation.bonds = v; })} />
+Cash	Editors	Num	<Num label="Cash" percent value={a.allocation.cash} onChange={(v) => set((x) => { x.allocation.cash = v; })} />
+Yearly fee	Editors	Num	<Num label="Yearly fee" percent step={0.01} value={a.fee ?? 0} onChange={(v) => set((x) => { x.fee = v; })} />
+Its own yearly return, not the market mix	Editors	Check	<Check label="Its own yearly return, not the market mix" value={typeof a.customReturn === 'number'} onChange={(v) => set((x) => { x.customReturn = v ? 0.05 : undefined; })} />
+Yearly return (after fees)	Editors	Num	{typeof a.customReturn === 'number' && <Num label="Yearly return (after fees)" percent value={a.customReturn} onChange={(v) => set((x) => { x.customReturn = v; })} />}
+Return tied to inflation (Series I bonds, TIPS)	Editors	Check	<Check label="Return tied to inflation (Series I bonds, TIPS)" value={typeof a.inflationLinked === 'number'} onChange={(v) => set((x) => { x.inflationLinked = v ? 0.01 : undefined; })} />
+Fixed rate above inflation	Editors	Num	{typeof a.inflationLinked === 'number' && <Num label="Fixed rate above inflation" percent value={a.inflationLinked} onChange={(v) => set((x) => { x.inflationLinked = v; })} />}
+Pay dividends and interest out to cash (not reinvested)	Editors	Check	{a.kind === 'taxable' && <Check label="Pay dividends and interest out to cash (not reinvested)" value={!!a.dividendsPaidOut} onChange={(v) => set((x) => { x.dividendsPaidOut = v; })} />}
+Foreign tax withheld on dividends	Editors	Num	{a.kind === 'taxable' && <Num label="Foreign tax withheld on dividends" percent value={a.foreignWithholding ?? 0} hint="The share of this account's dividends a foreign country withholds; it counts toward the US foreign tax credit." onChange={(v) => set((x) => 
+Real estate (property tax, deductible mortgage interest)	Editors	Check	<Check label="Real estate (property tax, deductible mortgage interest)" value={!!a.realEstate} onChange={(v) => set((x) => { x.realEstate = v; })} />
+Yearly appreciation	Editors	Num	<Num label="Yearly appreciation" percent value={a.appreciation ?? 0.03} onChange={(v) => set((x) => { x.appreciation = v; })} />
+Yearly rent, if rented (today's $)	Editors	Num	<Num label="Yearly rent, if rented (today's $)" value={a.rent ?? 0} onChange={(v) => set((x) => { x.rent = v || undefined; })} />
+Vacancy	Editors	Num	{!!a.rent && <Num label="Vacancy" percent value={a.vacancy ?? 0.05} onChange={(v) => set((x) => { x.vacancy = v; })} />}
+Rental costs (share of rent)	Editors	Num	{!!a.rent && <Num label="Rental costs (share of rent)" percent value={a.rentalCosts ?? 0.35} onChange={(v) => set((x) => { x.rentalCosts = v; })} />}
+Sale year (0 for none)	Editors	Num	<Num label="Sale year (0 for none)" value={a.saleYear ?? 0} onChange={(v) => set((x) => { x.saleYear = v || undefined; })} />
+Cost basis: price paid plus improvements (0 for none)	Editors	Num	<Num label="Cost basis: price paid plus improvements (0 for none)" step={1000} value={a.costBasis ?? 0} hint="With a basis, a sale's gain is taxed as a long-term gain. With none, the sale is taken as made at cost." onChange={(v) => set((x) => { x.costBasis = v
+Selling costs (share of the price)	Editors	Num	<Num label="Selling costs (share of the price)" percent value={a.sellingCosts ?? 0} onChange={(v) => set((x) => { x.sellingCosts = v || undefined; })} />
+The home you live in (its sale excludes $250,000 of gain a person)	Editors	Check	{a.realEstate && <Check label="The home you live in (its sale excludes $250,000 of gain a person)" value={!!a.primaryResidence} onChange={(v) => set((x) => { x.primaryResidence = v || undefined; })} />}
+Interest rate	Editors	Num	<Num label="Interest rate" percent value={a.interestRate ?? 0} onChange={(v) => set((x) => { x.interestRate = v; })} />
+Yearly payment	Editors	Num	<Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
+Extra payment a year (today's $)	Editors	Num	<Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
+Forgiven in year (0 for none)	Editors	Num	<Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
+Secured by	Editors	Select	<Select label="Secured by" value={a.securedBy ?? ''} options={[['', 'Nothing'], ...assets]} onChange={(v) => set((x) => { x.securedBy = v || undefined; })} />
+Foreign income tax paid on it	Editors	Num	<Num label="Foreign income tax paid on it" percent value={x.foreignTaxRate ?? 0} hint="Income tax a foreign country takes from this income, as a share of it. A US taxpayer gets the foreign tax credit for it." onChange={(v) => set((y) => { y.foreignTaxRate = v 
+Earned while living abroad (a US person)	Editors	Check	{(x.kind === 'salary' || x.kind === 'selfEmployment') && <Check label="Earned while living abroad (a US person)" value={!!x.abroad} onChange={(v) => set((y) => { y.abroad = v || undefined; })} />}
+US Social Security and Medicare tax still applies (a US employer)	Editors	Check	{x.kind === 'salary' && x.abroad && <Check label="US Social Security and Medicare tax still applies (a US employer)" value={!!x.usPayroll} onChange={(v) => set((y) => { y.usPayroll = v || undefined; })} />}
+Real growth a year	Editors	Num	<Num label="Real growth a year" percent value={x.growth} onChange={(v) => set((y) => { y.growth = v; })} />
+Start year	Editors	Num	<Num label="Start year" value={x.startYear} onChange={(v) => set((y) => { y.startYear = v; })} />
+End year (0: at retirement or death)	Editors	Num	<Num label="End year (0: at retirement or death)" value={x.endYear ?? 0} onChange={(v) => set((y) => { y.endYear = v || undefined; })} />
+Keeps pace with inflation	Editors	Check	<Check label="Keeps pace with inflation" value={x.inflationAdjusted} onChange={(v) => set((y) => { y.inflationAdjusted = v; })} />
+Taxable	Editors	Check	<Check label="Taxable" value={x.taxable} onChange={(v) => set((y) => { y.taxable = v; })} />
+Amounts in future dollars of their year	Editors	Check	<Check label="Amounts in future dollars of their year" value={!!x.nominal} onChange={(v) => set((y) => { y.nominal = v; })} />
+A specified service business (law, health, consulting...)	Editors	Check	{x.kind === 'selfEmployment' && <Check label="A specified service business (law, health, consulting...)" value={!!x.serviceBusiness} onChange={(v) => set((y) => { y.serviceBusiness = v; })} />}
+Health insurance premium a year (today's $)	Editors	Num	<Num label="Health insurance premium a year (today's $)" step={500} value={x.healthPremium ?? 0} hint="The self-employed health insurance deduction, up to the business's profit." onChange={(v) => set((y) => { y.healthPremium = v || undefined; })} />
+Solo 401(k) deferral (share of profit)	Editors	Num	<Num label="Solo 401(k) deferral (share of profit)" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />
+Employer contribution: SEP IRA or solo 401(k)	Editors	Num	<Num label="Employer contribution: SEP IRA or solo 401(k)" percent value={x.employerContributionRate ?? 0} hint="A share of net earnings, at most 20% for a sole owner." onChange={(v) => set((y) => { y.employerContributionRate = Math.min(0.2, v) || undefined; }
+Vests over (years)	Editors	Num	{x.kind === 'rsu' && <Num label="Vests over (years)" value={x.vestYears ?? 4} onChange={(v) => set((y) => { y.vestYears = v; })} />}
+Cliff (years before the first vesting)	Editors	Num	{x.kind === 'rsu' && <Num label="Cliff (years before the first vesting)" value={x.vestCliffYears ?? 0} hint="With a one-year cliff, nothing vests in the first year and two parts vest in the second." onChange={(v) => set((y) => { y.vestCliffYears = v || undefin
+401(k) contribution	Editors	Num	<Num label="401(k) contribution" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />
+Share of the contribution going to Roth	Editors	Num	<Num label="Share of the contribution going to Roth" percent value={x.contributionRothShare ?? (x.contributionRoth ? 1 : 0)} onChange={(v) => set((y) => { y.contributionRothShare = Math.max(0, Math.min(1, v)); y.contributionRoth = v >= 1; })} />
+Yearly bonus (share of salary)	Editors	Num	<Num label="Yearly bonus (share of salary)" percent value={x.bonusRate ?? 0} onChange={(v) => set((y) => { y.bonusRate = v || undefined; })} />
+Employer match rate	Editors	Num	<Num label="Employer match rate" percent value={x.employerMatch ?? 0} onChange={(v) => set((y) => { y.employerMatch = v; })} />
+Match up to (share of pay)	Editors	Num	<Num label="Match up to (share of pay)" percent value={x.matchLimit ?? 0} onChange={(v) => set((y) => { y.matchLimit = v; })} />
+Benefit at 67, monthly	Editors	Num	<Num label="Benefit at 67, monthly" value={ss.pia} onChange={(v) => update((p) => { p.socialSecurity[i].pia = v; })} />
+Claim age (62 to 70)	Editors	Num	<Num label="Claim age (62 to 70)" value={ss.claimAge} step={1} onChange={(v) => update((p) => { p.socialSecurity[i].claimAge = Math.min(70, Math.max(62, v)); })} />
+Discretionary share	Editors	Num	<Num label="Discretionary share" percent value={x.discretionary ?? 0} hint="The part which could be cut in a bad stretch. Flexible spending (Strategy) uses it." onChange={(v) => set((y) => { y.discretionary = Math.max(0, Math.min(1, v)) || undefined; })} />
+End year (0: for life)	Editors	Num	{x.kind !== 'oneTime' && <Num label="End year (0: for life)" value={x.endYear ?? 0} onChange={(v) => set((y) => { y.endYear = v || undefined; })} />}
+Growth above inflation	Editors	Num	<Num label="Growth above inflation" percent value={x.growth} onChange={(v) => set((y) => { y.growth = v; })} />
+Paid from	Editors	Select	{x.kind === 'education' && <Select label="Paid from" value={x.fundedBy ?? ''} options={funds} onChange={(v) => set((y) => { y.fundedBy = v || undefined; })} />}
+Event	Editors	Select	<Select label="Event" value={e.kind} options={EVENT_KINDS} onChange={(v) => update((p) => { p.events![i] = { ...newEvent(v, e.year, p.people[0].id), id: e.id }; })} />
+Year	Editors	Num	<Num label="Year" value={e.year} onChange={(v) => set((x) => { x.year = v; })} />
+Price (today's $)	Editors	Num	<Num label="Price (today's $)" value={e.price} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.price = v; })} />
+Down payment	Editors	Num	<Num label="Down payment" percent value={e.downPayment} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.downPayment = v; })} />
+Closing costs	Editors	Num	<Num label="Closing costs" percent value={e.closingCosts} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.closingCosts = v; })} />
+Mortgage rate	Editors	Num	<Num label="Mortgage rate" percent value={e.rate} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.rate = v; })} />
+Term (years)	Editors	Num	<Num label="Term (years)" value={e.termYears} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.termYears = v; })} />
+Yearly cost to 18 (today's $)	Editors	Num	<Num label="Yearly cost to 18 (today's $)" value={e.yearlyCost} onChange={(v) => set((x) => { if (x.kind === 'child') x.yearlyCost = v; })} />
+College a year (today's $)	Editors	Num	<Num label="College a year (today's $)" value={e.collegeYearly} onChange={(v) => set((x) => { if (x.kind === 'child') x.collegeYearly = v; })} />
+College years	Editors	Num	<Num label="College years" value={e.collegeYears} onChange={(v) => set((x) => { if (x.kind === 'child') x.collegeYears = v; })} />
+Person	Editors	Select	<Select label="Person" value={e.personId} options={people} onChange={(v) => set((x) => { if (x.kind === 'careerBreak' || x.kind === 'payChange') x.personId = v; })} />
+Back to work after	Editors	Num	{e.kind === 'careerBreak' && <Num label="Back to work after" value={e.endYear} onChange={(v) => set((x) => { if (x.kind === 'careerBreak') x.endYear = v; })} />}
+Yearly rent (today's $)	Editors	Num	<Num label="Yearly rent (today's $)" value={e.rent} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.rent = v; })} />
+Costs (share of rent)	Editors	Num	<Num label="Costs (share of rent)" percent value={e.costs} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.costs = v; })} />
+New state	Editors	Select	<Select label="New state" value={e.state} options={Object.keys(statesJson).sort().map((k) => [k, k] as [string, string])} onChange={(v) => set((x) => { if (x.kind === 'move') x.state = v; })} />
+Amount (today's $)	Editors	Num	<Num label="Amount (today's $)" value={e.amount} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.amount = v; })} />
+As an inherited IRA (10-year rule)	Editors	Check	<Check label="As an inherited IRA (10-year rule)" value={e.asIra} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.asIra = v; })} />
+Every (years)	Editors	Num	<Num label="Every (years)" value={e.everyYears} onChange={(v) => set((x) => { if (x.kind === 'recurring') x.everyYears = v; })} />
+Last year	Editors	Num	<Num label="Last year" value={e.endYear} onChange={(v) => set((x) => { if (x.kind === 'recurring') x.endYear = v; })} />
+Who leaves the plan	Editors	Select	<Select label="Who leaves the plan" value={e.personId} options={people} onChange={(v) => set((x) => { if (x.kind === 'separation') x.personId = v; })} />
+Share of every account kept	Editors	Num	<Num label="Share of every account kept" percent value={e.keepShare} onChange={(v) => set((x) => { if (x.kind === 'separation') x.keepShare = v; })} />
+Expenses from then on (× before)	Editors	Num	<Num label="Expenses from then on (× before)" step={0.05} value={e.expenseFactor} onChange={(v) => set((x) => { if (x.kind === 'separation') x.expenseFactor = v; })} />
+Support paid a year (today's $)	Editors	Num	<Num label="Support paid a year (today's $)" value={e.support} onChange={(v) => set((x) => { if (x.kind === 'separation') x.support = v; })} />
+Support for (years)	Editors	Num	<Num label="Support for (years)" value={e.supportYears} onChange={(v) => set((x) => { if (x.kind === 'separation') x.supportYears = v; })} />
+Pay from then on (× current)	Editors	Num	{e.kind === 'payChange' && <Num label="Pay from then on (× current)" step={0.05} value={e.factor} onChange={(v) => set((x) => { if (x.kind === 'payChange') x.factor = v; })} />}
+When	Editors	Select	<Select label="When" value={m.kind} options={[['year', 'A year'], ['age', 'An age'], ['financialIndependence', 'Financial independence'], ['netWorth', 'A net worth'], ['liquidNetWorth', 'Invested assets of an amount'], ['coastFi', 'Coast FI'], ['debtFree', 'De
+Age	Editors	Num	<Num label="Age" value={m.age} onChange={(v) => set((y) => { y.age = v; })} />
+Condition	Editors	Select	<Select label="Condition" value={c.kind} options={[['year', 'From a year'], ['age', 'From an age'], ['financialIndependence', 'Once financially independent'], ['netWorth', 'Net worth at least'], ['liquidNetWorth', 'Invested assets at least'], ['coastFi', 'Once
+Cash to keep on hand (today's $)	Editors	Num	<Num label="Cash to keep on hand (today's $)" value={s.cashTarget} onChange={(v) => update((p) => { p.strategy.cashTarget = v; })} />
+Traditional IRA a year	Editors	Num	<Num label="Traditional IRA a year" value={s.iraContribution} onChange={(v) => update((p) => { p.strategy.iraContribution = v; })} />
+Roth IRA a year	Editors	Num	<Num label="Roth IRA a year" value={s.rothIraContribution} onChange={(v) => update((p) => { p.strategy.rothIraContribution = v; })} />
+HSA a year	Editors	Num	<Num label="HSA a year" value={s.hsaContribution} onChange={(v) => update((p) => { p.strategy.hsaContribution = v; })} />
+Backdoor Roth (no income limit on the Roth IRA)	Editors	Check	<Check label="Backdoor Roth (no income limit on the Roth IRA)" value={!!s.backdoorRoth} onChange={(v) => update((p) => { p.strategy.backdoorRoth = v; })} />
+Mega backdoor Roth a year	Editors	Num	<Num label="Mega backdoor Roth a year" value={s.megaBackdoor ?? 0} onChange={(v) => update((p) => { p.strategy.megaBackdoor = v; })} />
+Leftover pay goes to	Editors	Select	<Select label="Leftover pay goes to" value={s.surplusTo ?? 'invest'} options={[['invest', 'Investing (taxable account)'], ['debt', 'Paying debts down first']]} onChange={(v) => update((p) => { p.strategy.surplusTo = v; })} />
+Change the order from a later year	Editors	Check	<Check label="Change the order from a later year" value={!!s.withdrawalOrderLater} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater = v ? { year: p.startYear + 20, order: [...p.strategy.withdrawalOrder] } : undefined; })} />
+From the year	Editors	Num	{s.withdrawalOrderLater && <Num label="From the year" value={s.withdrawalOrderLater.year} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater!.year = v; })} />}
+How to draw	Editors	Select	<Select label="How to draw" value={s.withdrawalMethod ?? 'order'} options={[['order', 'In the order above'], ['proportional', 'In proportion to balances']]}
+Shield withdrawals under	Editors	Select	<Select label="Shield withdrawals under" value={s.shield ?? 'none'} options={[['none', 'No limit'], ['bracket12', 'The 12% bracket'], ['bracket22', 'The 22% bracket'], ['bracket24', 'The 24% bracket'], ['irmaa', 'The first IRMAA tier'], ['aca', 'The ACA credit
+Realize gains in the 0% capital gains band each year	Editors	Check	<Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />
+Spending rule	Editors	Select	<Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the pla
+Withdrawal rate	Editors	Num	{(s.spending === 'fixedPercent' || s.spending === 'guardrails' || s.spending === 'textbook') && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
+Safe withdrawal rate (FI test)	Editors	Num	<Num label="Safe withdrawal rate (FI test)" percent value={s.safeWithdrawalRate} onChange={(v) => update((p) => { p.strategy.safeWithdrawalRate = v; })} />
+Count real assets (home equity) toward FI and net worth milestones	Editors	Check	<Check label="Count real assets (home equity) toward FI and net worth milestones" value={!!s.fiCountsRealAssets} onChange={(v) => update((p) => { p.strategy.fiCountsRealAssets = v; })} />
+Flexible spending: cut discretionary spending in bad stretches	Editors	Check	<Check label="Flexible spending: cut discretionary spending in bad stretches" value={!!s.flex?.enabled} onChange={(v) => update((p) => { p.strategy.flex = { drop: 0.2, cut: 0.5, rise: 0.25, boost: 0, ...p.strategy.flex, enabled: v }; })} />
+Cut when the portfolio is under its high by	Editors	Num	<Num label="Cut when the portfolio is under its high by" percent value={s.flex.drop} onChange={(v) => update((p) => { p.strategy.flex!.drop = v; })} />
+Share of discretionary spending cut	Editors	Num	<Num label="Share of discretionary spending cut" percent value={s.flex.cut} onChange={(v) => update((p) => { p.strategy.flex!.cut = Math.max(0, Math.min(1, v)); })} />
+Raise when the portfolio is above its start by	Editors	Num	<Num label="Raise when the portfolio is above its start by" percent value={s.flex.rise ?? 0.25} onChange={(v) => update((p) => { p.strategy.flex!.rise = v; })} />
+Raise of discretionary spending	Editors	Num	<Num label="Raise of discretionary spending" percent value={s.flex.boost ?? 0} onChange={(v) => update((p) => { p.strategy.flex!.boost = v; })} />
+Give to charity from IRAs from 71 (qualified charitable distributions)	Editors	Check	<Check label="Give to charity from IRAs from 71 (qualified charitable distributions)" value={!!s.qcd} onChange={(v) => update((p) => { p.strategy.qcd = v; })} />
+Shift from stocks to bonds with age	Editors	Check	<Check label="Shift from stocks to bonds with age" value={!!s.glidePath?.enabled} onChange={(v) => update((p) => { p.strategy.glidePath = { startAge: 45, endAge: 70, endStocks: 0.5, ...p.strategy.glidePath, enabled: v }; })} />
+From age	Editors	Num	<Num label="From age" value={s.glidePath.startAge} onChange={(v) => update((p) => { p.strategy.glidePath!.startAge = v; })} />
+To age	Editors	Num	<Num label="To age" value={s.glidePath.endAge} onChange={(v) => update((p) => { p.strategy.glidePath!.endAge = v; })} />
+Stocks at the end	Editors	Num	<Num label="Stocks at the end" percent value={s.glidePath.endStocks} onChange={(v) => update((p) => { p.strategy.glidePath!.endStocks = v; })} />
+Fill up to the bracket	Editors	Select	<Select label="Fill up to the bracket" value={String(s.rothConversionBracket)} options={[['0', 'No conversions'], ['0.1', '10%'], ['0.12', '12%'], ['0.22', '22%'], ['0.24', '24%'], ['0.32', '32%']]}
+To year	Editors	Num	<Num label="To year" value={s.rothConversionEnd ?? plan.startYear + 30} onChange={(v) => update((p) => { p.strategy.rothConversionEnd = v; })} />
+Convert in year	Editors	Num	<Num label="Convert in year" value={m.year} onChange={(v) => update((p) => { p.strategy.manualConversions![i].year = v; })} />
+72(t) SEPP withdrawals before 59½ (no penalty)	Editors	Check	<Check label="72(t) SEPP withdrawals before 59½ (no penalty)" value={!!s.sepp?.enabled} onChange={(v) => update((p) => { p.strategy.sepp = { startYear: p.startYear + 10, ...p.strategy.sepp, enabled: v }; })} />
+SEPP from year	Editors	Num	{s.sepp?.enabled && <Num label="SEPP from year" value={s.sepp.startYear} onChange={(v) => update((p) => { p.strategy.sepp!.startYear = v; })} />}
+From	Editors	Select	<Select label="From" value={t.from} options={accts} onChange={(v) => set((x) => { x.from = v; })} />
+To	Editors	Select	<Select label="To" value={t.to} options={dests} onChange={(v) => set((x) => { x.to = v; })} />
+Amount a year (today's $)	Editors	Num	<Num label="Amount a year (today's $)" value={t.amount} onChange={(v) => set((x) => { x.amount = v; })} />
+Local tax	Editors	Select	<Select label="Local tax" value={v.kind} options={[['none', 'None'], ['nyc', 'New York City (resident brackets)'], ['wages', 'A flat rate on wages'], ['income', 'A flat rate on taxable income']]}
+Preset	Editors	Select	<Select label="Preset" value={v.name ?? ''} options={[['', 'Custom'], ...presets.map(([n]) => [n, n] as [string, string])]}
+Rate	Editors	Num	<Num label="Rate" percent step={0.01} value={v.rate ?? 0} onChange={(r) => onChange({ ...v, rate: r })} />
+Itemize when it beats the standard deduction	Editors	Check	<Check label="Itemize when it beats the standard deduction" value={d.itemize} onChange={(v) => update((p) => { p.deductions.itemize = v; })} />
+Property tax (share of home value)	Editors	Num	<Num label="Property tax (share of home value)" percent step={0.05} value={d.propertyTaxRate} onChange={(v) => update((p) => { p.deductions.propertyTaxRate = v; })} />
+Limit mortgage interest to the first $750,000 of home debt	Editors	Check	<Check label="Limit mortgage interest to the first $750,000 of home debt" value={!!d.mortgageDebtLimit} onChange={(v) => update((p) => { p.deductions.mortgageDebtLimit = v ? 750000 : undefined; })} />
+Home debt limit ($1,000,000 for loans from before December 16, 2017)	Editors	Num	{!!d.mortgageDebtLimit && <Num label="Home debt limit ($1,000,000 for loans from before December 16, 2017)" step={50000} value={d.mortgageDebtLimit} onChange={(v) => update((p) => { p.deductions.mortgageDebtLimit = v || undefined; })} />}
+Charitable giving a year (today's $)	Editors	Num	<Num label="Charitable giving a year (today's $)" value={d.charity} onChange={(v) => update((p) => { p.deductions.charity = v; })} />
+Medicare from 65, with income surcharges (IRMAA)	Editors	Check	<Check label="Medicare from 65, with income surcharges (IRMAA)" value={h.medicare} onChange={(v) => update((p) => { p.healthcare.medicare = v; })} />
+Part D premium a month before surcharges	Editors	Num	<Num label="Part D premium a month before surcharges" value={h.partDBase} onChange={(v) => update((p) => { p.healthcare.partDBase = v; })} />
+Medigap or Advantage premium a person a month (today's $)	Editors	Num	<Num label="Medigap or Advantage premium a person a month (today's $)" value={h.medigap ?? 0} onChange={(v) => update((p) => { p.healthcare.medigap = v || undefined; })} />
+ACA marketplace coverage from retirement to 65	Editors	Check	<Check label="ACA marketplace coverage from retirement to 65" value={h.aca} onChange={(v) => update((p) => { p.healthcare.aca = v; })} />
+Benchmark silver premium a person a year	Editors	Num	<Num label="Benchmark silver premium a person a year" value={h.acaBenchmark} onChange={(v) => update((p) => { p.healthcare.acaBenchmark = v; })} />
+Inflation	Editors	Num	<Num label="Inflation" percent value={a.inflation} onChange={(v) => update((p) => { p.assumptions.inflation = v; })} />
+Stock return	Editors	Num	<Num label="Stock return" percent value={a.returns.stocks} onChange={(v) => update((p) => { p.assumptions.returns.stocks = v; })} />
+Bond return	Editors	Num	<Num label="Bond return" percent value={a.returns.bonds} onChange={(v) => update((p) => { p.assumptions.returns.bonds = v; })} />
+Cash return	Editors	Num	<Num label="Cash return" percent value={a.returns.cash} onChange={(v) => update((p) => { p.assumptions.returns.cash = v; })} />
+Stock volatility	Editors	Num	<Num label="Stock volatility" percent value={a.volatility.stocks} onChange={(v) => update((p) => { p.assumptions.volatility.stocks = v; })} />
+Bond volatility	Editors	Num	<Num label="Bond volatility" percent value={a.volatility.bonds} onChange={(v) => update((p) => { p.assumptions.volatility.bonds = v; })} />
+Stock-bond correlation	Editors	Num	<Num label="Stock-bond correlation" step={0.05} value={a.correlation} onChange={(v) => update((p) => { p.assumptions.correlation = v; })} />
+Dividend yield	Editors	Num	<Num label="Dividend yield" percent value={a.dividendYield} onChange={(v) => update((p) => { p.assumptions.dividendYield = v; })} />
+Qualified share of dividends	Editors	Num	<Num label="Qualified share of dividends" percent value={a.qualifiedDividendShare ?? 1} hint="Qualified dividends are taxed at capital gains rates; the rest is ordinary income." onChange={(v) => update((p) => { p.assumptions.qualifiedDividendShare = Math.max(0
+Social Security raises beside inflation	Editors	Num	<Num label="Social Security raises beside inflation" percent step={0.1} value={a.benefitCola ?? 0} hint="0 keeps benefits level with inflation; -0.5 has them lose half a point a year." onChange={(v) => update((p) => { p.assumptions.benefitCola = v || undefined
+Tax model	Editors	Select	<Select label="Tax model" value={a.taxModel?.kind ?? 'us'} options={[['us', 'United States rules (federal, state, local, payroll)'], ['flat', 'One flat rate on all income']]}
+Flat rate	Editors	Num	{a.taxModel?.kind === 'flat' && <Num label="Flat rate" percent value={a.taxModel.rate} onChange={(v) => update((p) => { p.assumptions.taxModel!.rate = v; })} />}
+Stress test: a market crash	Editors	Check	<Check label="Stress test: a market crash" value={!!a.crash?.enabled} onChange={(v) => update((p) => { p.assumptions.crash = { year: p.startYear + 5, drop: 0.35, ...p.assumptions.crash, enabled: v }; })} />
+Crash year	Editors	Num	<Num label="Crash year" value={a.crash.year} onChange={(v) => update((p) => { p.assumptions.crash!.year = v; })} />
+Stocks fall by	Editors	Num	<Num label="Stocks fall by" percent value={a.crash.drop} onChange={(v) => update((p) => { p.assumptions.crash!.drop = v; })} />
+Heirs' income tax rate	More	Num	<Num label="Heirs' income tax rate" percent value={e.heirsTaxRate} onChange={(v) => update((p) => { p.estate = { ...e, heirsTaxRate: v }; })} />
+Heirs are	More	Select	<Select label="Heirs are" value={e.heirs ?? 'children'} options={[['children', 'Children or grandchildren'], ['siblings', 'Siblings'], ['others', 'Others (nieces, friends)']]} onChange={(v) => update((p) => { p.estate = { ...e, heirs: v }; })} />
+Number of heirs	More	Num	<Num label="Number of heirs" value={e.heirCount ?? 2} onChange={(v) => update((p) => { p.estate = { ...e, heirCount: Math.max(1, v) }; })} />
+Find the strategy with	More	Select	<Select label="Find the strategy with" value={target} options={[['legacy', 'The largest net legacy'], ['taxes', 'The lowest lifetime taxes']]} onChange={setTarget} />
+Chart	More	Select	<Select label="Chart" value={type} options={[['line', 'Lines'], ['area', 'Stacked areas'], ['bar', 'Stacked bars']]} onChange={setType} />
+I am planning with a spouse or partner	Setup	Check	<Check label="I am planning with a spouse or partner" value={a.hasPartner}
+State you live in	Setup	Select	<Select label="State you live in" value={a.state} options={Object.keys(statesJson).sort().map((s) => [s, s] as [string, string])} onChange={(v) => set({ state: v })} />
+Yearly salary	Setup	Num	<Num label="Yearly salary" value={a[k].salary} step={1000} onChange={(v) => setPerson(k, { salary: v })} />
+Share saved in a 401(k) or similar	Setup	Num	<Num label="Share saved in a 401(k) or similar" value={a[k].contributionRate} percent onChange={(v) => setPerson(k, { contributionRate: v })} />
+Employer match of each dollar	Setup	Num	<Num label="Employer match of each dollar" value={a[k].employerMatch} percent onChange={(v) => setPerson(k, { employerMatch: v })} />
+Match applies up to this share of pay	Setup	Num	<Num label="Match applies up to this share of pay" value={a[k].matchLimit} percent onChange={(v) => setPerson(k, { matchLimit: v })} />
+Age you plan to stop working	Setup	Num	<Num label="Age you plan to stop working" value={a[k].retirementAge} onChange={(v) => setPerson(k, { retirementAge: v })} />
+Monthly Social Security at 67 (0 to estimate)	Setup	Num	<Num label="Monthly Social Security at 67 (0 to estimate)" value={a[k].socialSecurity} step={50} onChange={(v) => setPerson(k, { socialSecurity: v })}
+Checking and savings	Setup	Num	<Num label="Checking and savings" value={a.cash} step={1000} onChange={(v) => set({ cash: v })} />
+Taxable brokerage accounts	Setup	Num	<Num label="Taxable brokerage accounts" value={a.brokerage} step={1000} onChange={(v) => set({ brokerage: v })} />
+Amount paid for those investments (0 if unknown)	Setup	Num	<Num label="Amount paid for those investments (0 if unknown)" value={a.brokerageBasis} step={1000} onChange={(v) => set({ brokerageBasis: v })}
+Health savings account (HSA)	Setup	Num	<Num label="Health savings account (HSA)" value={a.hsa} step={500} onChange={(v) => set({ hsa: v })} />
+401(k), 403(b), and traditional IRA	Setup	Num	<Num label="401(k), 403(b), and traditional IRA" value={a[k].traditional} step={1000} onChange={(v) => setPerson(k, { traditional: v })} />
+Roth 401(k) and Roth IRA	Setup	Num	<Num label="Roth 401(k) and Roth IRA" value={a[k].roth} step={1000} onChange={(v) => setPerson(k, { roth: v })} />
+I own my home	Setup	Check	<Check label="I own my home" value={a.ownsHome} onChange={(v) => set({ ownsHome: v })} />
+Home value	Setup	Num	<Num label="Home value" value={a.homeValue} step={5000} onChange={(v) => set({ homeValue: v })} />
+Mortgage balance	Setup	Num	<Num label="Mortgage balance" value={a.mortgageBalance} step={5000} onChange={(v) => set({ mortgageBalance: v })} />
+Mortgage interest rate	Setup	Num	<Num label="Mortgage interest rate" value={a.mortgageRate} percent onChange={(v) => set({ mortgageRate: v })} />
+Monthly payment (principal and interest)	Setup	Num	<Num label="Monthly payment (principal and interest)" value={a.mortgagePayment} step={50} onChange={(v) => set({ mortgagePayment: v })} />
+Other debts, total balance	Setup	Num	<Num label="Other debts, total balance" value={a.otherDebt} step={1000} onChange={(v) => set({ otherDebt: v })} />
+Average interest rate	Setup	Num	<Num label="Average interest rate" value={a.otherDebtRate} percent onChange={(v) => set({ otherDebtRate: v })} />
+Monthly payments, total	Setup	Num	<Num label="Monthly payments, total" value={a.otherDebtPayment} step={50} onChange={(v) => set({ otherDebtPayment: v })} />
+Yearly living expenses	Setup	Num	<Num label="Yearly living expenses" value={a.living} step={1000} onChange={(v) => set({ living: v })} />
+Yearly Roth IRA contributions	Setup	Num	<Num label="Yearly Roth IRA contributions" value={a.rothIra} step={500} onChange={(v) => set({ rothIra: v })} />
+Yearly HSA contributions	Setup	Num	<Num label="Yearly HSA contributions" value={a.hsaContribution} step={500} onChange={(v) => set({ hsaContribution: v })} />

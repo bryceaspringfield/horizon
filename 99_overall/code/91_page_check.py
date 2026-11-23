@@ -51,7 +51,7 @@ def main():
             pg.wait_for_timeout(3500)
             if name == 'montecarlo':
                 for method in ('normal', 'backtest'):
-                    pg.select_option('main select', method)
+                    pg.locator('.field:has(span:has-text("Returns")) .ddbtn').click(); pg.locator(f'.ddlist [data-value="{method}"]').click()
                     pg.click('text=Run')
                     pg.wait_for_selector('text=Chance of success', timeout=60000)
                     pg.wait_for_timeout(800)
@@ -82,7 +82,7 @@ def main():
         card.locator('button:has-text("+ Add")').click(); pg.wait_for_timeout(500)
         transfer_ok = card.locator('details.item').count() == 1
         pg.goto(f'{url}assumptions'); pg.wait_for_timeout(1500)
-        pg.locator('label.field:has-text("Tax model") select').first.select_option('flat'); pg.wait_for_timeout(500)
+        fld = pg.locator('.field:has(> span:text-is("Tax model"))').first; (fld.locator('.ddbtn').click() if fld.locator('.ddbtn').count() else None); fld.locator('[data-value="flat"]').click(); pg.wait_for_timeout(500)
         flat_ok = pg.locator('text=Flat rate').count() >= 1
         pg.goto(f'{url}report'); pg.wait_for_timeout(2500)
         report_ok = pg.locator('button:has-text("Print or save as PDF")').count() == 1 and pg.locator('text=Lifetime taxes').count() >= 1

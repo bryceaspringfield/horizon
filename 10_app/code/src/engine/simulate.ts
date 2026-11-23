@@ -108,6 +108,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   expandEvents(plan);
   const a = plan.assumptions;
   const s = plan.strategy;
+  const reimbursements: Record<number, number> = {};
   const accounts = plan.accounts;
   const byId = new Map(accounts.map((x) => [x.id, x]));
   const state: State = { balance: {}, basis: {} };
@@ -273,7 +274,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         : inc.kind === 'rsu' ? inc.startYear + Math.max(1, inc.vestYears ?? 4) - 1 : end);
       if (y < inc.startYear || y > stop) continue;
       if ((inc.kind === 'salary' || inc.kind === 'selfEmployment') && retiredBy.has(inc.ownerId)) continue;
-      if (inc.kind === 'windfall' && y !== inc.startYear) continue;
+      if ((inc.kind === 'windfall' || inc.kind === 'accountBonus' || inc.kind === 'settlement') && y !== inc.startYear) continue;
       const evs = (plan.events ?? []).filter((e) => (e.kind === 'careerBreak' || e.kind === 'payChange') && e.personId === inc.ownerId);
       if ((inc.kind === 'salary' || inc.kind === 'selfEmployment') && evs.some((e) => e.kind === 'careerBreak' && y >= e.year && y <= e.endYear)) continue;
       let amt = amountIn(y, index, inc, inc.inflationAdjusted);
@@ -438,7 +439,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
 
     // Expenses, paid first from their 529 where set.
     const retired = plan.people.every((p) => !working(p.id));
-    let totalExpenses = 0;
+    let totalExpenses = 0, fsaSpend = 0;
     for (const e of plan.expenses) {
       const stop = e.endYear ?? (e.kind === 'oneTime' ? e.startYear : end);
       if (y < e.startYear || y > stop) continue;
@@ -452,6 +453,25 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       }
       expenses[e.id] = amt;
       totalExpenses += amt;
+      if (e.reimbursedShare) {
+        const at = y + Math.max(0, Math.round(e.reimbursedAfterYears ?? 0));
+        reimbursements[at] = (reimbursements[at] ?? 0) + amt * Math.min(1, e.reimbursedShare);
+      }
+      if (e.fsa) fsaSpend += amt;
+    }
+    // Repayments of spending paid back (untaxed), and FSA spending taken out of taxable pay (2026 limit $3,400, indexed).
+    if (reimbursements[y]) { income['__reimbursed'] = reimbursements[y]; untaxedIncome += reimbursements[y]; }
+    if (fsaSpend > 0 && wages > 0) preTax += Math.min(fsaSpend, 3400 * index, wages);
+    // Cash back: each credit card returns its rate on the share of the year's spending charged to it (a rebate, untaxed).
+    {
+      const spend = totalExpenses;
+      let shareLeft = 1;
+      for (const c of accounts) {
+        if (c.kind !== 'debt' || !(c.cashBackRate! > 0) || !(c.cardSpendShare! > 0)) continue;
+        const share = Math.min(shareLeft, c.cardSpendShare!); shareLeft -= share;
+        const cb = spend * share * c.cashBackRate!;
+        if (cb > 0) { income['cb_' + c.id] = cb; untaxedIncome += cb; }
+      }
     }
     // Flexible spending: the discretionary share of each expense is cut while the portfolio sits under its high by the
     // chosen share, and raised while it sits above where it began by the chosen share (all in today's dollars).
@@ -609,7 +629,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
 
     let conversion = 0;
     // Scheduled transfers' taxable parts: traditional money leaving tax deferral, gains realized, early withdrawals.
-    let xTrad = 0, xGains = 0, xEarly = 0, transferred = 0;
+    let xTrad = 0, xGains = 0, xEarly = 0, transferred = 0, collectGain = 0;
     const flatRate = a.taxModel?.kind === 'flat' ? a.taxModel.rate : undefined;
     const serviceBusiness = plan.incomes.some((q) => q.kind === 'selfEmployment' && q.serviceBusiness);
     const careCost = plan.expenses.reduce((t, e) => t + (e.kind === 'childcare' ? expenses[e.id] ?? 0 : 0), 0);
@@ -622,7 +642,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       // HSA money beyond the year's medical spending is income, with 20% more before 65.
       const hsaOver = Math.max(0, hsaDrawn - medicalSpend);
       const netGains = g + harvested + xGains - lossCarry, lossUsed = Math.min(3000, Math.max(0, -netGains));
-      return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr + xTrad + hsaOver - lossUsed,
+      return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + collectGain + rmd + conv + tr + xTrad + hsaOver - lossUsed,
         interest, qualifiedDividends: qualified, longTermGains: Math.max(0, netGains), socialSecurity: ssTotal, preTaxDeductions: preTax + sePremium,
         hsaPenaltyBase: hsaOwner && ages[hsaOwner] < 65 ? hsaOver : 0, flatRate, serviceBusiness, foreign,
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
@@ -697,7 +717,9 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const price = Math.max(0, state.balance[x.id]);
       const gain = Math.max(0, price * (1 - (x.sellingCosts ?? 0)) - x.costBasis);
       const excl = x.primaryResidence ? Math.min(gain, status === 'mfj' ? 500000 : 250000) : 0;
-      assetGain += gain; homeExclusion += excl; xGains += gain - excl;
+      assetGain += gain; homeExclusion += excl;
+      // a collectible's gain (coins, cards, plush toys) is taxed at ordinary rates up to 28%, not the long-term rates
+      if (x.collectible) collectGain += gain - excl; else xGains += gain - excl;
     }
 
     // Taxes and withdrawals, solved together.

@@ -234,3 +234,30 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent); tex
 .warnings li { margin: 4px 0; }
 .warnings li.problem::marker { color: var(--bad); }
 .warnings li button.link { text-align: left; }
+
+/* Info icons beside field labels, and their bubbles (2026-11-23) */
+.info { position: relative; display: inline-flex; vertical-align: -2px; margin-left: 5px; color: var(--muted); cursor: help; border-radius: 50%; outline: none; }
+.info:hover, .info:focus-visible, .info.open { color: var(--accent); }
+.info .tip { position: absolute; left: 50%; bottom: calc(100% + 9px); transform: translateX(-50%) translateY(4px); width: max-content; max-width: 260px;
+  padding: 9px 12px; border-radius: 10px; background: #1d2033; color: #f3f4fa; font-size: 12.5px; font-weight: 400; line-height: 1.45;
+  text-transform: none; letter-spacing: normal; white-space: normal; text-align: left; box-shadow: 0 10px 28px rgba(15, 18, 40, .28);
+  opacity: 0; pointer-events: none; transition: opacity .14s, transform .14s; z-index: 50; }
+.info .tip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px; border: 6px solid transparent; border-top-color: #1d2033; }
+.info:hover .tip, .info:focus-visible .tip, .info.open .tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Choices as controls (2026-11-23): pills for a few short options, a styled menu for more */
+.pills { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px; border-radius: 11px; background: var(--accent-soft); width: fit-content; max-width: 100%; }
+.pills button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 500; padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, box-shadow .15s; }
+.pills button:hover { color: var(--accent); }
+.pills button.on { background: var(--panel); color: var(--accent); font-weight: 600; box-shadow: 0 1px 3px rgba(20, 24, 60, .14); }
+.dd { position: relative; }
+.ddbtn { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; font: inherit; font-size: 14px; text-align: left; padding: 9px 12px;
+  border-radius: 10px; border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent); background: var(--panel); color: inherit; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.ddbtn:hover, .ddbtn[aria-expanded="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+.ddbtn svg { color: var(--muted); flex: none; transition: transform .15s; }
+.ddbtn[aria-expanded="true"] svg { transform: rotate(180deg); color: var(--accent); }
+.ddlist { position: absolute; z-index: 60; left: 0; right: 0; top: calc(100% + 6px); margin: 0; padding: 5px; list-style: none; max-height: 280px; overflow: auto;
+  border-radius: 12px; background: var(--panel); border: 1px solid color-mix(in srgb, var(--muted) 22%, transparent); box-shadow: 0 14px 36px rgba(15, 18, 40, .2); }
+.ddlist li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.ddlist li.hi { background: var(--accent-soft); }
+.ddlist li.on { color: var(--accent); font-weight: 600; }

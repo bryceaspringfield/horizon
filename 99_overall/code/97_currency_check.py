@@ -46,7 +46,7 @@ def main():
         worth = lambda: pg.locator('.stat:has(.label:has-text("Net worth today")) .value').inner_text()
         usd = worth()
         pg.goto(url + 'assumptions'); pg.wait_for_selector('nav'); pg.wait_for_timeout(600)
-        pg.locator('label.field:has-text("Plan currency") select').select_option('NOK'); pg.wait_for_timeout(600)
+        pg.locator('.field:has(span:has-text("Plan currency")) .ddbtn').click(); pg.locator('.ddlist [data-value="NOK"]').click(); pg.wait_for_timeout(600)
         pg.goto(url); pg.wait_for_selector('nav'); pg.wait_for_timeout(1000)
         text = ' '.join(pg.locator('main .stat .value, main .stat .sub').all_inner_texts())  # the figures; a milestone's name may hold a $
         nok = worth()
@@ -61,7 +61,7 @@ def main():
         field = pg.locator('label.field:has-text("1 EUR in NOK today") input')
         had = field.count() == 1
         field.fill('11.5'); pg.wait_for_timeout(600)
-        example = pg.locator('.field:has-text("Example")').inner_text()
+        example = pg.locator('.field:has(> span:text-is("Example"))').inner_text()
         pg.goto(url); pg.wait_for_selector('nav'); pg.wait_for_timeout(800)
         at115 = worth()
         step('a euro account takes an exchange rate, and the rate moves the net worth', had and at1 == nok and at115 != at1 and '€1,000' in example and '11,500' in example,

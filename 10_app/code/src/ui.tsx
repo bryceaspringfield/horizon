@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { HELP } from './help';
 // Small building blocks shared by every page: money and percent formatting, labeled inputs, cards, and a chart.
 import ReactECharts from 'echarts-for-react';
 import type { ReactNode } from 'react';
@@ -39,6 +40,21 @@ export function Stat({ label, value, sub, tone, icon }: { label: string; value: 
   );
 }
 
+/** A small info icon whose bubble explains a field: shown on hover and keyboard focus, and toggled by a tap on phones. */
+export function InfoTip({ text }: { text?: string }) {
+  const [open, setOpen] = useState(false);
+  if (!text) return null;
+  return (
+    <span className={'info' + (open ? ' open' : '')} tabIndex={0} role="button" aria-label={text}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(!open); }} onBlur={() => setOpen(false)}>
+      <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" strokeWidth="1.5" /><circle cx="8" cy="4.8" r="1" fill="currentColor" /><path d="M8 7.2v4.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+      <span className="tip" role="tooltip">{text}</span>
+    </span>
+  );
+}
+
+const help = (label: string, hint?: string) => hint ?? HELP[label];
+
 type NumProps = { label: string; value: number | undefined; onChange: (v: number) => void; percent?: boolean; step?: number; hint?: string };
 
 export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
@@ -46,8 +62,8 @@ export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
   // the text being typed: an emptied box stays empty while focused (it used to snap back to 0), and becomes 0 on leaving
   const [draft, setDraft] = useState<string | null>(null);
   return (
-    <label className="field" title={hint}>
-      <span>{label}</span>
+    <label className="field">
+      <span>{label}<InfoTip text={help(label, hint)} /></span>
       <div className="input">
         <input
           type="number"
@@ -71,33 +87,68 @@ export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
   );
 }
 
-export function Text({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+export function Text({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
   return (
     <label className="field">
-      <span>{label}</span>
+      <span>{label}<InfoTip text={help(label, hint)} /></span>
       <div className="input"><input value={value} onChange={(e) => onChange(e.target.value)} /></div>
     </label>
   );
 }
 
-export function Select<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: [T, string][]; onChange: (v: T) => void }) {
+/** A choice drawn as controls, not a browser list: up to 4 short options as a row of pills, more as a styled menu
+ * (keyboard: arrows, Enter, Escape). Each option carries data-value, which the browser checks click. */
+export function Select<T extends string>({ label, value, options, onChange, hint }: { label: string; value: T; options: [T, string][]; onChange: (v: T) => void; hint?: string }) {
+  const [open, setOpen] = useState(false);
+  const [hi, setHi] = useState(0);
+  const pills = options.length <= 4 && options.every(([, l]) => l.length <= 18);
+  const current = options.find(([v]) => v === value)?.[1] ?? '';
+  const pick = (v: T) => { onChange(v); setOpen(false); };
   return (
-    <label className="field">
-      <span>{label}</span>
-      <div className="input">
-        <select value={value} onChange={(e) => onChange(e.target.value as T)}>
-          {options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
-      </div>
-    </label>
+    <div className="field">
+      <span>{label}<InfoTip text={help(label, hint)} /></span>
+      {pills ? (
+        <div className="pills" role="radiogroup" aria-label={label}>
+          {options.map(([v, l]) => (
+            <button type="button" key={v} data-value={v} role="radio" aria-checked={v === value} className={v === value ? 'on' : ''} onClick={() => pick(v)}>{l}</button>
+          ))}
+        </div>
+      ) : (
+        <div className="dd" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false); }}>
+          <button type="button" className="ddbtn" aria-haspopup="listbox" aria-expanded={open}
+            onClick={() => { setOpen(!open); setHi(Math.max(0, options.findIndex(([v]) => v === value))); }}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowDown') { e.preventDefault(); if (!open) setOpen(true); else setHi((h) => Math.min(options.length - 1, h + 1)); }
+              else if (e.key === 'ArrowUp') { e.preventDefault(); setHi((h) => Math.max(0, h - 1)); }
+              else if (e.key === 'Enter' && open) { e.preventDefault(); pick(options[hi][0]); }
+              else if (e.key === 'Escape') setOpen(false);
+            }}>
+            <span>{current}</span>
+            <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+          {open && (
+            <ul className="ddlist" role="listbox" aria-label={label}>
+              {options.map(([v, l], k) => (
+                <li key={v} data-value={v} role="option" aria-selected={v === value} tabIndex={-1}
+                  className={(v === value ? 'on ' : '') + (k === hi ? 'hi' : '')}
+                  onMouseEnter={() => setHi(k)} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(v)}>
+                  <span>{l}</span>
+                  {v === value && <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
-export function Check({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+export function Check({ label, value, onChange, hint }: { label: string; value: boolean; onChange: (v: boolean) => void; hint?: string }) {
   return (
     <label className="check">
       <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />
-      {label}
+      {label}<InfoTip text={help(label, hint)} />
     </label>
   );
 }
@@ -111,11 +162,13 @@ export function ListEditor<T extends { id?: string }>({ items, render, onAdd, on
   title: (item: T) => string;
   empty: string;
 }) {
+  // a card just added opens at once: the add button notes the count, and the item past the old count renders open
+  const [addedAt, setAddedAt] = useState<number | null>(null);
   return (
     <div className="list">
       {items.length === 0 && <p className="muted">{empty}</p>}
       {items.map((it, i) => (
-        <details key={it.id ?? i} className="item">
+        <details key={it.id ?? i} className="item" open={addedAt !== null && i >= addedAt && i < items.length ? true : undefined}>
           <summary>
             <span>{title(it)}</span>
             <button className="ghost danger" onClick={(e) => { e.preventDefault(); onRemove(i); }}>Remove</button>
@@ -123,7 +176,7 @@ export function ListEditor<T extends { id?: string }>({ items, render, onAdd, on
           <div className="grid">{render(it, i)}</div>
         </details>
       ))}
-      <button onClick={onAdd}>+ Add</button>
+      <button onClick={() => { setAddedAt(items.length); onAdd(); }}>+ Add</button>
     </div>
   );
 }
