@@ -59,7 +59,7 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 58,EC,Ecuador,Internet users,14114812,18289896,2025,77.2,2024,,,,ECU
 59,CM,Cameroon,Internet users,13821822,29879337,2025,46.3,2024,,,,Cameroun; Kamerun; CMR
 60,NP,Nepal,Internet users,13719674,29618118,2025,46.3,2024,,,,नेपाल; NPL
-61,CI,Ivory Coast,Internet users,13553113,32711547,2025,41.4,2024,,,,Côte d'Ivoire; Cote d'Ivoire; CIV
+61,CI,Côte d'Ivoire,Internet users,13553113,32711547,2025,41.4,2024,,,,Ivory Coast; Cote d'Ivoire; CIV
 62,KH,Cambodia,Internet users,12221459,17847982,2025,68.5,2024,,,,Kampuchea; កម្ពុជា; KHM
 63,LK,Sri Lanka,Internet users,11876600,21756000,2025,54.6,2024,,,,Ceylon; ශ්‍රී ලංකා; இலங்கை; Ilankai; LKA
 64,AE,United Arab Emirates,Internet users,11513149,11513149,2025,100.0,2024,,,,UAE; U.A.E.; Emirates; الإمارات; Al Imarat; Trucial States; ARE
@@ -167,7 +167,7 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 166,TL,Timor-Leste,Internet users,497076,1418517,2025,35.0,2021,,,,East Timor; Timor Lorosae; Portuguese Timor; TLS
 167,MV,Maldives,Internet users,451495,529676,2025,85.2,2024,,,,Dhivehi Raajje; Maldive Islands; MDV
 168,BN,Brunei,Internet users,449067,466330,2025,96.3,2024,,,,Brunei Darussalam; Negara Brunei Darussalam; BRN
-169,CV,Cape Verde,Internet users,394098,527326,2025,74.7,2024,,,,Cabo Verde; Cape Verde Islands; CPV
+169,CV,Cabo Verde,Internet users,394098,527326,2025,74.7,2024,,,,Cape Verde; Cape Verde Islands; CPV
 170,IS,Iceland,Internet users,385376,392404,2025,98.2,2024,,,,Ísland; Island; ISL
 171,BS,Bahamas,Internet users,372695,403033,2025,92.5,2024,,,,"The Bahamas; Commonwealth of the Bahamas; BHS; Bahamas, The"
 172,BZ,Belize,Internet users,338363,422924,2025,80.0,2024,,,,British Honduras; BLZ
