@@ -35,6 +35,26 @@ function CurrencySelect({ value, onChange }: { value: string | undefined; onChan
   }} />;
 }
 
+/** A US person living abroad: the foreign earned income exclusion and the housing exclusion. */
+function ExpatCard() {
+  const plan = useActivePlan();
+  const update = useUpdate();
+  const e = plan.assumptions.expat ?? { exclusion: false, housing: 0 };
+  const abroad = plan.incomes.some((i) => i.abroad);
+  if (plan.assumptions.taxModel?.kind === 'flat') return null;
+  return (
+    <Card title="Living abroad as a US person">
+      <div className="grid">
+        <Check label="Claim the foreign earned income exclusion" value={e.exclusion} onChange={(v) => update((p) => { p.assumptions.expat = { ...e, exclusion: v }; })} />
+        {e.exclusion && <Num label="Yearly housing cost abroad (today's $)" step={500} value={e.housing} hint="Rent, utilities, and insurance abroad. The part between 16% and 30% of the exclusion limit is excluded too." onChange={(v) => update((p) => { p.assumptions.expat = { ...e, housing: v }; })} />}
+      </div>
+      <p className="muted">{abroad
+        ? 'The exclusion leaves out up to $132,900 a person (2026) of pay marked "Earned while living abroad" on the Income page. Foreign income tax entered on an income is credited toward US tax on that income, and credit left unused carries forward ten years. With the exclusion claimed, foreign tax on the excluded pay earns no credit.'
+        : 'Mark a salary or self-employment income as "Earned while living abroad" on the Income page, and enter the foreign income tax paid on it. Horizon then applies the foreign tax credit, and the exclusion where you claim it here.'}</p>
+    </Card>
+  );
+}
+
 /** The plan's currency and the exchange-rate assumption of each foreign currency its items use. */
 function CurrencyCard() {
   const plan = useActivePlan();
@@ -179,6 +199,7 @@ export function AccountsPage() {
                   {typeof a.customReturn === 'number' && <Num label="Yearly return (after fees)" percent value={a.customReturn} onChange={(v) => set((x) => { x.customReturn = v; })} />}
                 </>}
                 {a.kind === 'taxable' && <Check label="Pay dividends and interest out to cash (not reinvested)" value={!!a.dividendsPaidOut} onChange={(v) => set((x) => { x.dividendsPaidOut = v; })} />}
+                {a.kind === 'taxable' && <Num label="Foreign tax withheld on dividends" percent value={a.foreignWithholding ?? 0} hint="The share of this account's dividends a foreign country withholds; it counts toward the US foreign tax credit." onChange={(v) => set((x) => { x.foreignWithholding = v || undefined; })} />}
                 {a.kind === 'asset' && <>
                   <Check label="Real estate (property tax, deductible mortgage interest)" value={!!a.realEstate} onChange={(v) => set((x) => { x.realEstate = v; })} />
                   <Num label="Yearly appreciation" percent value={a.appreciation ?? 0.03} onChange={(v) => set((x) => { x.appreciation = v; })} />
@@ -223,6 +244,9 @@ export function IncomePage() {
               <>
                 <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
                 <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
+                <Num label="Foreign income tax paid on it" percent value={x.foreignTaxRate ?? 0} hint="Income tax a foreign country takes from this income, as a share of it. A US taxpayer gets the foreign tax credit for it." onChange={(v) => set((y) => { y.foreignTaxRate = v || undefined; })} />
+                {(x.kind === 'salary' || x.kind === 'selfEmployment') && <Check label="Earned while living abroad (a US person)" value={!!x.abroad} onChange={(v) => set((y) => { y.abroad = v || undefined; })} />}
+                {x.kind === 'salary' && x.abroad && <Check label="US Social Security and Medicare tax still applies (a US employer)" value={!!x.usPayroll} onChange={(v) => set((y) => { y.usPayroll = v || undefined; })} />}
                 <Select label="Type" value={x.kind} options={INCOME_KINDS} onChange={(v) => set((y) => { y.kind = v; })} />
                 <Select label="Owner" value={x.ownerId} options={owner} onChange={(v) => set((y) => { y.ownerId = v; })} />
                 <Num label={x.nominal ? 'Yearly amount (start year\'s $)' : "Yearly amount (today's $)"} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
@@ -631,6 +655,7 @@ export function AssumptionsPage() {
   return (
     <>
     <CurrencyCard />
+    <ExpatCard />
     <Card title="Market and inflation assumptions">
       <div className="grid">
         <Num label="Inflation" percent value={a.inflation} onChange={(v) => update((p) => { p.assumptions.inflation = v; })} />

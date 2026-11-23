@@ -67,6 +67,8 @@ export interface Account {
   dividendsPaidOut?: boolean;
   /** The currency the balance is held in (ISO 4217), where it differs from the plan's (engine/currency.ts). */
   currency?: string;
+  /** Taxable accounts: foreign tax withheld on the dividends, as a share of them (the credit's passive basket). */
+  foreignWithholding?: number;
 }
 
 /** An amount which changes from a year on: the new yearly amount, in the item's own dollars. */
@@ -111,6 +113,12 @@ export interface Income {
   serviceBusiness?: boolean;
   /** The currency the amounts are in, where it differs from the plan's. */
   currency?: string;
+  /** A US person abroad: the pay is for work done while living abroad (it qualifies for the foreign earned income
+   * exclusion), and whether US Social Security and Medicare tax is still owed on it (a US employer). */
+  abroad?: boolean;
+  usPayroll?: boolean;
+  /** Income tax paid to a foreign country on this income, as a share of it; it feeds the foreign tax credit. */
+  foreignTaxRate?: number;
 }
 
 export interface SocialSecurity {
@@ -266,6 +274,9 @@ export interface Assumptions {
   /** Exchange-rate assumptions by foreign currency: units of the plan's currency for one unit today, and the rate's
    * yearly change (0.02: the foreign currency gains 2% a year on the plan's). */
   fx?: Record<string, { rate: number; drift: number }>;
+  /** A US person living abroad: claim the foreign earned income exclusion (section 911), with the yearly qualifying
+   * housing cost (today's dollars) for the housing exclusion. Without it, foreign tax paid is credited in full. */
+  expat?: { exclusion: boolean; housing: number };
 }
 
 /** Life events which change the plan from their year: buying a home, a child, a career break, or a pay change. */
@@ -351,6 +362,10 @@ export interface YearResult {
     credits?: number;
     amt?: number;
     local?: number;
+    /** Foreign income tax paid, the foreign tax credit taken, and the income left out by the foreign earned income exclusion. */
+    foreign?: number;
+    foreignCredit?: number;
+    foreignExclusion?: number;
     /** Federal estate tax if the last person died this year. */
     estate?: number;
     itemized: boolean;

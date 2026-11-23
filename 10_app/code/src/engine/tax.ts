@@ -21,6 +21,8 @@ export function rulesFor(year: number): { rules: Rules; year: number } {
 export const rules = rulesFor(YEARS[0]).rules;
 
 export interface TaxInput {
+  /** A US person's income from abroad: the exclusion and the foreign tax credit. */
+  foreign?: ForeignInput;
   year: number;
   status: FilingStatus;
   /** Inflation since the year of the rules in force (1.0 in that year). */
@@ -62,6 +64,39 @@ export interface TaxInput {
   flatRate?: number;
 }
 
+/** A US person's income from abroad in one year (TaxInput.foreign). */
+export interface ForeignInput {
+  /** Pay for work done while living abroad (within wages and selfEmployment), in all and by person. */
+  earned: number;
+  earnedBy: number[];
+  /** The foreign earned income exclusion (section 911) is claimed, with this year's qualifying housing costs. */
+  exclusion: boolean;
+  housing: number;
+  /** Wages abroad owing no US Social Security or Medicare tax (a foreign employer). */
+  noUsPayroll: number;
+  /** Foreign income tax paid on the earned income above. */
+  taxEarned: number;
+  /** Other foreign income taxed as ordinary US income (a foreign pension), and the foreign tax paid on it: the general basket. */
+  generalOther: number;
+  taxGeneralOther: number;
+  /** Foreign investment and rental income, and the foreign tax paid on it: the passive basket. */
+  passiveIncome: number;
+  taxPassive: number;
+  /** Foreign tax paid on income the US does not tax: a cost with no credit. */
+  taxOther: number;
+  /** Unused foreign tax credits carried from the ten years before, by basket. */
+  carryGeneral: number;
+  carryPassive: number;
+}
+
+// The foreign earned income exclusion a person (IRS Rev. Proc. 2024-40 for 2025, Rev. Proc. 2025-32 for 2026), indexed
+// after; the housing exclusion is the housing cost up to 30% of the limit, less a base of 16% of it (section 911(c);
+// high-cost cities have higher caps, which are not modeled).
+const FOREIGN = { exclusion: { 2025: 130000, 2026: 132900 } as Record<number, number>, housingBase: 0.16, housingCap: 0.3 };
+export function foreignExclusionLimit(year: number, index: number): number {
+  return (FOREIGN.exclusion[year] ?? FOREIGN.exclusion[2026]) * (year > 2026 ? index : 1);
+}
+
 export interface TaxResult {
   federal: number;
   capitalGains: number;
@@ -83,6 +118,13 @@ export interface TaxResult {
   amt: number;
   local: number;
   seniorDeduction: number;
+  /** Income left out by the foreign earned income exclusion (housing included), the foreign tax credit taken, and the
+   * foreign tax paid (inside total). */
+  foreignExclusion: number;
+  foreignTaxCredit: number;
+  foreignTaxPaid: number;
+  /** The credit's bookkeeping by basket: credit used, and this year's creditable foreign tax. */
+  ftc?: { usedGeneral: number; usedPassive: number; newGeneral: number; newPassive: number };
   /** The qualified business income deduction. */
   qbi: number;
 }
@@ -183,7 +225,17 @@ export function computeTax(t: TaxInput): TaxResult {
   const gainBrackets = scale(r.capitalGains[t.status], k);
 
   const seDeduction = t.selfEmployment * r.selfEmployment.rateShare * r.fica.socialSecurityRate;
-  const ordinaryBeforeSs = t.wages + t.selfEmployment - seDeduction + t.otherOrdinary + t.interest - t.preTaxDeductions;
+  // The foreign earned income exclusion: each person's pay abroad up to the limit, plus the housing exclusion, at most
+  // the pay abroad. The excluded income is left out of AGI but still sets the rates of the income which remains (the
+  // stacking rule of section 911(f)).
+  const fo = t.foreign;
+  let excluded = 0;
+  if (fo?.exclusion && fo.earned > 0) {
+    const lim = foreignExclusionLimit(t.year, k);
+    const housing = Math.max(0, Math.min(fo.housing, FOREIGN.housingCap * lim) - FOREIGN.housingBase * lim);
+    excluded = Math.min(fo.earned, fo.earnedBy.reduce((sum, e) => sum + Math.min(e, lim), 0) + housing);
+  }
+  const ordinaryBeforeSs = t.wages + t.selfEmployment - seDeduction + t.otherOrdinary + t.interest - t.preTaxDeductions - excluded;
   const preferential = t.qualifiedDividends + Math.max(0, t.longTermGains);
   const ssTaxable = taxableSocialSecurity(t.socialSecurity, ordinaryBeforeSs + preferential, t.status);
   const agi = ordinaryBeforeSs + preferential + ssTaxable;
@@ -220,14 +272,14 @@ export function computeTax(t: TaxInput): TaxResult {
   }
   const taxableIncome = Math.max(0, beforeQbi - qbiDed);
   const ordinaryTaxable = Math.max(0, taxableIncome - preferential);
-  const ordinaryTax = bracketTax(ordinaryTaxable, ordinaryBrackets);
+  const ordinaryTax = bracketTax(ordinaryTaxable + excluded, ordinaryBrackets) - bracketTax(excluded, ordinaryBrackets);
   // Gains stack on top of ordinary income: each slice is taxed at the rate of the band it lands in.
   const gainsTaxable = taxableIncome - ordinaryTaxable;
-  const capitalGains = bracketTax(ordinaryTaxable + gainsTaxable, gainBrackets) - bracketTax(ordinaryTaxable, gainBrackets);
+  const capitalGains = bracketTax(ordinaryTaxable + excluded + gainsTaxable, gainBrackets) - bracketTax(ordinaryTaxable + excluded, gainBrackets);
 
   const investmentIncome = preferential + t.interest;
   const niit = Math.max(0, Math.min(investmentIncome, agi - r.niit.threshold[t.status])) * r.niit.rate;
-  const ficaTax = fica(t.wages, t.selfEmployment, t.status, t.year, k);
+  const ficaTax = fica(Math.max(0, t.wages - (fo?.noUsPayroll ?? 0)), t.selfEmployment, t.status, t.year, k);
   const penalty = t.earlyWithdrawals * r.earlyWithdrawalPenalty + (t.hsaPenaltyBase ?? 0) * 0.2;
 
   // Alternative minimum tax: income with the standard deduction (or state and local taxes) added back, less the
@@ -255,7 +307,24 @@ export function computeTax(t: TaxInput): TaxResult {
   const tiers = (c.saversTiers as Record<string, number[]>)[t.status] ?? c.saversTiers.single;
   const saverRate = agi <= tiers[0] * k ? c.saversCreditRates[0] : agi <= tiers[1] * k ? c.saversCreditRates[1] : agi <= tiers[2] * k ? c.saversCreditRates[2] : 0;
   const saver = saverRate * (t.saverContributions ?? []).reduce((sum, x) => sum + Math.min(x, c.saversCreditPerPerson), 0);
-  const incomeTax = ordinaryTax + capitalGains + amt;
+  // The foreign tax credit (section 901), by basket: this year's foreign tax (the share on excluded pay is not
+  // creditable) plus the carryover, up to the US tax on that basket's foreign income (its share of AGI). It reduces the
+  // regular income tax only; the unused part carries forward ten years (kept by the simulation).
+  let ftcCredit = 0, ftc: TaxResult['ftc'];
+  if (fo) {
+    const regular = ordinaryTax + capitalGains;
+    const kept = fo.earned > 0 ? Math.max(0, fo.earned - excluded) / fo.earned : 0;
+    const newGeneral = fo.taxEarned * kept + fo.taxGeneralOther, newPassive = fo.taxPassive;
+    const share = (x: number) => (agi > 0 ? Math.min(1, Math.max(0, x) / agi) : 0);
+    let usedGeneral = Math.min(newGeneral + fo.carryGeneral, regular * share(fo.earned - excluded + fo.generalOther));
+    let usedPassive = Math.min(newPassive + fo.carryPassive, regular * share(fo.passiveIncome));
+    const over = usedGeneral + usedPassive > regular ? regular / (usedGeneral + usedPassive) : 1;
+    usedGeneral *= over; usedPassive *= over;
+    ftcCredit = usedGeneral + usedPassive;
+    ftc = { usedGeneral, usedPassive, newGeneral, newPassive };
+  }
+  const foreignPaid = fo ? fo.taxEarned + fo.taxGeneralOther + fo.taxPassive + fo.taxOther : 0;
+  const incomeTax = ordinaryTax + capitalGains + amt - ftcCredit;
   const nonrefundablePool = ctcTotal + aotc * (1 - c.aotc.refundableShare) + saver;
   const nonrefundable = Math.min(incomeTax, nonrefundablePool);
   // The refundable child credit: up to the refundable amount a child, 15% of earned income above $2,500.
@@ -292,7 +361,7 @@ export function computeTax(t: TaxInput): TaxResult {
     waGains = g * w.rate + Math.max(0, t.longTermGains - w.surchargeAbove) * w.surcharge;
   }
 
-  const total = ordinaryTax + capitalGains + amt + niit + ficaTax + state + waGains + local + penalty - credits;
+  const total = ordinaryTax + capitalGains + amt + niit + ficaTax + state + waGains + local + penalty - credits - ftcCredit + foreignPaid;
   const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + preferential + t.socialSecurity;
   return {
     federal: ordinaryTax,
@@ -305,7 +374,7 @@ export function computeTax(t: TaxInput): TaxResult {
     taxableIncome,
     ordinaryTaxable,
     taxableSocialSecurity: ssTaxable,
-    marginalRate: marginalRate(ordinaryTaxable, ordinaryBrackets),
+    marginalRate: marginalRate(ordinaryTaxable + excluded, ordinaryBrackets),
     effectiveRate: gross > 0 ? total / gross : 0,
     agi,
     deduction,
@@ -314,6 +383,10 @@ export function computeTax(t: TaxInput): TaxResult {
     amt,
     local,
     seniorDeduction: senior,
+    foreignExclusion: excluded,
+    foreignTaxCredit: ftcCredit,
+    foreignTaxPaid: foreignPaid,
+    ftc,
     qbi: qbiDed,
   };
 }
@@ -329,7 +402,7 @@ function flatTax(t: TaxInput, rate: number): TaxResult {
   const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains) + t.socialSecurity;
   return { federal: income, capitalGains: 0, niit: 0, fica: 0, state: 0, penalty, total: income + penalty, taxableIncome: base,
     ordinaryTaxable: base, taxableSocialSecurity: 0.85 * t.socialSecurity, marginalRate: rate, effectiveRate: gross > 0 ? (income + penalty) / gross : 0,
-    agi: base, deduction: 0, itemized: false, credits: 0, amt: 0, local: 0, seniorDeduction: 0, qbi: 0 };
+    agi: base, deduction: 0, itemized: false, credits: 0, amt: 0, local: 0, foreignExclusion: 0, foreignTaxCredit: 0, foreignTaxPaid: 0, seniorDeduction: 0, qbi: 0 };
 }
 
 type MedicareYear = (typeof health.medicare)['2026'];

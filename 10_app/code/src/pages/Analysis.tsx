@@ -194,6 +194,7 @@ export function TaxesPage() {
             { name: 'Early withdrawal penalty', type: 'bar', stack: 't', data: s((t) => t.penalty) },
             { name: 'AMT', type: 'bar', stack: 't', data: s((t) => t.amt ?? 0) },
             { name: 'Local', type: 'bar', stack: 't', data: s((t) => t.local ?? 0) },
+            { name: 'Foreign, net of the US credit', type: 'bar', stack: 't', data: s((t) => (t.foreign ?? 0) - (t.foreignCredit ?? 0)) },
             { name: 'Medicare premiums', type: 'bar', stack: 't', data: s((t) => t.medicare) },
             { name: 'Credits (negative)', type: 'bar', stack: 'c', data: s((t) => -(t.credits ?? 0)) },
             { name: 'ACA premiums', type: 'bar', stack: 't', data: s((t) => t.aca) },

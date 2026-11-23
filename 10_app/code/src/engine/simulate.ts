@@ -133,6 +133,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
 
   const end = lastYear(plan);
   const years: YearResult[] = [];
+  // Unused foreign tax credits by basket and the year they arose; each lasts ten years.
+  const ftcCarry = { general: [] as { y: number; amt: number }[], passive: [] as { y: number; amt: number }[] };
   if (a.crash?.enabled) {
     const ci = a.crash.year - plan.startYear;
     if (ci >= 0 && ci < path.stocks.length) path = { ...path, stocks: path.stocks.map((r, i) => (i === ci ? -Math.abs(a.crash!.drop) : r)) };
@@ -243,6 +245,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     const withdrawals: Record<string, number> = {};
     const expenses: Record<string, number> = {};
     let wages = 0, selfEmp = 0, otherOrdinary = 0, untaxedIncome = 0, preTax = 0, match = 0;
+    const fo = { earned: 0, earnedBy: {} as Record<string, number>, noUsPayroll: 0, taxEarned: 0, generalOther: 0, taxGeneralOther: 0, passiveIncome: 0, taxPassive: 0, taxOther: 0 };
     const deferredBy: Record<string, number> = {};
     const deposit = (id: string, amt: number) => {
       state.balance[id] += amt;
@@ -300,6 +303,17 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       } else if (inc.kind === 'selfEmployment') selfEmp += amt;
       else if (inc.taxable) otherOrdinary += amt;
       else untaxedIncome += amt;
+      // Income from abroad: pay for work abroad can be excluded; foreign tax paid feeds the credit, by basket.
+      if (inc.abroad || inc.foreignTaxRate) {
+        const base = income[inc.id], paid = base * (inc.foreignTaxRate ?? 0);
+        const work = inc.kind === 'salary' || inc.kind === 'selfEmployment';
+        if (work && inc.abroad) {
+          fo.earned += base; fo.earnedBy[inc.ownerId] = (fo.earnedBy[inc.ownerId] ?? 0) + base; fo.taxEarned += paid;
+          if (inc.kind === 'salary' && !inc.usPayroll) fo.noUsPayroll += base;
+        } else if (inc.kind === 'rental' && inc.taxable) { fo.passiveIncome += base; fo.taxPassive += paid; }
+        else if (work || inc.kind === 'rsu' || inc.taxable) { fo.generalOther += base; fo.taxGeneralOther += paid; }
+        else fo.taxOther += paid;
+      }
     }
     // Workplace deferrals leave pay before it reaches cash.
     const deferredPreTax = preTax;
@@ -532,6 +546,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const div = bal * (w.stocks / tot) * a.dividendYield, int = bal * ((w.bonds + w.cash) / tot) * (path.bonds[i] * 0.8);
       qualified += div;
       interest += int;
+      if (x.foreignWithholding) { fo.passiveIncome += div; fo.taxPassive += div * x.foreignWithholding; }
       // Paid out: the income reaches cash this year and leaves the account's growth.
       if (x.dividendsPaidOut) { paidOutBy[x.id] = div + int; paidOut += div + int; income['div_' + x.id] = div + int; }
     }
@@ -542,12 +557,17 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     let xTrad = 0, xGains = 0, xEarly = 0, transferred = 0;
     const flatRate = a.taxModel?.kind === 'flat' ? a.taxModel.rate : undefined;
     const serviceBusiness = plan.incomes.some((q) => q.kind === 'selfEmployment' && q.serviceBusiness);
+    for (const b of [ftcCarry.general, ftcCarry.passive]) while (b.length && y - b[0].y > 10) b.shift();
+    const carried = (b: { amt: number }[]) => b.reduce((sum, v) => sum + v.amt, 0);
+    const foreign = fo.earned || fo.generalOther || fo.passiveIncome || fo.taxOther || ftcCarry.general.length || ftcCarry.passive.length
+      ? { ...fo, earnedBy: Object.values(fo.earnedBy), exclusion: !!a.expat?.exclusion, housing: (a.expat?.housing ?? 0) * index,
+        carryGeneral: carried(ftcCarry.general), carryPassive: carried(ftcCarry.passive) } : undefined;
     function computeTaxNow(tr: number, g: number, e: number, conv = conversion) {
       // HSA money beyond the year's medical spending is income, with 20% more before 65.
       const hsaOver = Math.max(0, hsaDrawn - medicalSpend);
       return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr + xTrad + hsaOver,
         interest, qualifiedDividends: qualified, longTermGains: g + harvested + xGains, socialSecurity: ssTotal, preTaxDeductions: preTax,
-        hsaPenaltyBase: hsaOwner && ages[hsaOwner] < 65 ? hsaOver : 0, flatRate, serviceBusiness,
+        hsaPenaltyBase: hsaOwner && ages[hsaOwner] < 65 ? hsaOver : 0, flatRate, serviceBusiness, foreign,
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
@@ -800,6 +820,15 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     }
 
     const gross = wages + selfEmp + otherOrdinary + untaxedIncome + ssTotal + paidOut;
+    // The foreign tax credit's carryover: the credit used comes from the oldest years first; this year's unused tax is kept.
+    if (tax.ftc) {
+      for (const [b, used, fresh] of [[ftcCarry.general, tax.ftc.usedGeneral, tax.ftc.newGeneral], [ftcCarry.passive, tax.ftc.usedPassive, tax.ftc.newPassive]] as const) {
+        b.push({ y, amt: fresh });
+        let left = used;
+        for (const v of b) { const take = Math.min(v.amt, left); v.amt -= take; left -= take; }
+        for (let n = b.length - 1; n >= 0; n--) if (b[n].amt < 0.005) b.splice(n, 1);
+      }
+    }
     years.push({
       year: y,
       ages,
@@ -831,6 +860,9 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         credits: tax.credits,
         amt: tax.amt,
         local: tax.local,
+        foreign: tax.foreignTaxPaid || undefined,
+        foreignCredit: tax.foreignTaxCredit || undefined,
+        foreignExclusion: tax.foreignExclusion || undefined,
         estate: estateTax(netWorth, y, ri, alive.length),
         itemized: tax.itemized,
         deduction: tax.deduction,
