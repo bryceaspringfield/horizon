@@ -45,6 +45,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 ## From ProjectionLab's screens (Bryce's screenshots, 2026-11-23)
 
 ## Simplified models to finish (Bryce, 2026-11-23)
-- Spain: every region's own income tax scale and wealth tax allowance in place of the reference scale.
+- Spain: regional personal minimums and deductions, and regional wealth tax allowances (the regions' own income tax scales are in).
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)

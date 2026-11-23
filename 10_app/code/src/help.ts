@@ -355,4 +355,5 @@ export const HELP: Record<string, string> = {
   "Paid by the hour": "Enter an hourly rate and the hours you work a week; the yearly pay is rate times hours times 52.",
   "Hourly rate": "Pay for each hour worked.",
   "Hours a week": "The hours you work in a usual week.",
+  "Region": "Your Spanish region, whose own income tax scale is added to the state scale (Agencia Tributaria, 2025 tables).",
 };

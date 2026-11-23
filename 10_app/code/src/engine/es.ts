@@ -5,8 +5,13 @@
 // scale of article 30 (0.2% to 3.5%), and the cap of article 31 (income and wealth tax together at most 60% of the income
 // tax base, the wealth tax cut by at most 80%). Employee social security 6.50% to €61,214.40 a year comes from secondary
 // sources, not yet the 2026 contribution order. Each person is taxed alone: a couple's income and wealth are split evenly.
-// Not modeled: regional scales other than the reference, and regional wealth tax allowances.
+// Each region's own general scale is added to the state's when a region is chosen (the reference scale otherwise).
+// Not modeled: regional personal minimums and deductions, and regional wealth tax allowances.
 import { bracketTax, type TaxInput, type TaxResult } from './tax';
+import regionsData from '../data/es_regions.json';
+
+/** Each region's own scale for the general base (data/es_regions.json), added to the state scale. */
+export const ES_REGIONS = regionsData.regions as Record<string, number[][]>;
 
 const STATE_GENERAL = [[0, 0.095], [12450, 0.12], [20200, 0.15], [35200, 0.185], [60000, 0.225], [300000, 0.245]];
 const STATE_SAVINGS = [[0, 0.095], [6000, 0.105], [50000, 0.115], [200000, 0.135], [300000, 0.15]];
@@ -15,9 +20,11 @@ export const ES_SAVINGS = STATE_SAVINGS.map(([a, r]) => [a, 2 * r]);
 const WEALTH = [[0, 0.002], [167129.45, 0.003], [334252.88, 0.005], [668499.75, 0.009], [1336999.51, 0.013], [2673999.01, 0.017], [5347998.03, 0.021], [10695996.06, 0.035]];
 
 /** One person's income tax: the general base, the savings base, and the personal minimum (taken from the general base first). */
-export function esIncomeTax(general: number, savings: number, over65 = false): number {
+export function esIncomeTax(general: number, savings: number, over65 = false, region?: string): number {
   const min = 5550 + (over65 ? 1150 : 0);
-  const g = Math.max(0, bracketTax(general, ES_GENERAL) - bracketTax(Math.min(min, general), ES_GENERAL));
+  const reg = region ? ES_REGIONS[region] : undefined;
+  const scale = (x: number) => (reg ? bracketTax(x, STATE_GENERAL) + bracketTax(x, reg) : bracketTax(x, ES_GENERAL));
+  const g = Math.max(0, scale(general) - scale(Math.min(min, general)));
   const left = Math.max(0, min - general);
   const s = Math.max(0, bracketTax(savings, ES_SAVINGS) - bracketTax(Math.min(left, savings), ES_SAVINGS));
   return g + s;
@@ -33,7 +40,7 @@ export function esTax(t: TaxInput): TaxResult {
   const wages = t.wages + t.selfEmployment, social = n * Math.min(wages / n, 61214.4) * 0.065;
   const general = Math.max(0, wages - social - t.preTaxDeductions + t.otherOrdinary + t.socialSecurity) / n;
   const savings = (t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains)) / n;
-  const income = esIncomeTax(general, savings, (t.over65 ?? 0) >= n);
+  const income = esIncomeTax(general, savings, (t.over65 ?? 0) >= n, t.esRegion);
   const rawWealth = esWealthTax(((t.wealthCash ?? 0) + (t.wealthOther ?? 0)) / n, (t.wealthHome ?? 0) / n);
   const capRoom = Math.max(0, 0.6 * (general + savings) - income);
   const wealth = rawWealth > capRoom ? Math.max(rawWealth * 0.2, capRoom) : rawWealth;

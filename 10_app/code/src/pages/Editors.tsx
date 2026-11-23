@@ -14,6 +14,7 @@ import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
 import { MARKET, assumptionAt, consensus } from '../engine/assumptions';
 import { PROVINCES } from '../engine/ca';
+import { ES_REGIONS } from '../engine/es';
 import { strategyImpact } from '../engine/impact';
 import { MIT, applyMit, type MitGroup, type MitPlan, type MitTier } from '../engine/benefits';
 import { CONDITIONS, RACES, expectedDeathDate } from '../engine/lifespan';
@@ -1073,6 +1074,7 @@ export function AssumptionsPage() {
         <Num label="Withheld from taxable withdrawals" percent value={a.withholdTaxable ?? 0} onChange={(v) => update((p) => { p.assumptions.withholdTaxable = v || undefined; })} />
         <Select label="Taxes follow" value={a.taxCountry ?? 'US'} options={[['US', 'United States (federal and state)'], ['UK', 'United Kingdom (England, Wales, Northern Ireland)'], ['AU', 'Australia (residents)'], ['CA', 'Canada'], ['DE', 'Germany'], ['NL', 'Netherlands'], ['ES', 'Spain']]} onChange={(v) => update((p) => { p.assumptions.taxCountry = v === 'US' ? undefined : v; })} />
         {a.taxCountry === 'AU' && <Check label="No private hospital cover (Medicare levy surcharge)" value={!!a.auNoCover} onChange={(v) => update((p) => { p.assumptions.auNoCover = v || undefined; })} />}
+        {a.taxCountry === 'ES' && <Select label="Region" value={a.esRegion ?? ''} options={[['', 'Reference scale'], ...Object.keys(ES_REGIONS).sort().map((k) => [k, k] as [string, string])]} onChange={(v) => update((p) => { p.assumptions.esRegion = v || undefined; })} />}
         {a.taxCountry === 'DE' && <Select label="Church tax" value={String(a.deChurch ?? 0)} options={[['0', 'Not a member'], ['0.08', '8% (Bavaria, Baden-Wuerttemberg)'], ['0.09', '9% (other states)']]} onChange={(v) => update((p) => { p.assumptions.deChurch = Number(v) || undefined; })} />}
         {a.taxCountry === 'DE' && <Check label="No children (care insurance surcharge)" value={!!a.deChildless} onChange={(v) => update((p) => { p.assumptions.deChildless = v || undefined; })} />}
         {a.taxCountry === 'UK' && <Check label="Scottish taxpayer" value={!!a.scotland} onChange={(v) => update((p) => { p.assumptions.scotland = v || undefined; })} />}

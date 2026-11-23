@@ -41,6 +41,8 @@ export interface TaxInput {
   wealthOther?: number;
   /** Spain's wealth tax: the main home's value (its first €300,000 exempt). */
   wealthHome?: number;
+  /** Spain: the region (data/es_regions.json); the reference scale where unset. */
+  esRegion?: string;
   /** Germany: the church tax rate (0.08 or 0.09; none where unset), and care insurance's surcharge for the childless. */
   deChurch?: number;
   deChildless?: boolean;

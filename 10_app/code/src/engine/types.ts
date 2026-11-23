@@ -487,6 +487,8 @@ export interface Assumptions {
   /** Germany: church tax rate for members (0.08 in Bavaria and Baden-Wuerttemberg, 0.09 elsewhere), and no children. */
   deChurch?: number;
   deChildless?: boolean;
+  /** Spain: the region, for its own income tax scale. */
+  esRegion?: string;
   ukLumpSum?: boolean;
   /** Canada: the province or territory, two letters (engine/ca.ts); Ontario where unset. */
   province?: string;

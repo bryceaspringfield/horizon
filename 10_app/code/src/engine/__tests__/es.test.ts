@@ -16,3 +16,9 @@ describe('Spanish taxes, 2026', () => {
     expect(esWealthTax(1200000, 300000)).toBeCloseTo(334.26 + 0.003 * (200000 - 167129.45), 1);
   });
 });
+
+describe('Spanish regions', () => {
+  it("adds a region's own scale to the state's: Madrid's lower than Catalonia's", () => {
+    expect(esIncomeTax(30000, 0, false, 'Madrid')).toBeLessThan(esIncomeTax(30000, 0, false, 'Catalonia'));
+  });
+});
