@@ -51,3 +51,11 @@ describe("Ontario's tax reduction", () => {
     expect(r.ontario).toBe(0);
   });
 });
+
+describe('Quebec credits and Ontario children', () => {
+  it('credits living alone, age, and retirement income at 14%', () => {
+    const base = caPerson({ employment: 0, other: 30000 }, 'QC').ontario;
+    const more = caPerson({ employment: 0, other: 30000, alone: true, over65: true, pension: 5000 }, 'QC').ontario;
+    expect(base - more).toBeCloseTo(0.14 * (2172 + 3986 + 3541), 2);
+  });
+});

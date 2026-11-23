@@ -8,7 +8,7 @@
 // 16.5% federal abatement, QPP (5.3% base) in place of CPP, QPIP (0.43% to $103,000), and EI at 1.30%. Capital gains are half
 // included. The OAS recovery tax takes back 15% of net income over $95,323 (2026 income; canada.ca/en/services/benefits/
 // publicpensions/old-age-security/recovery-tax.html), at most the public pension received. Ontario's low-income tax
-// reduction is twice its $300 basic amount less provincial tax (the $575 a child is not modeled).
+// reduction is twice its $300 basic amount less provincial tax with $575 more a child.
 import { bracketTax, type TaxInput, type TaxResult } from './tax';
 
 export const CA = {
@@ -46,7 +46,7 @@ function healthPremium(x: number): number {
 }
 
 /** One Ontario resident's federal tax, Ontario tax, CPP, and EI. */
-export function caPerson(p: { employment: number; other: number; oas?: number }, province = 'ON') {
+export function caPerson(p: { employment: number; other: number; oas?: number; kids?: number; over65?: boolean; alone?: boolean; pension?: number }, province = 'ON') {
   const pr = PROVINCES[province] ?? PROVINCES.ON, low = pr.brackets[0][1];
   const c = CA.cpp, e = Math.max(0, p.employment);
   const pensionable = Math.max(0, Math.min(e, c.ympe) - c.exemption);
@@ -60,10 +60,13 @@ export function caPerson(p: { employment: number; other: number; oas?: number },
   const fedBasic = Math.max(0, bracketTax(taxable, CA.federal) - fedCredits - 0.14 * qpip);
   const federal = qc ? fedBasic * (1 - 0.165) : fedBasic;
   const bcReduction = province === 'BC' ? Math.max(0, 575 - 0.0356 * Math.max(0, taxable - 25570)) : 0;
-  const onBasic = Math.max(0, bracketTax(taxable, pr.brackets) - low * (pr.bpa + (qc ? 0 : cppBase + ei)) - bcReduction);
+  // Quebec's amounts for living alone ($2,172), age 65 or more ($3,986), and retirement income (up to $3,541), together less 15% of
+  // net income over $42,955, credited at 14% (Finance Quebec, parameters of the personal income tax system for 2026)
+  const qcExtra = qc ? Math.max(0, (p.alone ? 2172 : 0) + (p.over65 ? 3986 : 0) + Math.min(3541, p.pension ?? 0) - 0.15 * Math.max(0, taxable - 42955)) : 0;
+  const onBasic = Math.max(0, bracketTax(taxable, pr.brackets) - low * (pr.bpa + qcExtra + (qc ? 0 : cppBase + ei)) - bcReduction);
   const surtax = province === 'ON' ? 0.2 * Math.max(0, onBasic - 5818) + 0.36 * Math.max(0, onBasic - 7446) : 0;
   // Ontario's tax reduction (T4032-ON 2026): twice the $300 basic reduction amount less the provincial tax, at most that tax
-  const pre = onBasic + surtax, onReduction = province === 'ON' ? Math.min(pre, Math.max(0, 2 * 300 - pre)) : 0;
+  const pre = onBasic + surtax, onReduction = province === 'ON' ? Math.min(pre, Math.max(0, 2 * (300 + 575 * (p.kids ?? 0)) - pre)) : 0;
   const ontario = pre - onReduction + (province === 'ON' ? healthPremium(taxable) : 0);
   const fedRate = [...CA.federal].reverse().find(([lo]) => taxable > lo)?.[1] ?? 0.14;
   const onRate = [...pr.brackets].reverse().find(([lo]) => taxable > lo)?.[1] ?? low;
@@ -76,7 +79,7 @@ export function caTax(t: TaxInput): TaxResult {
   const n = t.status === 'mfj' ? 2 : 1;
   const employment = (t.wages + t.selfEmployment) / n;
   const other = (t.otherOrdinary + t.socialSecurity + t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains) * 0.5 - t.preTaxDeductions) / n;
-  const per = caPerson({ employment, other, oas: t.socialSecurity / n }, t.province);
+  const per = caPerson({ employment, other, oas: t.socialSecurity / n, kids: (t.children ?? 0) / n, over65: (t.over65 ?? 0) >= n, alone: n === 1, pension: t.otherOrdinary / n }, t.province);
   const federal = per.federal * n, state = per.ontario * n, fica = (per.cpp + per.ei) * n, total = federal + state + fica;
   const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains) + t.socialSecurity;
   return { federal, capitalGains: 0, niit: 0, fica, state, penalty: 0, total, taxableIncome: per.taxable * n, ordinaryTaxable: per.taxable * n,
