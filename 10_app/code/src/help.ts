@@ -276,4 +276,5 @@ export const HELP: Record<string, string> = {
   "Spender": "Who spends this money: one person, or the household as a whole.",
   "Repeats every (years)": "How often the expense comes back, counted from its start: 1 for every year, 8 for a car bought every 8 years.",
   "Municipal share of bond income": "The share of this account's bond interest from in-state municipal bonds, which is free of federal and state income tax.",
+  "Keep income under this multiple of the poverty line": "The income ceiling for ACA withdrawals, as a multiple of the federal poverty line: 4 keeps the premium credit, 2.5 keeps cost-sharing reductions, and 1.38 keeps Medicaid in expansion states.",
 };

@@ -891,7 +891,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         const tiers = rulesTiers(status);
         return Math.max(0, tiers * ri - t.agi);
       }
-      return Math.max(0, acaLimit(alive.length) * ri - t.agi);
+      return Math.max(0, acaLimit(alive.length, s.fplMultiple ?? 4) * ri - t.agi);
     }
 
     function withdraw(need: number) {

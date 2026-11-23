@@ -455,9 +455,9 @@ export function rulesTiers(status: FilingStatus): number {
 }
 
 /** 400% of the poverty line for a household, where the ACA credit ends (newest table). */
-export function acaLimit(householdSize: number): number {
+export function acaLimit(householdSize: number, multiple = 4): number {
   const a = latest(health.aca as unknown as Record<string, AcaYear>, 9999);
-  return 4 * (a.povertyLine.first + a.povertyLine.each * (householdSize - 1));
+  return multiple * (a.povertyLine.first + a.povertyLine.each * (householdSize - 1));
 }
 
 /** Federal estate tax on an estate if the last person died this year: 40% above the exemption, two exemptions for a

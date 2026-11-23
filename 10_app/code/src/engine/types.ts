@@ -313,6 +313,9 @@ export interface Strategy {
   harvestZeroGains: boolean;
   /** Keep ordinary taxable income under this limit when drawing from traditional accounts: a bracket's top rate, the
    * first IRMAA tier, or 400% of the poverty line (the ACA credit's end); other accounts cover the rest. */
+  /** Shield 'aca': the multiple of the poverty line to keep income under (4 where unset; 1.38 for Medicaid, 2.5 for
+   * cost-sharing reductions). */
+  fplMultiple?: number;
   shield?: 'none' | 'bracket12' | 'bracket22' | 'bracket24' | 'irmaa' | 'aca';
   /** Conversions of a set amount (today's dollars) in a set year, on top of the bracket-filling ones. */
   manualConversions?: { year: number; amount: number }[];

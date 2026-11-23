@@ -820,6 +820,7 @@ export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
             onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />}
           {show('tax', 'drawdown') && <Select label="Shield withdrawals under" value={s.shield ?? 'none'} options={[['none', 'No limit'], ['bracket12', 'The 12% bracket'], ['bracket22', 'The 22% bracket'], ['bracket24', 'The 24% bracket'], ['irmaa', 'The first IRMAA tier'], ['aca', 'The ACA credit limit (400% FPL)']]}
             onChange={(v) => update((p) => { p.strategy.shield = v; })} />}
+          {show('tax', 'drawdown') && s.shield === 'aca' && <Num label="Keep income under this multiple of the poverty line" value={s.fplMultiple ?? 4} onChange={(v) => update((p) => { p.strategy.fplMultiple = v > 0 ? v : undefined; })} />}
           {show('harvest', 'tax') && <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />}
           {show('drawdown', 'flex') && <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)'], ['textbook', 'Textbook rule (a share of the first year, then with inflation)']]}
             onChange={(v) => update((p) => { p.strategy.spending = v; })} />}
