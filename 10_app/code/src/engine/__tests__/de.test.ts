@@ -25,3 +25,10 @@ describe('church tax', () => {
     expect(withChurch.federal - without.federal).toBeCloseTo(0.09 * deTariff(60000), 2);
   });
 });
+
+describe('pension allowance', () => {
+  it('takes € 102 off a statutory pension before tax', () => {
+    const base = { year: 2026, status: 'single', index: 1, wages: 0, selfEmployment: 0, otherOrdinary: 0, interest: 0, qualifiedDividends: 0, longTermGains: 0, socialSecurity: 30000, preTaxDeductions: 0, earlyWithdrawals: 0, over65: 1 } as any;
+    expect(deTax(base).taxableIncome).toBeCloseTo(0.84 * 30000 - 102, 6);
+  });
+});

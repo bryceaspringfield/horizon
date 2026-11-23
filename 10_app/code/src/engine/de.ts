@@ -6,8 +6,8 @@
 // with the €1,230 work-expense allowance. A statutory pension starting in 2026 is 84% taxable. Investment income above the
 // €1,000 saver's allowance a person pays the flat 25% plus the surcharge (26.375%). Church tax (8% of income tax in Bavaria
 // and Baden-Wuerttemberg, 9% elsewhere) applies to members; on investment income the flat rate becomes 25% / (1 + 0.25 x the
-// church rate), per § 32d (1) EStG. Employees without children pay 0.6% more for care insurance. Not modeled: the allowance
-// for pensions' own expenses.
+// church rate), per § 32d (1) EStG. Employees without children pay 0.6% more for care insurance. The pensions' work-expense
+// allowance is the €102 of § 9a EStG.
 import type { TaxInput, TaxResult } from './tax';
 
 /** Income tax by § 32a EStG for one taxable income (2026), rounded down to the euro. */
@@ -39,7 +39,9 @@ export function deTax(t: TaxInput): TaxResult {
   const church = t.deChurch ?? 0;
   const wages = t.wages + t.selfEmployment, social = n * deSocial(wages / n, !!t.deChildless);
   const capital = t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains);
-  const taxable = Math.max(0, wages - Math.min(wages, 1230 * n) - social - t.preTaxDeductions + t.otherOrdinary + 0.84 * t.socialSecurity);
+  // § 9a EStG: €102 a person off pensions (§ 22 Nr. 1, the statutory pension here), at most the pension's taxable part
+  const pensions = 0.84 * t.socialSecurity, pensionAllowance = Math.min(pensions, 102 * n);
+  const taxable = Math.max(0, wages - Math.min(wages, 1230 * n) - social - t.preTaxDeductions + t.otherOrdinary + pensions - pensionAllowance);
   const income = joint ? 2 * deTariff(taxable / 2) : deTariff(taxable);
   const soli = deSoli(income, joint);
   const flatBase = 0.25 / (1 + 0.25 * church), flat = Math.max(0, capital - 1000 * n) * flatBase * (1 + 0.055 + church);
