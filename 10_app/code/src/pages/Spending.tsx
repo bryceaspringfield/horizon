@@ -2,7 +2,8 @@
 // the browser, kept with the plan, and summed by month and category beside the plan's own spending.
 import { useMemo, useState } from 'react';
 import { SPEND_CATEGORIES, cardable, categoryOf } from '../engine/cards';
-import { mergeLog, parseStatement, spendingByMonth, type Txn } from '../engine/statements';
+import { mergeLog, parsePdfLines, parseStatement, spendingByMonth, type Txn } from '../engine/statements';
+import { pdfLines } from '../engine/pdfText';
 import { useStore } from '../store';
 import { useProjection } from '../useProjection';
 import { Card, Select, money } from '../ui';
@@ -26,17 +27,20 @@ export function SpendingPage() {
   const load = async (files: FileList | null) => {
     if (!files?.length) return;
     let add: Txn[] = [];
-    for (const f of Array.from(files)) add = add.concat(parseStatement(f.name, await f.text()));
+    for (const f of Array.from(files)) {
+      if (/\.pdf$/i.test(f.name)) add = add.concat(parsePdfLines(await pdfLines(f), f.name));
+      else add = add.concat(parseStatement(f.name, await f.text()));
+    }
     const before = log.length;
     const next = mergeLog(log, add);
     update((p) => { p.transactions = next; });
-    setMsg(add.length ? `${next.length - before} new transactions added (${add.length - (next.length - before)} already in the log).` : 'No transactions found: the file needs a header row with a date and an amount, or OFX tags.');
+    setMsg(add.length ? `${next.length - before} new transactions added (${add.length - (next.length - before)} already in the log).` : 'No transactions found: the file needs a header row with a date and an amount, OFX tags, or PDF lines starting with a date and ending with an amount.');
   };
   return (
     <>
       <Card title="Statements">
         <label className="upload">
-          <input type="file" accept=".csv,.ofx,.qfx,text/csv" multiple onChange={(e) => { load(e.target.files); e.target.value = ''; }} />
+          <input type="file" accept=".csv,.ofx,.qfx,.pdf,text/csv,application/pdf" multiple onChange={(e) => { load(e.target.files); e.target.value = ''; }} />
           <span>Upload statements (CSV, OFX, or QFX)</span>
         </label>
         {msg && <p className="muted">{msg}</p>}

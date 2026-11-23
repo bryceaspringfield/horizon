@@ -105,6 +105,31 @@ export function parseOfx(text: string, source: string): Txn[] {
   return rows;
 }
 
+/** Transactions of a PDF statement's text lines: a line starting with a date (MM/DD or MM/DD/YY[YY]) and ending with an
+ * amount, a running balance after it dropped. The year comes from the date or the statement's first 20xx. Spending is
+ * negative: a statement listing most rows as positive (a card's purchases) is flipped. */
+export function parsePdfLines(lines: string[], source: string): Txn[] {
+  const year = (lines.join(' ').match(/\b20\d{2}\b/) ?? [String(new Date().getFullYear())])[0];
+  const money = String.raw`\(?-?\$?[\d,]+\.\d{2}\)?-?`;
+  const re = new RegExp(String.raw`^(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\s+(.+?)\s+(${money})(?:\s+${money})?$`);
+  const num = (s: string) => (/^\(|-$|^-|^\(?-/.test(s) ? -1 : 1) * Number(s.replace(/[()$,\-]/g, ''));
+  const rows: Txn[] = [];
+  for (const raw of lines) {
+    const m = raw.trim().replace(/\s+/g, ' ').match(re);
+    if (!m) continue;
+    const y = m[3] ? (m[3].length === 2 ? '20' + m[3] : m[3]) : year;
+    const date = `${y}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+    const amount = num(m[5]);
+    if (!isFinite(amount) || amount === 0) continue;
+    rows.push({ id: '', date, description: m[4], amount, category: 'other', source });
+  }
+  const flip = rows.filter((r) => r.amount > 0).length > rows.length / 2 ? -1 : 1;
+  return rows.map((r, i) => {
+    const amount = r.amount * flip;
+    return { ...r, amount, id: source + ':' + i, category: categorize(r.description, amount) };
+  });
+}
+
 const key = (r: Txn) => r.date + '|' + r.amount.toFixed(2) + '|' + r.description.toLowerCase().slice(0, 40);
 
 /** Parses a file by its name and contents; unknown kinds give no transactions. */

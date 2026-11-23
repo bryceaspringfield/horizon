@@ -29,7 +29,7 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Purchase goals: a thing to buy (a laptop), saving up for it by a date, and the best deal under the user's filters, counting price errors, coupons, portal cash back, and card cash back.
 
 ## Statements, flows, and savings (Bryce, 2026-11-23)
-- Statement upload: bank and card statements (CSV, OFX/QFX, PDF) parsed in the browser into a spending log, categorized (with the card categories), deduplicated, and summarized by month and category; how each category compares to the plan and where it can be cut.
+- Statement spending: how each category compares to the plan and where it can be cut.
 - Flows: automatic transfers between accounts on a schedule, employer matches, and provider IRA matches (Robinhood, Webull) with their clawback if the money leaves within a holding period (Robinhood: 5 years).
 - Shared costs: memberships a household can share (Amazon Prime household, family plans of streaming and phone), with the saving of one shared plan over separate ones.
 
