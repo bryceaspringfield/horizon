@@ -37,7 +37,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Medicare premiums withheld from the Social Security check: the check shown net of Part B (and Part D where withheld), the premiums still counted once.
 
 ## Households and prefilled costs (Bryce, 2026-11-23)
-- Households: each with a place and members over time (moves on dates or life events); shared costs scale with household size by an economies-of-scale rule, not per head; costs others pay count as zero for that person; children and pets add their own.
 - Insurance coverage imported: a plan document or insurer export read into premiums, deductible, out-of-pocket maximum, and copays; presets for employers beyond MIT, and the deductible and out-of-pocket maximum counted in healthcare spending.
 - Prefilled costs: tuition by university and program (College Scorecard), rent by metro (HUD fair market rents, Zillow ZORI), home prices (Zillow ZHVI), essentials by place. MIT Living Wage Calculator (livingwage.mit.edu) for yearly food, childcare, medical, housing, transportation, and other costs by county and household makeup.
 
