@@ -67,6 +67,9 @@ export interface Account {
   dividendsPaidOut?: boolean;
   /** The currency the balance is held in (ISO 4217), where it differs from the plan's (engine/currency.ts). */
   currency?: string;
+  /** A return tied to inflation: each year's inflation plus this fixed rate (Series I savings bonds, TIPS held to
+   * maturity), in place of the allocation's market returns. */
+  inflationLinked?: number;
   /** Taxable accounts: foreign tax withheld on the dividends, as a share of them (the credit's passive basket). */
   foreignWithholding?: number;
 }
@@ -104,6 +107,12 @@ export interface Income {
   /** RSUs: the grant vests in equal parts over these years from startYear; vested shares are taxed as wages and kept
    * in the taxable account (their value is the basis). */
   vestYears?: number;
+  /** RSUs: nothing vests during these first years; the parts held back then vest together (a one-year cliff: 1). */
+  vestCliffYears?: number;
+  /** Salary: a yearly bonus as a share of the salary, paid and taxed with it. */
+  bonusRate?: number;
+  /** Salary: the share of the workplace contribution going to the Roth side (0 to 1); overrides contributionRoth. */
+  contributionRothShare?: number;
   /** Changes of the yearly amount from a year on (a promotion, a part-time stretch). */
   steps?: Step[];
   /** The amounts are in future (nominal) dollars of their own year, in place of today's dollars. */
@@ -169,6 +178,8 @@ export interface Strategy {
   /** Retirement: the first year of no salary, per person, by age. */
   retirementAge: Record<string, number>;
   withdrawalOrder: WithdrawalStep[];
+  /** A second withdrawal order, used from this year on (after a milestone such as Medicare or the end of conversions). */
+  withdrawalOrderLater?: { year: number; order: WithdrawalStep[] };
   /** Cash kept on hand; surplus above it is invested. */
   cashTarget: number;
   /** Surplus after expenses: the share invested in taxable (the rest stays in cash up to the target). */

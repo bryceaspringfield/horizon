@@ -225,3 +225,6 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent); tex
 .where legend { font-size: 13px; padding: 0 6px; opacity: 0.8; }
 .where .check { padding: 5px 0; }
 .where p { margin: 2px 0 6px; }
+
+/* A pill with nothing to do (Undo with no edit yet). */
+.pill.off { opacity: 0.4; pointer-events: none; }

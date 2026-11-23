@@ -35,6 +35,7 @@ export function meanPath(plan: Plan): ReturnPath {
 }
 
 function portfolioReturn(acc: Account, path: ReturnPath, i: number, w: Account['allocation'] = acc.allocation): number {
+  if (typeof acc.inflationLinked === 'number') return path.inflation[i] + acc.inflationLinked;
   if (typeof acc.customReturn === 'number') return acc.customReturn;
   const total = w.stocks + w.bonds + w.cash || 1;
   const r = (w.stocks * path.stocks[i] + w.bonds * path.bonds[i] + w.cash * path.cash[i]) / total;
@@ -134,6 +135,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   const end = lastYear(plan);
   const years: YearResult[] = [];
   // Unused foreign tax credits by basket and the year they arose; each lasts ten years.
+  // Net capital losses not yet used: $3,000 a year offsets other income, the rest carries forward without limit.
+  let lossCarry = 0;
   const ftcCarry = { general: [] as { y: number; amt: number }[], passive: [] as { y: number; amt: number }[] };
   if (a.crash?.enabled) {
     const ci = a.crash.year - plan.startYear;
@@ -268,6 +271,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       if ((inc.kind === 'salary' || inc.kind === 'selfEmployment') && evs.some((e) => e.kind === 'careerBreak' && y >= e.year && y <= e.endYear)) continue;
       let amt = amountIn(y, index, inc, inc.inflationAdjusted);
       if (inc.kind === 'salary' || inc.kind === 'selfEmployment') for (const e of evs) if (e.kind === 'payChange' && y >= e.year) amt *= e.factor;
+      if (inc.kind === 'salary' && inc.bonusRate) amt *= 1 + inc.bonusRate;
       income[inc.id] = amt;
       if (inc.kind === 'salary') {
         wages += amt;
@@ -277,12 +281,13 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
           // One limit a person across every employer's plan.
           const employee = Math.max(0, Math.min(amt * inc.contributionRate, limit - (deferredBy[inc.ownerId] ?? 0)));
           deferredBy[inc.ownerId] = (deferredBy[inc.ownerId] ?? 0) + employee;
-          const acc = plan401(inc.ownerId, !!inc.contributionRoth);
-          if (acc) {
-            deposit(acc.id, employee);
-            if (!inc.contributionRoth) preTax += employee;
-            else untaxedIncome -= employee; // a Roth deferral leaves take-home pay, after tax
-            if (inc.contributionRoth) untaxedIncome += 0;
+          // The deferral, split between the pre-tax and the Roth side; a Roth deferral leaves take-home pay, after tax.
+          const rothShare = Math.max(0, Math.min(1, inc.contributionRothShare ?? (inc.contributionRoth ? 1 : 0)));
+          for (const [roth, part] of [[false, employee * (1 - rothShare)], [true, employee * rothShare]] as const) {
+            const acc = plan401(inc.ownerId, roth);
+            if (!acc || part <= 0) continue;
+            deposit(acc.id, part);
+            if (roth) untaxedIncome -= part; else preTax += part;
           }
           const m = amt * Math.min(inc.contributionRate, inc.matchLimit ?? 1) * (inc.employerMatch ?? 0);
           const tAcc = plan401(inc.ownerId, false);
@@ -293,7 +298,9 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         }
       } else if (inc.kind === 'rsu') {
         // The grant's value vests in equal parts; vested shares are wages but stay invested, not cash.
-        const vest = amt / Math.max(1, inc.vestYears ?? 4);
+        // Equal parts a year; with a cliff, nothing vests in the first years and the parts held back vest together.
+        const part = amt / Math.max(1, inc.vestYears ?? 4), done = y - inc.startYear, cliff = Math.max(0, Math.min((inc.vestYears ?? 4) - 1, inc.vestCliffYears ?? 0));
+        const vest = done < cliff ? 0 : done === cliff ? part * (cliff + 1) : part;
         income[inc.id] = vest;
         wages += vest;
         untaxedIncome -= vest;
@@ -565,8 +572,9 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     function computeTaxNow(tr: number, g: number, e: number, conv = conversion) {
       // HSA money beyond the year's medical spending is income, with 20% more before 65.
       const hsaOver = Math.max(0, hsaDrawn - medicalSpend);
-      return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr + xTrad + hsaOver,
-        interest, qualifiedDividends: qualified, longTermGains: g + harvested + xGains, socialSecurity: ssTotal, preTaxDeductions: preTax,
+      const netGains = g + harvested + xGains - lossCarry, lossUsed = Math.min(3000, Math.max(0, -netGains));
+      return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr + xTrad + hsaOver - lossUsed,
+        interest, qualifiedDividends: qualified, longTermGains: Math.max(0, netGains), socialSecurity: ssTotal, preTaxDeductions: preTax,
         hsaPenaltyBase: hsaOwner && ages[hsaOwner] < 65 ? hsaOver : 0, flatRate, serviceBusiness, foreign,
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
@@ -616,7 +624,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       state.balance[from.id] -= take;
       withdrawals[from.id] = (withdrawals[from.id] ?? 0) + take;
       if (from.kind === 'taxable') {
-        const frac = bal > 0 ? Math.min(1, state.basis[from.id] / bal) : 1;
+        const frac = bal > 0 ? state.basis[from.id] / bal : 1;
         xGains += take * (1 - frac); state.basis[from.id] -= take * frac;
       } else if (from.kind === 'traditional') {
         if (to.kind === 'roth') conversion += take;
@@ -674,7 +682,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
 
     function withdraw(need: number) {
       let left = need, traditional = 0, g = 0, e = 0, amount = 0;
-      const order: WithdrawalStep[] = s.withdrawalOrder;
+      const order: WithdrawalStep[] = s.withdrawalOrderLater && y >= s.withdrawalOrderLater.year ? s.withdrawalOrderLater.order : s.withdrawalOrder;
       if (s.withdrawalMethod === 'proportional') {
         // Cash first, then every other account in proportion to its balance, in one pass.
         const cash = accounts.filter((x) => x.kind === 'cash' && state.balance[x.id] > 0);
@@ -692,7 +700,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
             state.balance[x.id] -= take;
             withdrawals[x.id] = (withdrawals[x.id] ?? 0) + take;
             if (x.kind === 'taxable') {
-              const frac = bal > 0 ? Math.min(1, state.basis[x.id] / bal) : 1;
+              const frac = bal > 0 ? state.basis[x.id] / bal : 1;
               g += take * (1 - frac); state.basis[x.id] -= take * frac;
             }
             if (x.kind === 'traditional') { traditional += take; if (ages[x.ownerId] < 59.5) e += take; }
@@ -716,7 +724,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
           withdrawals[x.id] = (withdrawals[x.id] ?? 0) + take;
           if (step === 'taxable') {
             const bal = take + state.balance[x.id];
-            const frac = bal > 0 ? Math.min(1, state.basis[x.id] / bal) : 1;
+            const frac = bal > 0 ? state.basis[x.id] / bal : 1;
             g += take * (1 - frac);
             state.basis[x.id] -= take * frac;
           }
@@ -820,6 +828,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     }
 
     const gross = wages + selfEmp + otherOrdinary + untaxedIncome + ssTotal + paidOut;
+    { const net = gains + harvested + xGains - lossCarry; lossCarry = net < 0 ? Math.max(0, -net - 3000) : 0; }
     // The foreign tax credit's carryover: the credit used comes from the oldest years first; this year's unused tax is kept.
     if (tax.ftc) {
       for (const [b, used, fresh] of [[ftcCarry.general, tax.ftc.usedGeneral, tax.ftc.newGeneral], [ftcCarry.passive, tax.ftc.usedPassive, tax.ftc.newPassive]] as const) {

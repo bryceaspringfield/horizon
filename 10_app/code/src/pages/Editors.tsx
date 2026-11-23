@@ -197,6 +197,8 @@ export function AccountsPage() {
                 {(invested || a.kind === 'cash') && <>
                   <Check label="Its own yearly return, not the market mix" value={typeof a.customReturn === 'number'} onChange={(v) => set((x) => { x.customReturn = v ? 0.05 : undefined; })} />
                   {typeof a.customReturn === 'number' && <Num label="Yearly return (after fees)" percent value={a.customReturn} onChange={(v) => set((x) => { x.customReturn = v; })} />}
+                  <Check label="Return tied to inflation (Series I bonds, TIPS)" value={typeof a.inflationLinked === 'number'} onChange={(v) => set((x) => { x.inflationLinked = v ? 0.01 : undefined; })} />
+                  {typeof a.inflationLinked === 'number' && <Num label="Fixed rate above inflation" percent value={a.inflationLinked} onChange={(v) => set((x) => { x.inflationLinked = v; })} />}
                 </>}
                 {a.kind === 'taxable' && <Check label="Pay dividends and interest out to cash (not reinvested)" value={!!a.dividendsPaidOut} onChange={(v) => set((x) => { x.dividendsPaidOut = v; })} />}
                 {a.kind === 'taxable' && <Num label="Foreign tax withheld on dividends" percent value={a.foreignWithholding ?? 0} hint="The share of this account's dividends a foreign country withholds; it counts toward the US foreign tax credit." onChange={(v) => set((x) => { x.foreignWithholding = v || undefined; })} />}
@@ -259,9 +261,11 @@ export function IncomePage() {
                 {x.kind === 'selfEmployment' && <Check label="A specified service business (law, health, consulting...)" value={!!x.serviceBusiness} onChange={(v) => set((y) => { y.serviceBusiness = v; })} />}
                 {x.kind !== 'windfall' && <StepsEditor steps={x.steps} nominal={x.nominal} onChange={(st) => set((y) => { y.steps = st; })} />}
                 {x.kind === 'rsu' && <Num label="Vests over (years)" value={x.vestYears ?? 4} onChange={(v) => set((y) => { y.vestYears = v; })} />}
+                {x.kind === 'rsu' && <Num label="Cliff (years before the first vesting)" value={x.vestCliffYears ?? 0} hint="With a one-year cliff, nothing vests in the first year and two parts vest in the second." onChange={(v) => set((y) => { y.vestCliffYears = v || undefined; })} />}
                 {x.kind === 'salary' && <>
                   <Num label="401(k) contribution" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />
-                  <Check label="Roth 401(k)" value={!!x.contributionRoth} onChange={(v) => set((y) => { y.contributionRoth = v; })} />
+                  <Num label="Share of the contribution going to Roth" percent value={x.contributionRothShare ?? (x.contributionRoth ? 1 : 0)} onChange={(v) => set((y) => { y.contributionRothShare = Math.max(0, Math.min(1, v)); y.contributionRoth = v >= 1; })} />
+                  <Num label="Yearly bonus (share of salary)" percent value={x.bonusRate ?? 0} onChange={(v) => set((y) => { y.bonusRate = v || undefined; })} />
                   <Num label="Employer match rate" percent value={x.employerMatch ?? 0} onChange={(v) => set((y) => { y.employerMatch = v; })} />
                   <Num label="Match up to (share of pay)" percent value={x.matchLimit ?? 0} onChange={(v) => set((y) => { y.matchLimit = v; })} />
                 </>}
@@ -484,6 +488,11 @@ export function StrategyPage() {
   const plan = useActivePlan();
   const update = useUpdate();
   const s = plan.strategy;
+  const moveLater = (i: number, d: number) => update((p) => {
+    const o = p.strategy.withdrawalOrderLater!.order; const j = i + d;
+    if (j < 0 || j >= o.length) return;
+    [o[i], o[j]] = [o[j], o[i]];
+  });
   const move = (i: number, d: number) => update((p) => {
     const o = p.strategy.withdrawalOrder; const j = i + d;
     if (j < 0 || j >= o.length) return;
@@ -515,6 +524,21 @@ export function StrategyPage() {
             </li>
           ))}
         </ol>
+        <div className="grid">
+          <Check label="Change the order from a later year" value={!!s.withdrawalOrderLater} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater = v ? { year: p.startYear + 20, order: [...p.strategy.withdrawalOrder] } : undefined; })} />
+          {s.withdrawalOrderLater && <Num label="From the year" value={s.withdrawalOrderLater.year} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater!.year = v; })} />}
+        </div>
+        {s.withdrawalOrderLater && <ol className="order">
+          {s.withdrawalOrderLater.order.map((step, i) => (
+            <li key={step}>
+              {STEP_LABEL[step]}
+              <span>
+                <button className="ghost" onClick={() => moveLater(i, -1)}>↑</button>
+                <button className="ghost" onClick={() => moveLater(i, 1)}>↓</button>
+              </span>
+            </li>
+          ))}
+        </ol>}
         <div className="grid">
           <Select label="How to draw" value={s.withdrawalMethod ?? 'order'} options={[['order', 'In the order above'], ['proportional', 'In proportion to balances']]}
             onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />

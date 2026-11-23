@@ -7,7 +7,7 @@ import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { ReportPage } from './pages/Report';
 import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
-import { useActivePlan, useDark, useStore } from './store';
+import { useActivePlan, useDark, useStore, useUndo } from './store';
 import { Card, Check, Select, setShownCurrency } from './ui';
 import { planCurrency } from './engine/currency';
 import { examplePlan } from './engine/defaults';
@@ -226,6 +226,18 @@ export default function App() {
     return () => window.removeEventListener('popstate', back);
   }, []);
   const [title, Page] = PAGES[page];
+  const undo = useUndo();
+  // Ctrl+Z and Ctrl+Shift+Z (or Ctrl+Y) outside a text field undo and redo plan edits; inside one, the browser's own undo applies.
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || /^(INPUT|TEXTAREA|SELECT)$/.test((e.target as HTMLElement)?.tagName ?? '')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); useStore.getState().undo(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); useStore.getState().redo(); }
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, []);
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const plan = useActivePlan();
@@ -266,6 +278,8 @@ export default function App() {
             <div className="sub">{plan.name} · {plan.people.map((p) => p.name).join(' and ')} · {plan.assumptions.state}</div>
           </div>
           <div className="row">
+            <span className={'pill' + (undo.canUndo ? '' : ' off')} title="Undo the last edit (Ctrl+Z)" onClick={() => useStore.getState().undo()}>↶ Undo</span>
+            <span className={'pill' + (undo.canRedo ? '' : ' off')} title="Redo (Ctrl+Shift+Z)" onClick={() => useStore.getState().redo()}>↷ Redo</span>
             <span className={'pill' + (settings.realDollars ? ' on' : '')} onClick={() => setSettings({ realDollars: !settings.realDollars })}>
               {planCurrency(plan) === 'USD' ? (settings.realDollars ? "Today's dollars" : 'Future dollars') : (settings.realDollars ? "Today's money" : 'Future money')}
             </span>

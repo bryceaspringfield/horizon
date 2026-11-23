@@ -56,6 +56,27 @@ interface AppState {
   setMain: (id: string) => void;
   openMain: () => void;
   importAll: (data: Pick<AppState, 'plans' | 'snapshots' | 'settings'>) => void;
+  undo: () => void;
+  redo: () => void;
+}
+
+// Undo and redo of plan edits, for this session: the plans before each edit (edits within 0.8 s count as one, so typing a
+// number is one step), up to 100 steps. Plans are replaced on every edit and never changed in place, so a step is a reference.
+const undoStack: Plan[][] = [], redoStack: Plan[][] = [];
+let lastEdit = 0, undoVersion = 0;
+const undoListeners = new Set<() => void>();
+const undoChanged = () => { undoVersion++; undoListeners.forEach((f) => f()); };
+function remember(plans: Plan[]) {
+  const now = Date.now();
+  if (now - lastEdit > 800 || undoStack.length === 0) { undoStack.push(plans); if (undoStack.length > 100) undoStack.shift(); }
+  lastEdit = now;
+  redoStack.length = 0;
+  undoChanged();
+}
+/** Whether an edit can be undone or redone now (followed live). */
+export function useUndo(): { canUndo: boolean; canRedo: boolean } {
+  useSyncExternalStore((f) => { undoListeners.add(f); return () => { undoListeners.delete(f); }; }, () => undoVersion, () => 0);
+  return { canUndo: undoStack.length > 0, canRedo: redoStack.length > 0 };
 }
 
 const first = examplePlan();
@@ -70,6 +91,7 @@ export const useStore = create<AppState>()(
       settings: { realDollars: true, theme: 'auto', mcTrials: 1000, mcMethod: 'normal' },
       update: (fn) =>
         set((st) => {
+          remember(st.plans);
           let plans = st.plans.map((p) => {
             if (p.id !== st.activeId) return p;
             const next = structuredClone(p);
@@ -97,6 +119,7 @@ export const useStore = create<AppState>()(
       },
       deletePlan: (id) =>
         set((st) => {
+          remember(st.plans);
           const plans = st.plans.filter((p) => p.id !== id);
           if (plans.length === 0) plans.push(examplePlan());
           return { plans, activeId: st.activeId === id ? plans[0].id : st.activeId, compareIds: st.compareIds.filter((x) => x !== id) };
@@ -107,6 +130,22 @@ export const useStore = create<AppState>()(
       setSettings: (s) => set((st) => ({ settings: { ...st.settings, ...s } })),
       setMain: (id) => set((st) => ({ settings: { ...st.settings, mainPlanId: id } })),
       openMain: () => set((st) => (st.plans.some((p) => p.id === st.settings.mainPlanId) ? { activeId: st.settings.mainPlanId! } : {})),
+      undo: () => {
+        const prev = undoStack.pop();
+        if (!prev) return;
+        redoStack.push(get().plans);
+        lastEdit = 0;
+        set((st) => ({ plans: prev, activeId: prev.some((p) => p.id === st.activeId) ? st.activeId : prev[0].id }));
+        undoChanged();
+      },
+      redo: () => {
+        const next = redoStack.pop();
+        if (!next) return;
+        undoStack.push(get().plans);
+        lastEdit = 0;
+        set((st) => ({ plans: next, activeId: next.some((p) => p.id === st.activeId) ? st.activeId : next[0].id }));
+        undoChanged();
+      },
       importAll: (data) => set({ plans: data.plans.map(upgradePlan), snapshots: data.snapshots ?? [], settings: { ...(data.settings ?? get().settings), setupDone: true }, activeId: data.plans[0].id }),
     }),
     // The state is read only after the login screen (main.tsx) unlocks a vault, or at once when there is none.
