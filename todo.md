@@ -3,7 +3,7 @@
 Asked by Bryce on 2026-11-23, in the order to build.
 
 - [ ] Native installers built by GitHub Actions (.exe, .dmg, AppImage, .apk), for people who prefer a download to the browser's Install button (the installable web app is live).
-- [ ] Import from ProjectionLab: test with a real export file (the importer is live and reads the file's understood shape; ProjectionLab publishes no schema), and adjust field names where the report shows gaps.
+- [ ] Import from ProjectionLab: compare with a real export from a live account (a synthetic version 5 export, after ProjectionLab's structure, now imports in full, checked by the test plv5.test.ts).
 - [ ] ProjectionLab's request board: every request with 5 or more votes (225 of 674; sorted in `99_overall/output/qwen_review/votes5_*.md`), verified in the code, then built in vote order.
 - [ ] ProjectionLab's help center (179 pages, `99_overall/input/projectionlab/layout/`) and changelog: every feature Horizon lacks (`99_overall/output/qwen_review/layout_*.md`, `missing_table.md`), verified, then built.
 - [ ] Qwen's code review (`99_overall/output/qwen_review/engine_*.md`, `ui_*.md`): verify each finding in the code and fix the real ones; rerun the five long files (simulate, tax, estate, stateDeath, Editors) in pieces.

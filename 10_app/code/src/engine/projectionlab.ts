@@ -44,9 +44,31 @@ const exactDate = (v: unknown): DateRef | undefined => {
   return /^\d{4}-\d{2}-\d{2}$/.test(d) && !d.endsWith('-01-01') ? { kind: 'date', date: d } : undefined;
 };
 
-/** Whether a file looks like a ProjectionLab export. */
+/** A ProjectionLab 5 export (one envelope of documents: currentFinances with people and accounts keyed by id, plans,
+ * settings) in the earlier shape the importer reads: today's people, savings, investments, assets with their loans, and
+ * debts. Archived accounts are left out; a loan secured by an asset (securedByAssetId) becomes that asset's loan. */
+function fromV5(data: unknown): unknown {
+  const docs = obj(obj(data).documents);
+  if (!isObj(docs.currentFinances)) return data;
+  const cf = obj(docs.currentFinances), people = obj(obj(cf.household).people);
+  const me = obj(people.me), spouse = isObj(people.spouse) ? obj(people.spouse) : undefined;
+  const all = Object.values(obj(cf.accounts)).filter(isObj).map(obj).filter((a) => !a.archivedOn);
+  const loans = new Map(all.filter((a) => a.kind === 'debt' && typeof a.securedByAssetId === 'string').map((a) => [a.securedByAssetId as string, a]));
+  const cashy = (a: Obj) => /savings|checking|cash|moneymarket/.test(slug(str(a, 'type')));
+  const today = {
+    yourName: me.name, birthYear: me.birthYear, ...(spouse ? { partnerStatus: 'couple', spouseName: spouse.name, spouseBirthYear: spouse.birthYear } : {}),
+    savingsAccounts: all.filter((a) => a.kind === 'account' && cashy(a)),
+    investmentAccounts: all.filter((a) => a.kind === 'account' && !cashy(a)),
+    assets: all.filter((a) => a.kind === 'real-asset').map((a) => { const l = loans.get(String(a.id)); return l ? { ...a, loanBalance: l.balance, interestRate: l.interestRate, monthlyPayment: l.monthlyPayment } : a; }),
+    debts: all.filter((a) => a.kind === 'debt' && typeof a.securedByAssetId !== 'string'),
+    location: cf.location,
+  };
+  return { ...obj(data), today, plans: Array.isArray(docs.plans) ? docs.plans : [] };
+}
+
+/** Whether a file looks like a ProjectionLab export (the earlier shape, or version 5's envelope of documents). */
 export function isProjectionLabExport(data: unknown): boolean {
-  const d = obj(data);
+  const d = obj(fromV5(data));
   return isObj(d.today) && Array.isArray(d.plans) && d.plans.some((p) => isObj(p) && (isObj(p.income) || isObj(p.expenses) || isObj(p.variables)));
 }
 
@@ -84,7 +106,7 @@ function yearly(amount: number, frequency: string | undefined): { amount: number
 }
 
 export function importProjectionLab(data: unknown, year = new Date().getFullYear()): ImportReport {
-  const root = obj(data);
+  const root = obj(fromV5(data));
   const today = obj(root.today);
   const notes: string[] = [];
   const counts = new Map<string, number>();

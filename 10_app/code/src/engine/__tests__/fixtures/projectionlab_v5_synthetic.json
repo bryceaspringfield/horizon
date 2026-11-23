@@ -1,0 +1,343 @@
+{
+ "schema": 1,
+ "exportedAt": 1700000000000,
+ "documents": {
+  "currentFinances": {
+   "schema": 5,
+   "lastUpdated": 1700000000000,
+   "location": {
+    "country": "US",
+    "state": "CO"
+   },
+   "household": {
+    "partnerStatus": "placeholder",
+    "people": {
+     "me": {
+      "id": "me",
+      "name": "Alex",
+      "birthYear": 1980,
+      "birthMonth": 4,
+      "lifeExpectancy": 95,
+      "color": "blue",
+      "icon": "person",
+      "character": {}
+     },
+     "spouse": {
+      "id": "spouse",
+      "name": "Sam",
+      "birthYear": 1982,
+      "birthMonth": 9,
+      "lifeExpectancy": 95,
+      "color": "green",
+      "icon": "person",
+      "character": {}
+     }
+    }
+   },
+   "accounts": {
+    "acct_brokerage": {
+     "id": "acct_brokerage",
+     "name": "Brokerage",
+     "kind": "account",
+     "type": "taxable",
+     "owner": "me",
+     "order": 0,
+     "icon": "chart",
+     "balance": 50000,
+     "costBasis": 40000
+    },
+    "acct_401k": {
+     "id": "acct_401k",
+     "name": "Work 401k",
+     "kind": "account",
+     "type": "401k",
+     "owner": "me",
+     "order": 1,
+     "icon": "bank",
+     "balance": 20000,
+     "costBasis": 0
+    },
+    "acct_old_savings": {
+     "id": "acct_old_savings",
+     "name": "Old Savings",
+     "kind": "account",
+     "type": "savings",
+     "owner": "me",
+     "order": 2,
+     "icon": "bank",
+     "archivedOn": "2025-06-01",
+     "balance": 0,
+     "costBasis": 0
+    },
+    "asset_land": {
+     "id": "asset_land",
+     "name": "Land",
+     "kind": "real-asset",
+     "type": "land",
+     "subtype": "lot",
+     "owner": "joint",
+     "order": 3,
+     "icon": "home",
+     "value": 120000,
+     "purchasePrice": 100000
+    },
+    "debt_land_loan": {
+     "id": "debt_land_loan",
+     "name": "Land Loan",
+     "kind": "debt",
+     "type": "secured-loan",
+     "owner": "joint",
+     "order": 4,
+     "icon": "loan",
+     "balance": 60000,
+     "securedByAssetId": "asset_land"
+    }
+   }
+  },
+  "plans": [
+   {
+    "schema": 5,
+    "id": "plan_main",
+    "name": "Main Plan",
+    "icon": "flag",
+    "lastUpdated": 1700000000000,
+    "meta": {
+     "index": 0,
+     "hasAddedPriorities": true
+    },
+    "startingConditionsType": "currentFinances",
+    "startingConditions": {},
+    "variables": {},
+    "montecarlo": {},
+    "withdrawalStrategy": {},
+    "milestones": [
+     {
+      "id": "plan_main_ms_retire",
+      "name": "Retirement"
+     }
+    ],
+    "accounts": {
+     "events": [
+      {
+       "id": "plan_main_ev_brokerage",
+       "accountId": "acct_brokerage",
+       "kind": "account",
+       "type": "taxable",
+       "name": "Brokerage",
+       "liquidity": true,
+       "withdraw": "placeholder"
+      }
+     ]
+    },
+    "assets": {
+     "events": [
+      {
+       "id": "plan_main_ev_land",
+       "assetId": "asset_land",
+       "kind": "real-asset",
+       "type": "land",
+       "name": "Land",
+       "subtype": "lot",
+       "value": 120000,
+       "valueType": "placeholder",
+       "purchasePrice": 100000,
+       "purchasePriceType": "placeholder",
+       "loans": []
+      }
+     ]
+    },
+    "income": {
+     "events": [
+      {
+       "id": "plan_main_ev_salary",
+       "kind": "income",
+       "type": "other",
+       "name": "Salary",
+       "amount": 90000,
+       "start": {
+        "type": "date",
+        "value": "2026-01-01"
+       },
+       "end": {
+        "type": "milestone",
+        "value": "plan_main_ms_retire"
+       }
+      }
+     ]
+    },
+    "expenses": {
+     "events": [
+      {
+       "id": "plan_main_ev_living",
+       "kind": "expense",
+       "type": "living-expenses",
+       "name": "Living",
+       "amount": 50000,
+       "start": {
+        "type": "date",
+        "value": "2026-01-01"
+       },
+       "end": {
+        "type": "keyword",
+        "value": "placeholder"
+       }
+      }
+     ]
+    },
+    "priorities": {
+     "events": [
+      {
+       "id": "plan_main_ev_save",
+       "kind": "priority",
+       "type": "taxable",
+       "name": "Save to brokerage",
+       "accountId": "acct_brokerage"
+      }
+     ]
+    }
+   },
+   {
+    "schema": 5,
+    "id": "plan_early",
+    "name": "Retire Early",
+    "icon": "flag",
+    "lastUpdated": 1700000000001,
+    "meta": {
+     "index": 1,
+     "hasAddedPriorities": true
+    },
+    "startingConditionsType": "currentFinances",
+    "startingConditions": {},
+    "variables": {},
+    "montecarlo": {},
+    "withdrawalStrategy": {},
+    "milestones": [
+     {
+      "id": "plan_early_ms_retire",
+      "name": "Retirement"
+     }
+    ],
+    "accounts": {
+     "events": [
+      {
+       "id": "plan_early_ev_brokerage",
+       "accountId": "acct_brokerage",
+       "kind": "account",
+       "type": "taxable",
+       "name": "Brokerage",
+       "liquidity": true,
+       "withdraw": "placeholder"
+      }
+     ]
+    },
+    "assets": {
+     "events": [
+      {
+       "id": "plan_early_ev_land",
+       "assetId": "asset_land",
+       "kind": "real-asset",
+       "type": "land",
+       "name": "Land",
+       "subtype": "lot",
+       "value": 120000,
+       "valueType": "placeholder",
+       "purchasePrice": 100000,
+       "purchasePriceType": "placeholder",
+       "loans": []
+      }
+     ]
+    },
+    "income": {
+     "events": [
+      {
+       "id": "plan_early_ev_salary",
+       "kind": "income",
+       "type": "other",
+       "name": "Salary",
+       "amount": 90000,
+       "start": {
+        "type": "date",
+        "value": "2026-01-01"
+       },
+       "end": {
+        "type": "milestone",
+        "value": "plan_early_ms_retire"
+       }
+      }
+     ]
+    },
+    "expenses": {
+     "events": [
+      {
+       "id": "plan_early_ev_living",
+       "kind": "expense",
+       "type": "living-expenses",
+       "name": "Living",
+       "amount": 50000,
+       "start": {
+        "type": "date",
+        "value": "2026-01-01"
+       },
+       "end": {
+        "type": "keyword",
+        "value": "placeholder"
+       }
+      }
+     ]
+    },
+    "priorities": {
+     "events": [
+      {
+       "id": "plan_early_ev_save",
+       "kind": "priority",
+       "type": "taxable",
+       "name": "Save to brokerage",
+       "accountId": "acct_brokerage"
+      }
+     ]
+    }
+   }
+  ],
+  "settings": {
+   "schema": 5,
+   "seenVersion": "5.0.0",
+   "plan": {
+    "activeId": null,
+    "baselineId": null,
+    "alignment": {
+     "type": "calendar"
+    },
+    "tabs": {
+     "pinned": false
+    }
+   },
+   "plugins": {
+    "enabled": true,
+    "apiKey": "synthetic-plugin-key"
+   }
+  },
+  "accountHistory": {
+   "acct_brokerage": {
+    "2025": {
+     "schema": 5,
+     "kind": "account",
+     "balance": {
+      "acct_brokerage": 45000
+     },
+     "costBasis": {
+      "acct_brokerage": 38000
+     }
+    }
+   },
+   "asset_land": {
+    "2025": {
+     "schema": 5,
+     "kind": "real-asset",
+     "value": {
+      "asset_land": 115000
+     }
+    }
+   }
+  }
+ }
+}
