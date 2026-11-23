@@ -154,13 +154,16 @@ export function CashFlowPage() {
   const links: { source: string; target: string; value: number }[] = [];
   const add = (source: string, target: string, v: number) => { if (v > 1) links.push({ source, target, value: Math.round(adj(v, i)) }); };
   for (const [id, v] of Object.entries(y.income)) add(name(id), 'Cash flow', v);
-  add('Social Security', 'Cash flow', y.socialSecurity);
+  // Medicare premiums withheld from the Social Security check: the check reaches cash flow net, the premium is counted once
+  const withheld = Math.min(y.socialSecurity, y.expenses['__medicare'] ?? 0);
+  add('Social Security', 'Cash flow', y.socialSecurity - withheld);
+  add('Social Security', 'Medicare (withheld from Social Security)', withheld);
   add('Employer match', 'Cash flow', y.employerMatch);
   for (const [id, v] of Object.entries(y.withdrawals)) add(name(id) + ' (withdrawal)', 'Cash flow', v);
   add('Cash flow', 'Federal tax', y.taxes.federal + y.taxes.capitalGains + y.taxes.niit + y.taxes.penalty);
   add('Cash flow', 'State tax', y.taxes.state);
   add('Cash flow', 'Payroll tax', y.taxes.fica);
-  for (const [id, v] of Object.entries(y.expenses)) add('Cash flow', name(id), v);
+  for (const [id, v] of Object.entries(y.expenses)) add('Cash flow', name(id), id === '__medicare' ? v - withheld : v);
   for (const [id, v] of Object.entries(y.contributions)) add('Cash flow', name(id) + ' (saved)', v);
   const nodes = [...new Set(links.flatMap((l) => [l.source, l.target]))].map((n) => ({ name: n }));
   return (
@@ -172,6 +175,7 @@ export function CashFlowPage() {
         <Stat label="Spending" value={money(adj(y.spending ?? y.totalExpenses, i))} />
         <Stat label="Taxes" value={money(adj(y.taxes.total, i))} sub={`${pct(y.taxes.effectiveRate)} effective`} />
         <Stat label="Saved" value={money(adj(Object.values(y.contributions).reduce((t, v) => t + v, 0), i))} />
+        {y.socialSecurity > 0 && <Stat label="Social Security check" value={money(adj(y.socialSecurity - withheld, i))} sub={withheld > 0 ? `after ${money(adj(withheld, i))} of Medicare premiums withheld` : 'a year'} />}
       </div>
       <Chart height={520} option={{
         tooltip: { trigger: 'item', valueFormatter: (v: number) => money(v) },
