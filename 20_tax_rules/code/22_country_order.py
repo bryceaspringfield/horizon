@@ -95,6 +95,9 @@ NO_FIGURES = {'EH': 'Western Sahara', 'X-ART': 'Artsakh', 'X-TRN': 'Transnistria
 # (Mogadishu), Somaliland (self-declared independent since 1991, with a revenue system of its own), and the North Eastern State
 # (SSC-Khatumo, formed in 2025; its standing wants a check against a current official source).
 REGIONS = {'GE': ['Abkhazia', 'South Ossetia'],
+           # the United Kingdom's four countries (Scotland and Wales set income tax rates of their own); its overseas territories and
+           # Crown Dependencies are merged in above and are regional choices too (Bryce, 2026-11-23)
+           'GB': ['England', 'Scotland', 'Wales', 'Northern Ireland'],
            'SO': ['Puntland', 'Jubaland', 'South West State', 'Galmudug', 'Hirshabelle', 'Banadir (Mogadishu)', 'Somaliland', 'North Eastern State (SSC-Khatumo)'],
            'EH': ['Tifariti', 'Bir Lehlou', 'Agounit', 'Dougaj', 'Meharrize', 'Mijek', 'Zug (the seven municipalities the Sahrawi government administers; no Moroccan-held area is offered)'],
            'CY': ['Nicosia', 'Limassol', 'Larnaca', 'Paphos', 'Famagusta (these five de facto the Republic of Cyprus)',
@@ -104,7 +107,10 @@ REGIONS = {'GE': ['Abkhazia', 'South Ossetia'],
 # Survey, individuals with Internet access (https://moda.gov.tw/en/press/press-releases/18674).
 EXTRA = {'TW': {'name': 'Taiwan', 'population': 23365274, 'population_year': 2025, 'internet_share_pct': 90.3, 'internet_year': 2025}}
 # Countries whose states or provinces levy or shape taxes of their own, in the order their subnational rules are added.
-SUBNATIONAL = ['US', 'CN', 'IN', 'BR', 'ID', 'PK', 'MX', 'NG', 'DE', 'CA', 'AR', 'ES', 'AU', 'CH']
+# Countries whose regional taxes are built, beside every country with regional choices or merged territories. The order of that
+# work (Bryce, 2026-11-23): the United States, Norway, China, then by Internet users, most first.
+SUBNATIONAL = ['US', 'NO', 'CN', 'IN', 'BR', 'ID', 'PK', 'MX', 'NG', 'DE', 'CA', 'AR', 'ES', 'AU', 'CH', 'GB']
+SUBNATIONAL_FIRST = ['US', 'NO', 'CN']
 
 
 # More search names (Bryce, 2026-11-23): abbreviations (one may name several countries: ROC, SAR), names in the country's own
@@ -189,7 +195,7 @@ def main():
                      'population': int(p) if p else '', 'population_year': pop[host][1] if host in pop else '',
                      'internet_share_pct': round(100 * users / covered, 1) if covered else '', 'internet_year': net[host][1] if host in net else '',
                      'internet_users': int(users) if covered else '',
-                     'subnational_order': SUBNATIONAL.index(host) + 1 if host in SUBNATIONAL else '',
+                     'subnational_order': '',
                      'note': '; '.join(x for x in (
                          'Also a regional choice under ' + countries[ALSO_UNDER[host]]['name'] + ', opening the same settings' if host in ALSO_UNDER else '',
                          'Regional choices with settings of their own: ' + ', '.join(sorted(RENAME.get(k, countries[k]['name']) for k, v in ALSO_UNDER.items() if v == host))
@@ -207,6 +213,9 @@ def main():
         r['order'] = i + 1
         r['basis'] = first[r['iso2']][1] if r['iso2'] in first else ('Internet users' if r['internet_users'] != '' else 'no Internet-use figure: last')
     os.makedirs(f'{H}/output', exist_ok=True)
+    has_regions = lambda r: r['iso2'] in SUBNATIONAL or r['iso2'] in REGIONS or r['iso2'] in ALSO_UNDER.values() or r['iso2'] in MERGE.values()
+    sub_rows = sorted((r for r in rows if has_regions(r)), key=lambda r: (SUBNATIONAL_FIRST.index(r['iso2']) if r['iso2'] in SUBNATIONAL_FIRST else 99, -(r['internet_users'] or 0), r['country']))
+    for n, r in enumerate(sub_rows): r['subnational_order'] = n + 1
     for r in rows:  # every other spelling a search accepts: the listed ones, the World Bank's forms, and the territories counted in the row
         ms = [m for m in countries if m == r['iso2'] or MERGE.get(m) == r['iso2']]
         al = [a for m in [r['iso2']] + ms for d in (ALIASES, ALIASES_MORE) for a in d.get(m, '').split('; ') if a]
