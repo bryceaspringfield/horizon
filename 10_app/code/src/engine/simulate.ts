@@ -228,7 +228,12 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     for (const p of plan.people) ages[p.id] = y - p.birthYear;
     const alive = plan.people.filter((p) => ages[p.id] <= p.lifeExpectancy && !departed.has(p.id));
     if (alive.length === 0) break;
-    let status: 'mfj' | 'hoh' | 'single' = alive.length === 2 && a.filingStatus === 'mfj' ? 'mfj' : a.filingStatus === 'hoh' ? 'hoh' : 'single';
+    // The first two people are the couple (joint filing, spousal and survivor benefits); each later person is another
+    // household member (a parent, an adult child) whose own benefits add to the household's.
+    const coupleIds = plan.people.slice(0, 2).map((p) => p.id);
+    const couple = alive.filter((p) => coupleIds.includes(p.id));
+    const others = alive.filter((p) => !coupleIds.includes(p.id));
+    let status: 'mfj' | 'hoh' | 'single' = couple.length === 2 && a.filingStatus === 'mfj' ? 'mfj' : a.filingStatus === 'hoh' ? 'hoh' : 'single';
     const isAlive = (id: string) => alive.some((p) => p.id === id);
     const working = (id: string) => isAlive(id) && ages[id] < (s.retirementAge[id] ?? 200) && !retiredBy.has(id);
     const residence = stateIn(y);
@@ -358,16 +363,18 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     }
     // A spouse receives the larger of the own benefit and half the partner's PIA (reduced for an early claim), once
     // both have claimed.
-    if (alive.length === 2 && a.filingStatus === 'mfj') {
-      for (const ss of plan.socialSecurity) {
-        const other = plan.socialSecurity.find((o) => o.ownerId !== ss.ownerId);
+    if (couple.length === 2 && a.filingStatus === 'mfj') {
+      for (const ss of plan.socialSecurity.filter((s) => coupleIds.includes(s.ownerId))) {
+        const other = plan.socialSecurity.find((o) => o.ownerId !== ss.ownerId && coupleIds.includes(o.ownerId));
         if (!other || ssByPerson[ss.ownerId] === undefined || ssByPerson[other.ownerId] === undefined) continue;
         const spousal = spousalAtClaim(other.pia, ss.claimAge) * 12 * index;
         ssByPerson[ss.ownerId] = Math.max(ssByPerson[ss.ownerId], spousal);
       }
     }
-    if (alive.length === 2) ssTotal = alive.reduce((t, p) => t + (ssByPerson[p.id] ?? 0), 0);
-    else ssTotal = Math.max(0, ...Object.values(ssByPerson));
+    // a widowed partner keeps the larger of the couple's two benefits
+    const coupleSs = coupleIds.map((id) => ssByPerson[id] ?? 0);
+    ssTotal = (couple.length === 2 ? coupleSs.reduce((t, v) => t + v, 0) : Math.max(0, ...coupleSs))
+      + others.reduce((t, p) => t + (ssByPerson[p.id] ?? 0), 0);
 
     // Required minimum distributions.
     let rmd = 0;
@@ -940,7 +947,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         foreign: tax.foreignTaxPaid || undefined,
         foreignCredit: tax.foreignTaxCredit || undefined,
         foreignExclusion: tax.foreignExclusion || undefined,
-        estate: estateTax(netWorth, y, ri, alive.length),
+        estate: estateTax(netWorth, y, ri, Math.max(1, couple.length)),
         itemized: tax.itemized,
         deduction: tax.deduction,
         total: tax.total,

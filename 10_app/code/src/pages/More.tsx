@@ -126,7 +126,7 @@ export function TaxYear() {
   const i = Math.max(0, proj.years.findIndex((y) => y.year === year));
   const y = proj.years[i];
   const t = y.taxes;
-  const status = plan.people.length === 2 && plan.assumptions.filingStatus === 'mfj' ? 'mfj' : plan.assumptions.filingStatus === 'hoh' ? 'hoh' : 'single';
+  const status = plan.people.length >= 2 && plan.assumptions.filingStatus === 'mfj' ? 'mfj' : plan.assumptions.filingStatus === 'hoh' ? 'hoh' : 'single';
   const r = rulesFor(year);
   const k = Math.pow(1 + plan.assumptions.inflation, year - r.year < 0 ? 0 : year - Math.max(r.year, plan.startYear)) * (r.year < plan.startYear ? Math.pow(1 + plan.assumptions.inflation, plan.startYear - r.year) : 1);
   const brackets = r.rules.brackets[status].map(([lo, rate]: number[]) => [lo * k, rate]);

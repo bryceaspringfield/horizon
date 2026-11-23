@@ -1,3 +1,4 @@
+import { useState } from 'react';
 // Small building blocks shared by every page: money and percent formatting, labeled inputs, cards, and a chart.
 import ReactECharts from 'echarts-for-react';
 import type { ReactNode } from 'react';
@@ -41,7 +42,9 @@ export function Stat({ label, value, sub, tone, icon }: { label: string; value: 
 type NumProps = { label: string; value: number | undefined; onChange: (v: number) => void; percent?: boolean; step?: number; hint?: string };
 
 export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
-  const shown = value === undefined ? '' : percent ? +(value * 100).toFixed(4) : value;
+  const shown = value === undefined ? '' : String(percent ? +(value * 100).toFixed(4) : value);
+  // the text being typed: an emptied box stays empty while focused (it used to snap back to 0), and becomes 0 on leaving
+  const [draft, setDraft] = useState<string | null>(null);
   return (
     <label className="field" title={hint}>
       <span>{label}</span>
@@ -49,10 +52,17 @@ export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
         <input
           type="number"
           step={step ?? (percent ? 0.1 : 1)}
-          value={shown}
+          value={draft ?? shown}
           onChange={(e) => {
-            const v = e.target.value === '' ? 0 : Number(e.target.value);
+            const t = e.target.value;
+            setDraft(t);
+            if (t === '' || t === '-' || Number.isNaN(Number(t))) return;
+            const v = Number(t);
             onChange(percent ? v / 100 : v);
+          }}
+          onBlur={() => {
+            if (draft === '' || draft === '-') onChange(0);
+            setDraft(null);
           }}
         />
         {percent && <em>%</em>}

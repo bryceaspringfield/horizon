@@ -133,7 +133,7 @@ export function PeoplePage() {
           items={plan.people}
           title={(p) => `${p.name}, born ${p.birthYear}`}
           empty="Add yourself first."
-          onAdd={() => update((p) => { if (p.people.length < 2) p.people.push({ id: 'p' + uid(), name: 'Partner', birthYear: p.startYear - 35, lifeExpectancy: 92 }); })}
+          onAdd={() => update((p) => { p.people.push({ id: 'p' + uid(), name: p.people.length === 1 ? 'Partner' : 'Person ' + (p.people.length + 1), birthYear: p.startYear - 35, lifeExpectancy: 92 }); })}
           onRemove={(i) => update((p) => { if (p.people.length > 1) p.people.splice(i, 1); })}
           render={(person, i) => (
             <>
