@@ -62,7 +62,7 @@ th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;c
 <div class="bar"><input id="q" type="search" placeholder="Find a country, by any name or spelling"></div>
 <div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r title="The order in which the country's regional taxes are added">Order for subnational tax</th><th>Counted in the country, and notes</th></tr></thead><tbody>__ROWS__</tbody></table></div>
 <h2>Subnational tax</h2>
-<p>The column "Order for subnational tax" is a place in line, and it is no count of regions. It covers every country with regional taxes to build or with regional choices listed here. The United States is 1st (all 50 states, the District of Columbia, and the territories), Norway 2nd, and China 3rd; the others follow by Internet users, most first.</p>
+<p>The column "Order for subnational tax" is a place in line, and it is no count of regions. It covers every country with regional taxes to build or with regional choices listed here. The United States is 1st (all 50 states, the District of Columbia, and the territories), Norway 2nd, China 3rd, and Spain 4th; the others follow by Internet users, most first.</p>
 </main><script>
 const tb = document.querySelector('#t tbody'), rows = [...tb.rows];
 const norm = t => t.normalize('NFD').replace(/\\p{M}/gu, '').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, ' ').trim();

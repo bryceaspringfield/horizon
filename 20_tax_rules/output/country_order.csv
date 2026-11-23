@@ -1,28 +1,28 @@
 order,iso2,country,basis,internet_users,population,population_year,internet_share_pct,internet_year,includes,subnational_order,note,aliases
 1,US,United States,"the United States, first",326632046,345332053,2025,94.6,2024,American Samoa; Guam; Northern Mariana Islands; Puerto Rico; U.S. Virgin Islands,1,,USA; U.S.; U.S.A.; America; United States of America; the States; US; ASM; GUM; MNP; PRI; VIR; American Samoa; Guam; Northern Mariana Islands; Puerto Rico; Puerto Rico (US); U.S. Virgin Islands; Virgin Islands (U.S.)
-2,GB,United Kingdom,ProjectionLab: full rules,66534455,70006696,2025,95.4,2024,Bermuda; British Virgin Islands; Cayman Islands; Channel Islands; Gibraltar; Isle of Man; Turks and Caicos Islands,11,"Regional choices: England, Scotland, Wales, Northern Ireland",UK; U.K.; Britain; Great Britain; England; Scotland; Wales; Northern Ireland; United Kingdom of Great Britain and Northern Ireland; GBR; BMU; CHI; CYM; GIB; IMN; TCA; VGB; Bermuda; Channel Islands; Cayman Islands; Gibraltar; Isle of Man; Turks and Caicos Islands; British Virgin Islands
+2,GB,United Kingdom,ProjectionLab: full rules,66534455,70006696,2025,95.4,2024,Bermuda; British Virgin Islands; Cayman Islands; Channel Islands; Gibraltar; Isle of Man; Turks and Caicos Islands,12,"Regional choices: England, Scotland, Wales, Northern Ireland",UK; U.K.; Britain; Great Britain; England; Scotland; Wales; Northern Ireland; United Kingdom of Great Britain and Northern Ireland; GBR; BMU; CHI; CYM; GIB; IMN; TCA; VGB; Bermuda; Channel Islands; Cayman Islands; Gibraltar; Isle of Man; Turks and Caicos Islands; British Virgin Islands
 3,CA,Canada,ProjectionLab: full rules,39299709,41651653,2025,94.4,2024,,15,,CAN
 4,AU,Australia,ProjectionLab: full rules,26546120,27614411,2025,96.1,2024,,16,,AUS
-5,ES,Spain,ProjectionLab: tax estimates,47261227,49355143,2025,95.8,2024,,13,,España; Espana; Reino de España; ESP
+5,ES,Spain,ProjectionLab: tax estimates,47261227,49355143,2025,95.8,2024,,4,,España; Espana; Reino de España; ESP
 6,NL,Netherlands,ProjectionLab: tax estimates,17758397,18396604,2025,96.8,2024,Aruba; Curaçao; Sint Maarten,17,,Holland; The Netherlands; Nederland; ABW; CUW; NLD; SXM; Aruba; Curaçao; Curacao; Sint Maarten; Sint Maarten (Dutch part)
 7,NO,Norway,ProjectionLab: preset,5554761,5610870,2025,99.0,2024,,2,placed first among the presets (Bryce),Norge; Noreg; NOR
 8,CN,China,ProjectionLab: preset,1288431859,1406585000,2025,91.6,2025,,3,"Regional choices with settings of their own: Hong Kong, Macao, Taiwan",PRC; People's Republic of China; Mainland China; Zhongguo; 中国; 中國; Zhonghua; CHN
-9,BR,Brazil,ProjectionLab: preset,179748746,212812405,2025,84.5,2024,,6,,Brasil; BRA
-10,DE,Germany,ProjectionLab: preset,78064314,83491249,2025,93.5,2024,,10,,Deutschland; Federal Republic of Germany; BRD; West Germany; DEU
+9,BR,Brazil,ProjectionLab: preset,179748746,212812405,2025,84.5,2024,,7,,Brasil; BRA
+10,DE,Germany,ProjectionLab: preset,78064314,83491249,2025,93.5,2024,,11,,Deutschland; Federal Republic of Germany; BRD; West Germany; DEU
 11,PS,Occupied Palestine,ProjectionLab: preset (Israel),13616742,15536396,2025,87.6,2023,Palestine (West Bank and Gaza); Israel,18,,Palestine; State of Palestine; Palestinian Territories; West Bank; Gaza; Israel; Filastin; فلسطين; ישראל; Yisrael; Holy Land; ISR; PSE; Palestine (West Bank and Gaza); West Bank and Gaza
 12,BE,Belgium,ProjectionLab: preset,11437335,11941781,2025,95.8,2024,,,,Belgique; België; Belgien; BEL
 13,CH,Switzerland,ProjectionLab: preset,8848853,9092436,2025,97.3,2025,,20,,Schweiz; Suisse; Svizzera; Swiss Confederation; CHE
 14,HK,Hong Kong,ProjectionLab: preset,7180599,7498900,2025,95.8,2024,,,"Also a regional choice under China, opening the same settings","Hongkong; Hong Kong SAR; HKSAR; Xianggang; 香港; Heung Gong; SAR; HKG; Hong Kong SAR, China"
 15,SG,Singapore,ProjectionLab: preset,5767578,6111175,2025,94.4,2024,,,,SGP
 16,NZ,New Zealand,ProjectionLab: preset,4979622,5324700,2025,93.5,2024,,,,Aotearoa; NZ; NZL
-17,MX,Mexico,Bryce's personal interest,109677348,131946900,2025,83.1,2024,,8,,México; Mejico; MEX
+17,MX,Mexico,Bryce's personal interest,109677348,131946900,2025,83.1,2024,,9,,México; Mejico; MEX
 18,AR,Argentina,Bryce's personal interest,41113624,45851378,2025,89.7,2024,,14,,Argentine Republic; ARG
-19,IN,India,Internet users,1024705867,1463865525,2025,70.0,2025,,4,,Bharat; Hindustan; भारत; Republic of India; IND
-20,ID,Indonesia,Internet users,207950074,285721236,2025,72.8,2024,,5,,Dutch East Indies; Republik Indonesia; IDN
-21,PK,Pakistan,Internet users,146120851,255219554,2025,57.3,2024,,7,,پاکستان; West Pakistan; PAK
+19,IN,India,Internet users,1024705867,1463865525,2025,70.0,2025,,5,,Bharat; Hindustan; भारत; Republic of India; IND
+20,ID,Indonesia,Internet users,207950074,285721236,2025,72.8,2024,,6,,Dutch East Indies; Republik Indonesia; IDN
+21,PK,Pakistan,Internet users,146120851,255219554,2025,57.3,2024,,8,,پاکستان; West Pakistan; PAK
 22,RU,Russia,Internet users,135426285,143513328,2025,94.4,2024,,,,Russian Federation; Rossiya; Россия; RF; Soviet Union; USSR; RUS
 23,JP,Japan,Internet users,105529792,123366734,2025,85.5,2024,,,,Nippon; Nihon; 日本; JPN
-24,NG,Nigeria,Internet users,97888522,237527782,2025,41.2,2024,,9,,NGA
+24,NG,Nigeria,Internet users,97888522,237527782,2025,41.2,2024,,10,,NGA
 25,BD,Bangladesh,Internet users,93854951,175686899,2025,53.4,2024,,,,Bangla Desh; বাংলাদেশ; East Pakistan; East Bengal; BGD
 26,EG,Egypt,Internet users,88358320,118365995,2025,74.6,2024,,,,"Misr; Arab Republic of Egypt; مصر; Masr; EGY; Egypt, Arab Rep."
 27,VN,Vietnam,Internet users,85495160,101598527,2025,84.2,2024,,,,Viet Nam; Việt Nam; VNM
@@ -30,7 +30,7 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 29,PH,Philippines,Internet users,78554424,116786962,2025,67.3,2024,,,,The Philippines; Pilipinas; Republic of the Philippines; PHL
 30,TR,Turkey,Internet users,77093385,85878556,2025,89.8,2025,,,,Türkiye; Turkiye; Republic of Türkiye; Ottoman Empire; TUR
 31,TH,Thailand,Internet users,65078955,71619863,2025,90.9,2024,,,,Siam; ประเทศไทย; Prathet Thai; THA
-32,FR,France,Internet users,61370754,69323076,2025,88.6,2024,French Polynesia; New Caledonia; Saint Martin,12,,République française; FRA; MAF; NCL; PYF; Saint Martin; St. Martin (French part); New Caledonia; French Polynesia
+32,FR,France,Internet users,61370754,69323076,2025,88.6,2024,French Polynesia; New Caledonia; Saint Martin,13,,République française; FRA; MAF; NCL; PYF; Saint Martin; St. Martin (French part); New Caledonia; French Polynesia
 33,IT,Italy,Internet users,52564972,58915656,2025,89.2,2024,,,,Italia; ITA
 34,ZA,South Africa,Internet users,50734443,64747319,2025,78.4,2024,,,,RSA; S. Africa; Suid-Afrika; Mzansi; Republic of South Africa; ZAF
 35,KR,South Korea,Internet users,50596933,51684564,2025,97.9,2024,,,,"Korea; Republic of Korea; ROK; S. Korea; Hanguk; 한국; 대한민국; Daehan Minguk; KOR; Korea, Rep."

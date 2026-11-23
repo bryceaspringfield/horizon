@@ -108,9 +108,9 @@ REGIONS = {'GE': ['Abkhazia', 'South Ossetia'],
 EXTRA = {'TW': {'name': 'Taiwan', 'population': 23365274, 'population_year': 2025, 'internet_share_pct': 90.3, 'internet_year': 2025}}
 # Countries whose states or provinces levy or shape taxes of their own, in the order their subnational rules are added.
 # Countries whose regional taxes are built, beside every country with regional choices or merged territories. The order of that
-# work (Bryce, 2026-11-23): the United States, Norway, China, then by Internet users, most first.
+# work (Bryce, 2026-11-23): the United States, Norway, China, Spain, then by Internet users, most first.
 SUBNATIONAL = ['US', 'NO', 'CN', 'IN', 'BR', 'ID', 'PK', 'MX', 'NG', 'DE', 'CA', 'AR', 'ES', 'AU', 'CH', 'GB']
-SUBNATIONAL_FIRST = ['US', 'NO', 'CN']
+SUBNATIONAL_FIRST = ['US', 'NO', 'CN', 'ES']
 
 
 # More search names (Bryce, 2026-11-23): abbreviations (one may name several countries: ROC, SAR), names in the country's own
