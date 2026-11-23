@@ -5,7 +5,8 @@
      help page "Plan in other countries", updated Nov 18, 2026);
   3. Mexico and Argentina (Bryce's personal interest);
   4. every other country by Internet users, most first.
-Within each of these groups (each ProjectionLab tier apart), countries run by Internet users, most first.
+Within each of these groups (each ProjectionLab tier apart), countries run by Internet users, most first. Norway alone leads its group (the presets)
+ahead of that order (TIER_HEAD).
 Taiwan, Hong Kong, and Macao are countries of their own here, and each is also a choice among China's regions, opening the same
 settings (ALSO_UNDER); so are Artsakh under Azerbaijan and Transnistria under
 Moldova. Breakaway and autonomous regions with no row of their own are regional choices too (REGIONS). A dependency is part of its host country (MERGE: the US Virgin Islands in the United States), where it becomes a
@@ -73,6 +74,10 @@ EXTRA = {'TW': {'name': 'Taiwan', 'population': 23365274, 'population_year': 202
 SUBNATIONAL = ['US', 'CN', 'IN', 'BR', 'ID', 'PK', 'MX', 'NG', 'DE', 'CA', 'AR', 'ES', 'AU', 'CH']
 
 
+# Countries placed at the head of their group, ahead of the group's order by Internet users (Bryce, 2026-11-23: Norway leads the
+# presets, for a friend in Norway to try Horizon).
+TIER_HEAD = {'NO': 'placed first among the presets (Bryce)'}
+
 def fetch(path, name):
     f = f'{H}/input/{name}.json'
     if '--offline' not in sys.argv:
@@ -132,7 +137,9 @@ def main():
     # the tiers in order (the United States, ProjectionLab's three, Bryce's two, the rest); within a tier, Internet users, most first
     tiers = ['the United States, first', 'ProjectionLab: full rules', 'ProjectionLab: tax estimates', 'ProjectionLab: preset', "Bryce's personal interest"]
     first = {iso: (next(i for i, t in enumerate(tiers) if why.startswith(t)), why) for iso, why in PL + PRIORITY}
-    rows.sort(key=lambda r: (first.get(r['iso2'], (len(tiers),))[0], -(r['internet_users'] or 0), r['country']))
+    rows.sort(key=lambda r: (first.get(r['iso2'], (len(tiers),))[0], r['iso2'] not in TIER_HEAD, -(r['internet_users'] or 0), r['country']))
+    for r in rows:
+        if r['iso2'] in TIER_HEAD: r['note'] = '; '.join(x for x in (r.get('note', ''), TIER_HEAD[r['iso2']]) if x)
     for i, r in enumerate(rows):
         r['order'] = i + 1
         r['basis'] = first[r['iso2']][1] if r['iso2'] in first else ('Internet users' if r['internet_users'] != '' else 'no Internet-use figure: last')

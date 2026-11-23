@@ -5,15 +5,15 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 4,AU,Australia,ProjectionLab: full rules,26546120,27614411,2025,96.1,2024,,13,
 5,ES,Spain,ProjectionLab: tax estimates,47261227,49355143,2025,95.8,2024,,12,
 6,NL,Netherlands,ProjectionLab: tax estimates,17758397,18396604,2025,96.8,2024,Aruba; Curacao; Sint Maarten (Dutch part),,
-7,CN,China,ProjectionLab: preset,1288431859,1406585000,2025,91.6,2025,,2,"Regional choices with settings of their own: Hong Kong, Macao, Taiwan"
-8,BR,Brazil,ProjectionLab: preset,179748746,212812405,2025,84.5,2024,,4,
-9,DE,Germany,ProjectionLab: preset,78064314,83491249,2025,93.5,2024,,9,
-10,PS,Occupied Palestine,ProjectionLab: preset (Israel),13616742,15536396,2025,87.6,2023,West Bank and Gaza; Israel,,
-11,BE,Belgium,ProjectionLab: preset,11437335,11941781,2025,95.8,2024,,,
-12,CH,Switzerland,ProjectionLab: preset,8848853,9092436,2025,97.3,2025,,14,
-13,HK,Hong Kong,ProjectionLab: preset,7180599,7498900,2025,95.8,2024,"Hong Kong SAR, China",,"Also a regional choice under China, opening the same settings"
-14,SG,Singapore,ProjectionLab: preset,5767578,6111175,2025,94.4,2024,,,
-15,NO,Norway,ProjectionLab: preset,5554761,5610870,2025,99.0,2024,,,
+7,NO,Norway,ProjectionLab: preset,5554761,5610870,2025,99.0,2024,,,placed first among the presets (Bryce)
+8,CN,China,ProjectionLab: preset,1288431859,1406585000,2025,91.6,2025,,2,"Regional choices with settings of their own: Hong Kong, Macao, Taiwan"
+9,BR,Brazil,ProjectionLab: preset,179748746,212812405,2025,84.5,2024,,4,
+10,DE,Germany,ProjectionLab: preset,78064314,83491249,2025,93.5,2024,,9,
+11,PS,Occupied Palestine,ProjectionLab: preset (Israel),13616742,15536396,2025,87.6,2023,West Bank and Gaza; Israel,,
+12,BE,Belgium,ProjectionLab: preset,11437335,11941781,2025,95.8,2024,,,
+13,CH,Switzerland,ProjectionLab: preset,8848853,9092436,2025,97.3,2025,,14,
+14,HK,Hong Kong,ProjectionLab: preset,7180599,7498900,2025,95.8,2024,"Hong Kong SAR, China",,"Also a regional choice under China, opening the same settings"
+15,SG,Singapore,ProjectionLab: preset,5767578,6111175,2025,94.4,2024,,,
 16,NZ,New Zealand,ProjectionLab: preset,4979622,5324700,2025,93.5,2024,,,
 17,MX,Mexico,Bryce's personal interest,109677348,131946900,2025,83.1,2024,,7,
 18,AR,Argentina,Bryce's personal interest,41113624,45851378,2025,89.7,2024,,11,
