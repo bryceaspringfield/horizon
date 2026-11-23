@@ -5,7 +5,10 @@
      help page "Plan in other countries", updated Nov 18, 2026);
   3. Mexico and Argentina (Bryce's personal interest);
   4. every other country by Internet users, most first.
-A dependency is part of its host country (MERGE: the US Virgin Islands in the United States, Hong Kong in China), where it becomes a
+Within each of these groups (each ProjectionLab tier apart), countries run by Internet users, most first.
+Taiwan, Hong Kong, and Macao are countries of their own here, and each is also a choice among China's regions, opening the same
+settings (ALSO_UNDER); so are Artsakh under Azerbaijan and Transnistria under
+Moldova. Breakaway and autonomous regions with no row of their own are regional choices too (REGIONS). A dependency is part of its host country (MERGE: the US Virgin Islands in the United States), where it becomes a
 choice among the country's states, provinces, and territories; its people and Internet users count in the host's figures. Israel and
 the West Bank and Gaza are one row, "Occupied Palestine" (Bryce's wording), in Israel's ProjectionLab tier.
 
@@ -32,17 +35,36 @@ PL = [('US', 'the United States, first'),
       ('ES', 'ProjectionLab: tax estimates'), ('NL', 'ProjectionLab: tax estimates'),
       ('DE', 'ProjectionLab: preset'), ('CH', 'ProjectionLab: preset'), ('NO', 'ProjectionLab: preset'), ('BE', 'ProjectionLab: preset'),
       ('NZ', 'ProjectionLab: preset'), ('PS', 'ProjectionLab: preset (Israel)'), ('SG', 'ProjectionLab: preset'), ('BR', 'ProjectionLab: preset'),
-      ('CN', 'ProjectionLab: preset (China and Hong Kong)')]
+      ('CN', 'ProjectionLab: preset'), ('HK', 'ProjectionLab: preset')]
 PRIORITY = [('MX', "Bryce's personal interest"), ('AR', "Bryce's personal interest")]
 # A dependency or special region, and the country it is part of here. The World Bank lists each as an economy of its own.
 MERGE = {'AS': 'US', 'GU': 'US', 'MP': 'US', 'PR': 'US', 'VI': 'US',
-         'HK': 'CN', 'MO': 'CN',
          'BM': 'GB', 'VG': 'GB', 'KY': 'GB', 'GI': 'GB', 'TC': 'GB', 'IM': 'GB', 'JG': 'GB',
          'AW': 'NL', 'CW': 'NL', 'SX': 'NL',
          'PF': 'FR', 'NC': 'FR', 'MF': 'FR',
          'GL': 'DK', 'FO': 'DK',
          'IL': 'PS'}
-RENAME = {'PS': 'Occupied Palestine'}
+RENAME = {'PS': 'Occupied Palestine', 'HK': 'Hong Kong', 'MO': 'Macao'}
+# Countries of their own here which are also offered among another country's regions, opening the same settings (Bryce, 2026-11-23).
+# Western Sahara is no choice under Morocco, and no Moroccan-held part of it is offered anywhere (Bryce, 2026-11-23): its own row
+# offers only the places the Sahrawi government administers (REGIONS).
+# Kosovo is an independent country here, with no place among Serbia's regions (Bryce, 2026-11-23).
+ALSO_UNDER = {'TW': 'CN', 'HK': 'CN', 'MO': 'CN', 'X-ART': 'AZ', 'X-TRN': 'MD'}
+# Countries here which the World Bank does not list and for which no population or Internet figure is held: they come last until a
+# source is added. Artsakh's government dissolved on 2024-01-01 after its people left in September 2023.
+NO_FIGURES = {'EH': 'Western Sahara', 'X-ART': 'Artsakh', 'X-TRN': 'Transnistria'}
+# Further regional choices under a recognized country (Bryce, 2026-11-23): breakaway and autonomous regions, and for Cyprus its
+# first-level districts on both sides of the line, in place of a choice between the Republic of Cyprus and Northern Cyprus.
+# Western Sahara: the seven municipalities of the zone the Sahrawi Arab Democratic Republic holds (the Free Zone, east of the berm), each
+# also the seat of one of its seven military regions; the list is from Wikipedia's Free Zone article and wants an official SADR source.
+REGIONS = {'GE': ['Abkhazia', 'South Ossetia'], 'SO': ['Somaliland'],
+           'EH': ['Tifariti', 'Bir Lehlou', 'Agounit', 'Dougaj', 'Meharrize', 'Mijek', 'Zug (the seven municipalities the Sahrawi government administers; no Moroccan-held area is offered)'],
+           'CY': ['Nicosia', 'Limassol', 'Larnaca', 'Paphos', 'Famagusta (these five de facto the Republic of Cyprus)',
+                  'Lefkoşa', 'Gazimağusa', 'Girne', 'Güzelyurt', 'İskele', 'Lefke (these six de facto Northern Cyprus)']}
+# The World Bank publishes no figures for Taiwan. Population: Ministry of the Interior, household registration, end of April 2025
+# (https://www.moi.gov.tw/english/News_Content.aspx?n=7627&s=327851). Internet use: Ministry of Digital Affairs, 2025 Digital Access
+# Survey, individuals with Internet access (https://moda.gov.tw/en/press/press-releases/18674).
+EXTRA = {'TW': {'name': 'Taiwan', 'population': 23365274, 'population_year': 2025, 'internet_share_pct': 90.3, 'internet_year': 2025}}
 # Countries whose states or provinces levy or shape taxes of their own, in the order their subnational rules are added.
 SUBNATIONAL = ['US', 'CN', 'IN', 'BR', 'ID', 'PK', 'MX', 'NG', 'DE', 'CA', 'AR', 'ES', 'AU', 'CH']
 
@@ -74,7 +96,11 @@ def main():
     countries = {c['iso2Code']: c for c in fetch('country', 'worldbank_countries') if c['region']['value'] != 'Aggregates'}
     pop = newest(fetch('country/all/indicator/SP.POP.TOTL?date=2015:2026', 'worldbank_SP.POP.TOTL'))
     net = newest(fetch('country/all/indicator/IT.NET.USER.ZS?date=2010:2026', 'worldbank_IT.NET.USER.ZS'))
-    unknown = [k for k in list(MERGE) + list(MERGE.values()) + [x[0] for x in PL + PRIORITY] + SUBNATIONAL if k not in countries]
+    for iso, x in EXTRA.items():
+        countries[iso] = {'name': x['name']}; pop[iso] = (x['population'], x['population_year']); net[iso] = (x['internet_share_pct'], x['internet_year'])
+    for iso, name in NO_FIGURES.items():
+        countries[iso] = {'name': name}
+    unknown = [k for k in list(MERGE) + list(MERGE.values()) + [x[0] for x in PL + PRIORITY] + SUBNATIONAL + list(ALSO_UNDER) + list(ALSO_UNDER.values()) + list(REGIONS) if k not in countries]
     assert not unknown, unknown
     groups = {}
     for iso in countries:
@@ -91,17 +117,26 @@ def main():
                      'population': int(p) if p else '', 'population_year': pop[host][1] if host in pop else '',
                      'internet_share_pct': round(100 * users / covered, 1) if covered else '', 'internet_year': net[host][1] if host in net else '',
                      'internet_users': int(users) if covered else '',
-                     'subnational_order': SUBNATIONAL.index(host) + 1 if host in SUBNATIONAL else ''})
-    first = {iso: (i, why) for i, (iso, why) in enumerate(PL + PRIORITY)}
-    rows.sort(key=lambda r: (first.get(r['iso2'], (len(first),))[0], -(r['internet_users'] or 0), r['country']))
+                     'subnational_order': SUBNATIONAL.index(host) + 1 if host in SUBNATIONAL else '',
+                     'note': '; '.join(x for x in (
+                         'Also a regional choice under ' + countries[ALSO_UNDER[host]]['name'] + ', opening the same settings' if host in ALSO_UNDER else '',
+                         'Regional choices with settings of their own: ' + ', '.join(sorted(RENAME.get(k, countries[k]['name']) for k, v in ALSO_UNDER.items() if v == host))
+                         if host in ALSO_UNDER.values() else '',
+                         'Regional choices: ' + ', '.join(REGIONS[host]) if host in REGIONS else '',
+                         "figures from Taiwan's ministries (the World Bank has none)" if host in EXTRA else '',
+                         'no population or Internet figure held yet' if host in NO_FIGURES else '') if x)})
+    # the tiers in order (the United States, ProjectionLab's three, Bryce's two, the rest); within a tier, Internet users, most first
+    tiers = ['the United States, first', 'ProjectionLab: full rules', 'ProjectionLab: tax estimates', 'ProjectionLab: preset', "Bryce's personal interest"]
+    first = {iso: (next(i for i, t in enumerate(tiers) if why.startswith(t)), why) for iso, why in PL + PRIORITY}
+    rows.sort(key=lambda r: (first.get(r['iso2'], (len(tiers),))[0], -(r['internet_users'] or 0), r['country']))
     for i, r in enumerate(rows):
         r['order'] = i + 1
         r['basis'] = first[r['iso2']][1] if r['iso2'] in first else ('Internet users' if r['internet_users'] != '' else 'no Internet-use figure: last')
     os.makedirs(f'{H}/output', exist_ok=True)
-    cols = ['order', 'iso2', 'country', 'basis', 'internet_users', 'population', 'population_year', 'internet_share_pct', 'internet_year', 'includes', 'subnational_order']
+    cols = ['order', 'iso2', 'country', 'basis', 'internet_users', 'population', 'population_year', 'internet_share_pct', 'internet_year', 'includes', 'subnational_order', 'note']
     with open(f'{H}/output/country_order.csv', 'w', newline='') as f:
         w = csv.DictWriter(f, cols); w.writeheader(); w.writerows({k: r[k] for k in cols} for r in rows)
-    print(len(rows), 'countries (of', len(countries), 'World Bank economies);', sum(1 for r in rows if r['internet_users'] == ''), 'without an Internet-use figure')
+    print(len(rows), 'countries (from', len(countries) - len(EXTRA) - len(NO_FIGURES), 'World Bank economies and', len(EXTRA) + len(NO_FIGURES), 'added);', sum(1 for r in rows if r['internet_users'] == ''), 'without an Internet-use figure')
     for r in rows[:24]:
         print(r['order'], r['iso2'], r['country'], '|', r['basis'], '|', f"{r['internet_users']:,}" if r['internet_users'] != '' else '', '|', r['internet_share_pct'], '|', r['includes'][:70])
 

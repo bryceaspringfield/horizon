@@ -13,11 +13,14 @@ import time
 rows = list(csv.DictReader(open('/home/baspring/projects/independent/horizon/20_tax_rules/output/country_order.csv')))
 ok = rows
 by_users = {r['iso2']: i + 1 for i, r in enumerate(sorted([r for r in ok if r['internet_users'] != ''], key=lambda r: -int(r['internet_users'])))}
+# a flag for a two-letter code flagcdn.com holds; a blank of the same width otherwise (Artsakh, Transnistria)
+flag = lambda c: (f"<img class=f loading=lazy alt='' width=20 height=15 src='https://flagcdn.com/20x15/{c.lower()}.png' srcset='https://flagcdn.com/40x30/{c.lower()}.png 2x'>"
+                  if len(c) == 2 else "<span class=f style='display:inline-block;width:20px;height:15px'></span>")
 n = lambda v: f'{int(v):,}' if v != '' else ''
 tr = ''.join(
-    f"<tr><td class=r>{r['order']}</td><td class=r data-v='{by_users.get(r['iso2'], 9999)}'>{by_users.get(r['iso2'], '')}</td><td><img class=f loading=lazy alt='' width=20 height=15 src='https://flagcdn.com/20x15/{r['iso2'].lower()}.png' srcset='https://flagcdn.com/40x30/{r['iso2'].lower()}.png 2x'>{html.escape(r['country'])}</td><td>{r['iso2']}</td>"
+    f"<tr><td class=r>{r['order']}</td><td class=r data-v='{by_users.get(r['iso2'], 9999)}'>{by_users.get(r['iso2'], '')}</td><td>{flag(r['iso2'])}{html.escape(r['country'])}</td><td>{r['iso2'] if len(r['iso2']) == 2 else ''}</td>"
     f"<td>{html.escape(r['basis'])}</td><td class=r data-v='{r['internet_users'] or 0}'>{n(r['internet_users'])}</td><td class=r data-v='{r['population'] or 0}'>{n(r['population'])}</td>"
-    f"<td class=r>{r['population_year']}</td><td class=r data-v='{r['internet_share_pct'] or 0}'>{r['internet_share_pct']}{'%' if r['internet_share_pct'] != '' else ''}</td><td class=r>{r['internet_year']}</td><td class=r data-v='{r['subnational_order'] or 9999}'>{r['subnational_order']}</td><td class=w>{html.escape(r['includes'])}</td></tr>"
+    f"<td class=r>{r['population_year']}</td><td class=r data-v='{r['internet_share_pct'] or 0}'>{r['internet_share_pct']}{'%' if r['internet_share_pct'] != '' else ''}</td><td class=r>{r['internet_year']}</td><td class=r data-v='{r['subnational_order'] or 9999}'>{r['subnational_order']}</td><td class=w>{html.escape('. '.join(x for x in (r['includes'], r['note']) if x))}</td></tr>"
     for r in ok)
 page = '''<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Horizon: country order for tax systems</title>
@@ -37,7 +40,7 @@ th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;c
 <p>The United States comes first, then the countries ProjectionLab supports (in the tiers of its help page "Plan in other countries", updated November 18, 2026), then Mexico and Argentina, then every other country by Internet users, most first. A dependency is counted in its host country, where it becomes a choice among the country's states, provinces, and territories.</p>
 <p>Internet users = total population (World Bank indicator SP.POP.TOTL) times individuals using the Internet as a percentage of the population (IT.NET.USER.ZS), each at its newest year with a value. __N__ countries and territories; those with no Internet-use figure come last. Built __DATE__. The buttons switch between the adjusted order and Internet users alone, and a click on a column sorts by the column.</p>
 <div class="bar"><input id="q" type="search" placeholder="Filter by country"><span class="seg"><button id="adj" class="on">Adjusted order</button><button id="users">By Internet users alone</button></span></div>
-<div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r>Year</th><th class=r>Share online</th><th class=r>Year</th><th class=r title="The order in which the country's state and province taxes are added">States and provinces</th><th>Counted in the country</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+<div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r>Year</th><th class=r>Share online</th><th class=r>Year</th><th class=r title="The order in which the country's state and province taxes are added">States and provinces</th><th>Counted in the country, and notes</th></tr></thead><tbody>__ROWS__</tbody></table></div>
 <h2>States and provinces</h2>
 <p>Within a country, state and province taxes are added in the order of the "States and provinces" column: the United States first, then the large federations by Internet users.</p>
 </main><script>
