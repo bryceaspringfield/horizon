@@ -753,7 +753,11 @@ export function MilestonesPage() {
 
 const STEP_LABEL: Record<WithdrawalStep, string> = { cash: 'Cash', taxable: 'Taxable', traditional: 'Traditional', roth: 'Roth', hsa: 'HSA' };
 
-export function StrategyPage() {
+/** The strategy, whole or one part of it (ProjectionLab's Optimize pages): tax strategy, flexible spending, Roth
+ * conversions, drawdown, or gain harvesting. */
+export type StrategyFocus = 'tax' | 'flex' | 'roth' | 'drawdown' | 'harvest';
+export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
+  const show = (...f: StrategyFocus[]) => !focus || f.includes(focus);
   const plan = useActivePlan();
   const update = useUpdate();
   const s = plan.strategy;
@@ -769,7 +773,7 @@ export function StrategyPage() {
   });
   return (
     <>
-      <Card title="Saving while working">
+      {show('tax') && <Card title="Saving while working">
         <div className="grid">
           <Num label="Cash to keep on hand (today's $)" value={s.cashTarget} onChange={(v) => update((p) => { p.strategy.cashTarget = v; })} />
           <Num label="Traditional IRA a year" value={s.iraContribution} onChange={(v) => update((p) => { p.strategy.iraContribution = v; })} />
@@ -780,9 +784,9 @@ export function StrategyPage() {
           <Num label="Mega backdoor Roth a year" value={s.megaBackdoor ?? 0} onChange={(v) => update((p) => { p.strategy.megaBackdoor = v; })} />
           <Select label="Leftover pay goes to" value={s.surplusTo ?? 'invest'} options={[['invest', 'Investing (taxable account)'], ['debt', 'Paying debts down first']]} onChange={(v) => update((p) => { p.strategy.surplusTo = v; })} />
         </div>
-      </Card>
-      <Card title="Withdrawals in retirement">
-        <ol className="order">
+      </Card>}
+      {show('drawdown', 'tax', 'flex', 'harvest') && <Card title={focus === 'flex' ? 'Flexible spending' : focus === 'harvest' ? 'Gain harvesting' : 'Withdrawals in retirement'}>
+        {show('drawdown') && <><ol className="order">
           {s.withdrawalOrder.map((step, i) => (
             <li key={step}>
               {STEP_LABEL[step]}
@@ -807,30 +811,30 @@ export function StrategyPage() {
               </span>
             </li>
           ))}
-        </ol>}
+        </ol>}</>}
         <div className="grid">
-          <Select label="How to draw" value={s.withdrawalMethod ?? 'order'} options={[['order', 'In the order above'], ['proportional', 'In proportion to balances']]}
-            onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />
-          <Select label="Shield withdrawals under" value={s.shield ?? 'none'} options={[['none', 'No limit'], ['bracket12', 'The 12% bracket'], ['bracket22', 'The 22% bracket'], ['bracket24', 'The 24% bracket'], ['irmaa', 'The first IRMAA tier'], ['aca', 'The ACA credit limit (400% FPL)']]}
-            onChange={(v) => update((p) => { p.strategy.shield = v; })} />
-          <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />
-          <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)'], ['textbook', 'Textbook rule (a share of the first year, then with inflation)']]}
-            onChange={(v) => update((p) => { p.strategy.spending = v; })} />
+          {show('drawdown') && <Select label="How to draw" value={s.withdrawalMethod ?? 'order'} options={[['order', 'In the order above'], ['proportional', 'In proportion to balances']]}
+            onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />}
+          {show('tax', 'drawdown') && <Select label="Shield withdrawals under" value={s.shield ?? 'none'} options={[['none', 'No limit'], ['bracket12', 'The 12% bracket'], ['bracket22', 'The 22% bracket'], ['bracket24', 'The 24% bracket'], ['irmaa', 'The first IRMAA tier'], ['aca', 'The ACA credit limit (400% FPL)']]}
+            onChange={(v) => update((p) => { p.strategy.shield = v; })} />}
+          {show('harvest', 'tax') && <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />}
+          {show('drawdown', 'flex') && <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)'], ['textbook', 'Textbook rule (a share of the first year, then with inflation)']]}
+            onChange={(v) => update((p) => { p.strategy.spending = v; })} />}
           {(s.spending === 'fixedPercent' || s.spending === 'guardrails' || s.spending === 'textbook') && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
-          <Num label="Safe withdrawal rate (FI test)" percent value={s.safeWithdrawalRate} onChange={(v) => update((p) => { p.strategy.safeWithdrawalRate = v; })} />
-          <Check label="Count real assets (home equity) toward FI and net worth milestones" value={!!s.fiCountsRealAssets} onChange={(v) => update((p) => { p.strategy.fiCountsRealAssets = v; })} />
-          <Check label="Flexible spending: cut discretionary spending in bad stretches" value={!!s.flex?.enabled} onChange={(v) => update((p) => { p.strategy.flex = { drop: 0.2, cut: 0.5, rise: 0.25, boost: 0, ...p.strategy.flex, enabled: v }; })} />
-          {s.flex?.enabled && <>
+          {show('drawdown') && <Num label="Safe withdrawal rate (FI test)" percent value={s.safeWithdrawalRate} onChange={(v) => update((p) => { p.strategy.safeWithdrawalRate = v; })} />}
+          {show('drawdown') && <Check label="Count real assets (home equity) toward FI and net worth milestones" value={!!s.fiCountsRealAssets} onChange={(v) => update((p) => { p.strategy.fiCountsRealAssets = v; })} />}
+          {show('flex') && <Check label="Flexible spending: cut discretionary spending in bad stretches" value={!!s.flex?.enabled} onChange={(v) => update((p) => { p.strategy.flex = { drop: 0.2, cut: 0.5, rise: 0.25, boost: 0, ...p.strategy.flex, enabled: v }; })} />}
+          {show('flex') && s.flex?.enabled && <>
             <Num label="Cut when the portfolio is under its high by" percent value={s.flex.drop} onChange={(v) => update((p) => { p.strategy.flex!.drop = v; })} />
             <Num label="Share of discretionary spending cut" percent value={s.flex.cut} onChange={(v) => update((p) => { p.strategy.flex!.cut = Math.max(0, Math.min(1, v)); })} />
             <Num label="Raise when the portfolio is above its start by" percent value={s.flex.rise ?? 0.25} onChange={(v) => update((p) => { p.strategy.flex!.rise = v; })} />
             <Num label="Raise of discretionary spending" percent value={s.flex.boost ?? 0} onChange={(v) => update((p) => { p.strategy.flex!.boost = v; })} />
           </>}
-          <Check label="Give to charity from IRAs from 71 (qualified charitable distributions)" value={!!s.qcd} onChange={(v) => update((p) => { p.strategy.qcd = v; })} />
+          {show('tax') && <Check label="Give to charity from IRAs from 71 (qualified charitable distributions)" value={!!s.qcd} onChange={(v) => update((p) => { p.strategy.qcd = v; })} />}
         </div>
-      </Card>
+      </Card>}
       <TransfersCard />
-      <Card title="Asset allocation over time (glide path)">
+      {show('drawdown') && <Card title="Asset allocation over time (glide path)">
         <div className="grid">
           <Check label="Shift from stocks to bonds with age" value={!!s.glidePath?.enabled} onChange={(v) => update((p) => { p.strategy.glidePath = { startAge: 45, endAge: 70, endStocks: 0.5, ...p.strategy.glidePath, enabled: v }; })} />
           {s.glidePath?.enabled && <>
@@ -839,8 +843,8 @@ export function StrategyPage() {
             <Num label="Stocks at the end" percent value={s.glidePath.endStocks} onChange={(v) => update((p) => { p.strategy.glidePath!.endStocks = v; })} />
           </>}
         </div>
-      </Card>
-      <Card title="Roth conversions">
+      </Card>}
+      {show('roth', 'tax') && <Card title="Roth conversions">
         <div className="grid">
           <Select label="Fill up to the bracket" value={String(s.rothConversionBracket)} options={[['0', 'No conversions'], ['0.1', '10%'], ['0.12', '12%'], ['0.22', '22%'], ['0.24', '24%'], ['0.32', '32%']]}
             onChange={(v) => update((p) => { p.strategy.rothConversionBracket = Number(v); })} />
@@ -862,7 +866,7 @@ export function StrategyPage() {
           <Check label="72(t) SEPP withdrawals before 59½ (no penalty)" value={!!s.sepp?.enabled} onChange={(v) => update((p) => { p.strategy.sepp = { startYear: p.startYear + 10, ...p.strategy.sepp, enabled: v }; })} />
           {s.sepp?.enabled && <Num label="SEPP from year" value={s.sepp.startYear} onChange={(v) => update((p) => { p.strategy.sepp!.startYear = v; })} />}
         </div>
-      </Card>
+      </Card>}
     </>
   );
 }
@@ -954,6 +958,12 @@ export function AssumptionsPage() {
     <>
     <CurrencyCard />
     <ExpatCard />
+    <Card title="Metrics">
+        <div className="grid">
+          <Select label="Liquid net worth subtracts" value={a.metrics?.liquidDebts ?? 'none'} options={[['none', 'No debts'], ['unsecured', 'Unsecured debts'], ['all', 'All debts, home loans included']]} onChange={(v) => update((p) => { p.assumptions.metrics = { ...p.assumptions.metrics, liquidDebts: v }; })} />
+          <Num label="Share of the estate left to charity" percent value={a.metrics?.charityShare ?? 0} onChange={(v) => update((p) => { p.assumptions.metrics = { ...p.assumptions.metrics, charityShare: Math.max(0, Math.min(1, v)) || undefined }; })} />
+        </div>
+      </Card>
     <Card title="By horizon">
         <div className="horizons">
           <div className="hrow head"><span>Plan years</span><span>Inflation</span><span>Stocks</span><span>Bonds</span><span>Cash</span><span /></div>

@@ -1012,7 +1012,9 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
 
     const balances = { ...state.balance };
     const netWorth = Object.values(balances).reduce((t, v) => t + v, 0);
-    const liquidNW = liquid(state, accounts, y, (id) => ages[id]);
+    const debtRule = a.metrics?.liquidDebts ?? 'none';
+    const liquidNW = liquid(state, accounts, y, (id) => ages[id])
+      + (debtRule === 'none' ? 0 : accounts.filter((x) => x.kind === 'debt' && (debtRule === 'all' || !x.securedBy)).reduce((t, x) => t + Math.min(0, state.balance[x.id]), 0));
     const realExpenses = totalExpenses / index;
     // Real assets and the debts they secure.
     let realNet = 0;

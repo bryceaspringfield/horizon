@@ -70,3 +70,15 @@ describe('an expense paid by someone else', () => {
     expect(ys[2].expenses.food).toBeGreaterThan(5000);
   });
 });
+
+import { netLegacy } from '../estate';
+describe('metrics', () => {
+  it('leaves a share of the estate to charity before heirs', () => {
+    const plan = examplePlan(2026);
+    const base = netLegacy(plan, simulate(plan));
+    plan.assumptions.metrics = { charityShare: 0.28 };
+    const withGift = netLegacy(plan, simulate(plan));
+    expect(withGift.charity).toBeCloseTo(Math.max(0, base.grossEstate) * 0.28, -2);
+    expect(withGift.netLegacy).toBeLessThan(base.netLegacy);
+  });
+});

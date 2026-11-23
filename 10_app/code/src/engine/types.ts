@@ -383,6 +383,9 @@ export interface LocalTax {
 }
 
 export interface Assumptions {
+  /** How metrics are figured (ProjectionLab's Metrics settings): which debts liquid net worth subtracts (none, the
+   * unsecured ones, or all, real-asset loans included), and the share of the estate left to charity in net legacy. */
+  metrics?: { liquidDebts?: 'none' | 'unsecured' | 'all'; charityShare?: number };
   /** Plan everyone to one age, or to one calendar year, except people who keep their own (Person.ownPlanTo). */
   planTo?: { mode: 'person' | 'age' | 'year'; age?: number; year?: number };
   /** One retirement age for everyone, except people who keep their own (Person.ownRetirementAge). */

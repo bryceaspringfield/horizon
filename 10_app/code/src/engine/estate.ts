@@ -13,6 +13,8 @@ export interface Legacy {
   heirsIncomeTax: number;
   stateEstateTax: number;
   stateInheritanceTax: number;
+  /** Left to charity (Metrics: charity share). */
+  charity: number;
   /** The state of residence at the last death. */
   state: string;
   netLegacy: number;
@@ -29,17 +31,19 @@ export function netLegacy(plan: Plan, proj: Projection): Legacy {
   const byKind: Record<string, number> = {};
   for (const a of plan.accounts) byKind[a.kind] = (byKind[a.kind] ?? 0) + (last.balances[a.id] ?? 0);
   const gross = last.netWorth;
+  // a share left to charity comes off the top: deductible from the estate tax and not part of what heirs receive
+  const charity = Math.max(0, gross) * Math.min(1, plan.assumptions.metrics?.charityShare ?? 0);
   const ri = k / Math.pow(1 + plan.assumptions.inflation, rulesFor(last.year).year - plan.startYear);
-  const tax = estateTax(gross, last.year, ri, 1 + (plan.people.length >= 2 && plan.assumptions.filingStatus === 'mfj' ? 1 : 0));
+  const tax = estateTax(gross - charity, last.year, ri, 1 + (plan.people.length >= 2 && plan.assumptions.filingStatus === 'mfj' ? 1 : 0));
   const heirs = Math.max(0, (byKind.traditional ?? 0) + (byKind.hsa ?? 0)) * rate;
   // The state of residence at the last death: the last move at or before the final year.
   let state = plan.assumptions.state, at = -Infinity;
   for (const e of plan.events ?? []) if (e.kind === 'move' && e.year <= last.year && e.year > at) { state = e.state; at = e.year; }
   const couple = plan.people.length >= 2 && plan.assumptions.filingStatus === 'mfj';
   const since2026 = k * Math.pow(1 + plan.assumptions.inflation, plan.startYear - 2026);
-  const stEstate = stateEstateTax(state, gross, since2026, couple);
-  const stInherit = stateInheritanceTax(state, Math.max(0, gross - tax - stEstate), plan.estate?.heirs ?? 'children', plan.estate?.heirCount ?? 2);
-  const net = gross - tax - stEstate - stInherit - heirs;
+  const stEstate = stateEstateTax(state, gross - charity, since2026, couple);
+  const stInherit = stateInheritanceTax(state, Math.max(0, gross - charity - tax - stEstate), plan.estate?.heirs ?? 'children', plan.estate?.heirCount ?? 2);
+  const net = gross - charity - tax - stEstate - stInherit - heirs;
   return { year: last.year, grossEstate: gross, estateTax: tax, heirsIncomeTax: heirs, stateEstateTax: stEstate,
-    stateInheritanceTax: stInherit, state, netLegacy: net, netLegacyReal: net / k, byKind };
+    stateInheritanceTax: stInherit, state, charity, netLegacy: net, netLegacyReal: net / k, byKind };
 }

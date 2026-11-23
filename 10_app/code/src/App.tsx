@@ -177,6 +177,11 @@ const PAGES = {
   events: ['Life events', EventsPage],
   milestones: ['Milestones', MilestonesPage],
   strategy: ['Strategy', StrategyPage],
+  taxstrategy: ['Tax strategy', () => <StrategyPage focus="tax" />],
+  flexspend: ['Flexible spending', () => <StrategyPage focus="flex" />],
+  rothconv: ['Roth conversions', () => <StrategyPage focus="roth" />],
+  drawdown: ['Drawdown', () => <StrategyPage focus="drawdown" />],
+  harvest: ['Gain harvesting', () => <StrategyPage focus="harvest" />],
   taxhealth: ['Taxes and health', TaxHealthPage],
   assumptions: ['Assumptions', AssumptionsPage],
   networth: ['Net worth', () => <NetWorthChart />],
@@ -218,7 +223,8 @@ function pageFromUrl(): PageKey {
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
   ['Your plan', ['people', 'accounts', 'income', 'expenses', 'budget', 'spending', 'cards', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
-  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table', 'timeline', 'rentown', 'report']],
+  ['Optimize', ['optimize', 'taxstrategy', 'flexspend', 'rothconv', 'drawdown', 'harvest']],
+  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'estate', 'compare', 'plot', 'table', 'timeline', 'rentown', 'report']],
   ['Tracking', ['progress', 'settings', 'terms']],
 ];
 

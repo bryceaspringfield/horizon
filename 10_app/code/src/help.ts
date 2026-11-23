@@ -269,4 +269,6 @@ export const HELP: Record<string, string> = {
   "Who pays": "Who covers this expense in this stretch, such as parents, an employer, or a partner outside the plan. For your own records.",
   "Share they pay": "The share of the expense someone else pays in this stretch: 100% for all of it, 50% for half.",
   "Until (blank: for good)": "The date they stop paying. Leave it blank if they keep paying for good.",
+  "Liquid net worth subtracts": "Which debts come off liquid net worth, the measure used for financial independence and invested-asset milestones: none (cash and investments alone), unsecured debts such as cards and student loans, or every debt including the mortgage on a home.",
+  "Share of the estate left to charity": "The share of what is left at the end that goes to charity. It is deducted before estate tax, as the charitable deduction allows, and left out of what heirs receive in net legacy.",
 };
