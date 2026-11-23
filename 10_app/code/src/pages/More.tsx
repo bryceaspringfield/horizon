@@ -36,6 +36,18 @@ export function EstatePage() {
           {e.steppedUp === false && <Num label="Heirs' capital gains rate" percent value={e.gainsRate ?? 0.15} onChange={(v) => update((p) => { p.estate = { ...e, gainsRate: v }; })} />}
         </div>
       </Card>
+      <Card title={`The estate by account, ${l.year} (future dollars)`}>
+        <div className="scroll">
+          <table className="num">
+            <thead><tr><th>Account</th><th>Gross</th><th>Costs</th><th>Net</th></tr></thead>
+            <tbody>{plan.accounts.map((a) => {
+              const v = proj.years[proj.years.length - 1].balances[a.id] ?? 0;
+              const cost = a.kind === 'asset' ? Math.max(0, v) * (e.liquidationShare ?? 0) : 0;
+              return Math.abs(v) < 1 ? null : <tr key={a.id}><td>{a.name}</td><td>{money(v)}</td><td>{cost ? money(-cost) : ''}</td><td>{money(v - cost)}</td></tr>;
+            })}</tbody>
+          </table>
+        </div>
+      </Card>
       <Card title="Estate tax if the estate passed in each year (future dollars)">
         <Chart height={280} option={{ tooltip: moneyTooltip, grid: { left: 70, right: 16, top: 20, bottom: 30 },
           xAxis: { type: 'category', data: yrs }, yAxis: moneyAxis,

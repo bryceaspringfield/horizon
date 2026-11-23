@@ -54,5 +54,4 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Tax strategy: several targets at once (bracket, IRMAA, ACA, an income ceiling) with constraints, in place of one shield.
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)
-- Estate: the final tax return, and a breakdown of the estate by account.
 
