@@ -197,4 +197,10 @@ export const HELP: Record<string, string> = {
   "Paid back to you": "The share of this spending someone pays you back, such as a work trip your employer reimburses. You pay first; the repayment arrives later and is not taxed.",
   "Paid back after (years; 0 the same year)": "How long after the spending the repayment arrives, in years. Enter 0 if you are paid back within the same year.",
   "Paid through a workplace FSA": "Check this if you pay this cost through a flexible spending account at work. The amount, up to the 2026 limit of $3,400, comes out of your pay before income tax.",
+  "Annual fee": "The card's yearly fee. It counts as an expense each year, so the card's cash back must beat it to pay off.",
+  "On": "The spending this rate earns on: one category, such as groceries, or all spending. A category rate stands in front of the card's rate on all spending.",
+  "Up to a year (0: no cap)": "The most spending a year this rate applies to. For example, 6000 for 6% on the first $6,000 of groceries a year; spending past it earns the next best rate.",
+  "Bonus rate ends after (0: never)": "The last year of a bonus rate, such as an introductory rate. After that year the card earns the lower rate you set next.",
+  "Then": "The rate after the bonus ends.",
+  "Card spending category": "The category this spending earns card rewards in. The app guesses it from the expense's name; change it where the guess is wrong.",
 };

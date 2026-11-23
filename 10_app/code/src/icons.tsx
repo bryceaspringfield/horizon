@@ -5,6 +5,7 @@ const paths: Record<string, string> = {
   accounts: 'M3 10h18M5 10v8M9.5 10v8M14.5 10v8M19 10v8M2 21h20M12 2l10 5H2z',
   income: 'M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
   expenses: 'M2 7h20v12H2zM2 11h20M6 15h4',
+  budget: 'M21 12a9 9 0 1 1-9-9v9zM15 3.5a9 9 0 0 1 5.5 5.5H15z',
   milestones: 'M4 22V4M4 4h12l-2 4 2 4H4',
   strategy: 'M3 3v18h18M7 15l4-4 3 3 5-6',
   taxhealth: 'M9 14l6-6M9.5 8.5h.01M14.5 13.5h.01M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z',

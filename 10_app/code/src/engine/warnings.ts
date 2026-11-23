@@ -1,6 +1,7 @@
 // Things worth a look in a plan, found from the plan and its projection: shown on the dashboard, each with the page
 // which fixes it. A warning is a fact about the numbers entered; none of them is advice.
 import { foreignCurrencies, planCurrency } from './currency';
+import { missingEssentials } from './essentials';
 import type { Plan, Projection } from './types';
 
 export interface PlanWarning { level: 'problem' | 'note'; text: string; page: string }
@@ -11,6 +12,8 @@ export function planWarnings(plan: Plan, proj: Projection): PlanWarning[] {
   const age = (year: number) => year - plan.people[0].birthYear;
   if (proj.depletionYear !== null) out.push({ level: 'problem', page: 'cashflow', text: `Money runs short in ${proj.depletionYear} (age ${age(proj.depletionYear)}): from then, the plan's expenses are not fully met.` });
   if (plan.expenses.length === 0 || (first && first.totalExpenses === 0 && plan.expenses.every((e) => e.amount === 0))) out.push({ level: 'problem', page: 'expenses', text: 'No spending is entered, so every result assumes none.' });
+  const gaps = missingEssentials(plan);
+  if (gaps.length && plan.expenses.length) out.push({ level: 'note', page: 'budget', text: `No expense covers ${gaps.length === 1 ? gaps[0].name.toLowerCase() : gaps.slice(0, -1).map((g) => g.name.toLowerCase()).join(', ') + ' or ' + gaps[gaps.length - 1].name.toLowerCase()}; the Budget page adds ${gaps.length === 1 ? 'it' : 'each'} at a starting estimate.` });
   const penalties = proj.years.filter((y) => y.taxes.penalty > 0.5);
   if (penalties.length) out.push({ level: 'note', page: 'strategy', text: `Early-withdrawal penalties arise in ${penalties.length} year${penalties.length > 1 ? 's' : ''}, first in ${penalties[0].year}: retirement accounts are drawn before 59½.` });
   for (const d of plan.accounts) {

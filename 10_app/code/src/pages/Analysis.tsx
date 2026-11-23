@@ -145,7 +145,7 @@ export function CashFlowPage() {
   const y = proj.years[i];
   const name = (id: string): string =>
     id.startsWith('cb_') ? (plan.accounts.find((x) => 'cb_' + x.id === id)?.name ?? 'Card') + ' cash back' :
-    plan.incomes.find((x) => x.id === id)?.name ?? plan.expenses.find((x) => x.id === id)?.name ?? plan.accounts.find((x) => x.id === id)?.name ?? ({ __reimbursed: 'Paid back to you', __spending: 'Retirement spending', __medicare: 'Medicare premiums', __aca: 'ACA premiums', __charity: 'Charity', __propertyTax: 'Property tax' } as Record<string, string>)[id] ?? id;
+    plan.incomes.find((x) => x.id === id)?.name ?? plan.expenses.find((x) => x.id === id)?.name ?? plan.accounts.find((x) => x.id === id)?.name ?? ({ __reimbursed: 'Paid back to you', __cardFees: 'Card annual fees', __spending: 'Retirement spending', __medicare: 'Medicare premiums', __aca: 'ACA premiums', __charity: 'Charity', __propertyTax: 'Property tax' } as Record<string, string>)[id] ?? id;
   const links: { source: string; target: string; value: number }[] = [];
   const add = (source: string, target: string, v: number) => { if (v > 1) links.push({ source, target, value: Math.round(adj(v, i)) }); };
   for (const [id, v] of Object.entries(y.income)) add(name(id), 'Cash flow', v);

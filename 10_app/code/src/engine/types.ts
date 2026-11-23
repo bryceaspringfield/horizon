@@ -42,6 +42,10 @@ export interface Account {
    * spending (0.015 for 1.5%). Cash back is a rebate on purchases, not taxed income (IRS). */
   cardSpendShare?: number;
   cashBackRate?: number;
+  /** Credit cards: earning rates by category or overall (engine/cards.ts), and the yearly fee; with rates set, the card
+   * earns on each category's spending it wins, in place of the flat share and rate above. */
+  rewards?: import('./cards').RewardRate[];
+  annualFee?: number;
   /** Assets: a collectible (coins, trading cards, plush toys, art), whose sale gain is taxed as ordinary income (the
    * collectibles rate is capped at 28%; ordinary rates reach 28% only past the 24% bracket). */
   collectible?: boolean;
@@ -170,6 +174,10 @@ export interface Expense {
   reimbursedAfterYears?: number;
   /** Paid through a workplace health or dependent-care FSA: the amount (up to the year's limit) leaves taxable pay. */
   fsa?: boolean;
+  /** The spending category for card rewards (engine/cards.ts), where the guess from the name is wrong. */
+  spendCategory?: import('./cards').SpendCategory;
+  /** Whether the spending goes on a card; unset, all but rent and mortgage do. */
+  onCard?: boolean;
   /** Yearly amount in today's dollars (a one-time expense: its full amount). */
   amount: number;
   startYear: number;

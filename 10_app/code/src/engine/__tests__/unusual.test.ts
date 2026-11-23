@@ -35,3 +35,15 @@ describe('unusual money situations', () => {
     expect(coll).toBeGreaterThan(plain);
   });
 });
+
+import { missingEssentials, ESSENTIALS } from '../essentials';
+describe('essentials', () => {
+  it('lists an essential as missing until an expense covers it', () => {
+    const plan = examplePlan();
+    plan.expenses = plan.expenses.filter((e) => !/phone|cell|living|general|household/i.test(e.name));
+    expect(missingEssentials(plan).some((x) => x.key === 'phone')).toBe(true);
+    plan.expenses.push({ id: 'ph', name: 'Cell phone', kind: 'living', amount: 600, growth: 0, startYear: plan.startYear } as never);
+    expect(missingEssentials(plan).some((x) => x.key === 'phone')).toBe(false);
+    expect(ESSENTIALS.length).toBeGreaterThan(8);
+  });
+});

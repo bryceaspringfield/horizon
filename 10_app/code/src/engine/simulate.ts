@@ -6,6 +6,7 @@
 // raises the tax, which needs more withdrawal) in a few passes. A surplus fills the cash target and the rest goes to
 // the first taxable account. Balances then earn the year's returns, a taxable account's dividends are taxed in the
 // same year, assets appreciate and are sold in their sale year, and debts accrue interest.
+import { cardRewards, cardable, categoryOf, type SpendCategory } from './cards';
 import { convertCurrencies } from './currency';
 import { acaLimit, acaNetPremium, bracketTop, computeTax, estateTax, medicarePremium, rules, rulesFor, rulesTiers, zeroGainsTop } from './tax';
 import { benefitAtClaim, rmdStartAge, spousalAtClaim } from './retirement';
@@ -467,10 +468,20 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const spend = totalExpenses;
       let shareLeft = 1;
       for (const c of accounts) {
-        if (c.kind !== 'debt' || !(c.cashBackRate! > 0) || !(c.cardSpendShare! > 0)) continue;
+        if (c.kind !== 'debt' || c.rewards?.length || !(c.cashBackRate! > 0) || !(c.cardSpendShare! > 0)) continue;
         const share = Math.min(shareLeft, c.cardSpendShare!); shareLeft -= share;
         const cb = spend * share * c.cashBackRate!;
         if (cb > 0) { income['cb_' + c.id] = cb; untaxedIncome += cb; }
+      }
+      // cards with rates by category: each category's card spending goes to the best rate under its cap (engine/cards.ts)
+      const rated = accounts.filter((c) => c.kind === 'debt' && c.rewards?.length);
+      if (rated.length) {
+        const byCat: Partial<Record<SpendCategory, number>> = {};
+        for (const e of plan.expenses) if (cardable(e) && expenses[e.id] > 0) byCat[categoryOf(e)] = (byCat[categoryOf(e)] ?? 0) + expenses[e.id];
+        const got = cardRewards(y, byCat, rated);
+        for (const [id, cb] of Object.entries(got)) if (cb > 0) { income['cb_' + id] = cb; untaxedIncome += cb; }
+        const fees = rated.reduce((t, c) => t + (c.annualFee ?? 0), 0);
+        if (fees > 0) { expenses['__cardFees'] = fees; totalExpenses += fees; }
       }
     }
     // Flexible spending: the discretionary share of each expense is cut while the portfolio sits under its high by the

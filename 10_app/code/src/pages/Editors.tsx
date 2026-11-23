@@ -10,6 +10,7 @@ import { useActivePlan, useStore } from '../store';
 import { Card, Check, ListEditor, Num, Select, Text, money, pct } from '../ui';
 import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../engine/currency';
 import { benefitAtClaim } from '../engine/retirement';
+import { SPEND_CATEGORIES, categoryOf, type RewardRate, type SpendCategory } from '../engine/cards';
 
 const ACCOUNT_KINDS: [AccountKind, string][] = [
   ['cash', 'Cash (checking, savings)'], ['taxable', 'Taxable brokerage'], ['traditional', 'Traditional 401(k) / IRA'],
@@ -88,6 +89,30 @@ function CurrencyCard() {
 
 function useUpdate() {
   return useStore((s) => s.update);
+}
+
+/** A card's earning rates: each on a category or on all spending, with an optional yearly cap, and a bonus rate which
+ * ends in a year and falls to a lower rate. */
+function RatesEditor({ rates, onChange }: { rates?: RewardRate[]; onChange: (r: RewardRate[]) => void }) {
+  const list = rates ?? [];
+  const cats: [RewardRate['category'], string][] = [['all', 'All spending'], ...SPEND_CATEGORIES.map(([k, l]) => [k, l] as [RewardRate['category'], string])];
+  const set = (i: number, f: (r: RewardRate) => void) => { const next = structuredClone(list); f(next[i]); onChange(next); };
+  return (
+    <div className="span rates">
+      <strong>Earning rates</strong>
+      {list.map((r, i) => (
+        <div key={i} className="grid rate">
+          <Select label="On" value={r.category} options={cats} onChange={(v) => set(i, (x) => { x.category = v; })} />
+          <Num label="Cash back" percent value={r.rate} onChange={(v) => set(i, (x) => { x.rate = v; })} />
+          <Num label="Up to a year (0: no cap)" value={r.capYearly ?? 0} onChange={(v) => set(i, (x) => { x.capYearly = v || undefined; })} />
+          <Num label="Bonus rate ends after (0: never)" value={r.untilYear ?? 0} onChange={(v) => set(i, (x) => { x.untilYear = v || undefined; })} />
+          {!!r.untilYear && <Num label="Then" percent value={r.thenRate ?? 0} onChange={(v) => set(i, (x) => { x.thenRate = v; })} />}
+          <button className="ghost danger" onClick={() => onChange(list.filter((_, k) => k !== i))}>Remove</button>
+        </div>
+      ))}
+      <button className="ghost" onClick={() => onChange([...list, { category: list.length ? 'groceries' : 'all', rate: list.length ? 0.03 : 0.015 }])}>+ Earning rate</button>
+    </div>
+  );
 }
 
 /** Changes of an income's or expense's yearly amount from a year on. */
@@ -220,8 +245,10 @@ export function AccountsPage() {
                   <Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
                   <Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
                   <Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
-                  <Num label="Share of spending on this card" percent value={a.cardSpendShare ?? 0} onChange={(v) => set((x) => { x.cardSpendShare = v || undefined; })} />
-                  <Num label="Cash back" percent value={a.cashBackRate ?? 0} onChange={(v) => set((x) => { x.cashBackRate = v || undefined; })} />
+                  <Num label="Annual fee" value={a.annualFee ?? 0} onChange={(v) => set((x) => { x.annualFee = v || undefined; })} />
+                  <RatesEditor rates={a.rewards} onChange={(r) => set((x) => { x.rewards = r.length ? r : undefined; })} />
+                  {!a.rewards?.length && <Num label="Share of spending on this card" percent value={a.cardSpendShare ?? 0} onChange={(v) => set((x) => { x.cardSpendShare = v || undefined; })} />
+                  <Num label="Cash back" percent value={a.cashBackRate ?? 0} onChange={(v) => set((x) => { x.cashBackRate = v || undefined; })} />}
                   <PayoffYear id={a.id} />
                   <Select label="Secured by" value={a.securedBy ?? ''} options={[['', 'Nothing'], ...assets]} onChange={(v) => set((x) => { x.securedBy = v || undefined; })} />
                 </>}
@@ -337,6 +364,7 @@ export function ExpensesPage() {
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
               <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
               <Num label="Discretionary share" percent value={x.discretionary ?? 0} hint="The part which could be cut in a bad stretch. Flexible spending (Strategy) uses it." onChange={(v) => set((y) => { y.discretionary = Math.max(0, Math.min(1, v)) || undefined; })} />
+              <Select label="Card spending category" value={categoryOf(x)} options={SPEND_CATEGORIES.map(([k, l]) => [k, l] as [SpendCategory, string])} onChange={(v) => set((y) => { y.spendCategory = v; })} />
               <Num label="Paid back to you" percent value={x.reimbursedShare ?? 0} onChange={(v) => set((y) => { y.reimbursedShare = v ? Math.min(1, v) : undefined; })} />
               {!!x.reimbursedShare && <Num label="Paid back after (years; 0 the same year)" value={x.reimbursedAfterYears ?? 0} onChange={(v) => set((y) => { y.reimbursedAfterYears = Math.max(0, v); })} />}
               {(x.kind === 'healthcare' || x.kind === 'childcare') && <Check label="Paid through a workplace FSA" value={!!x.fsa} onChange={(v) => set((y) => { y.fsa = v || undefined; })} />}

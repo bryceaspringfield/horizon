@@ -4,6 +4,7 @@ import { TermsPage } from './pages/Terms';
 import { Setup } from './pages/Setup';
 import { ImportReportCard, ProjectionLabButton } from './pages/ImportPL';
 import { PlanWarnings } from './pages/Warnings';
+import { BudgetPage } from './pages/Budget';
 import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { ReportPage } from './pages/Report';
@@ -165,6 +166,7 @@ const PAGES = {
   accounts: ['Accounts', AccountsPage],
   income: ['Income', IncomePage],
   expenses: ['Expenses', ExpensesPage],
+  budget: ['Budget', BudgetPage],
   events: ['Life events', EventsPage],
   milestones: ['Milestones', MilestonesPage],
   strategy: ['Strategy', StrategyPage],
@@ -206,7 +208,7 @@ function pageFromUrl(): PageKey {
 }
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
-  ['Your plan', ['people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
+  ['Your plan', ['people', 'accounts', 'income', 'expenses', 'budget', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
   ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table', 'report']],
   ['Tracking', ['progress', 'settings', 'terms']],
 ];
