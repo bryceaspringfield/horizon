@@ -293,4 +293,8 @@ export const HELP: Record<string, string> = {
   "Strike price": "The price a share costs under the option.",
   "Share price today": "What one share trades or is valued at now.",
   "Share price growth a year": "How fast the share price grows until the exercise year, which is the income's start year.",
+  "Employer HSA deposit a year": "Money the employer puts in your HSA each year, in today's dollars; it is free of income and payroll tax.",
+  "MIT pay group": "Staff, faculty, and postdocs are paid semimonthly (24 paychecks); support and service staff weekly (52), with lower premiums.",
+  "MIT medical plan": "The PPO has a low deductible and higher premiums; the high-deductible plan has lower premiums, a higher deductible, and MIT money in an HSA.",
+  "Covered": "Who the medical plan covers, which sets the premium, the deductible, and MIT's HSA deposit.",
 };

@@ -172,6 +172,8 @@ export interface Income {
   end?: import('./dates').DateRef;
   contributionRoth?: boolean;
   employerMatch?: number;
+  /** Salary: the employer's yearly deposit into the owner's HSA (today's dollars), free of income and payroll tax. */
+  employerHsa?: number;
   /** Salary: the share of pay the employer matches at most (e.g., 100% of the first 6%). */
   matchLimit?: number;
   /** Account bonuses (one-time, paid in startYear): where the bonus comes from. A card's spending bonus is a rebate

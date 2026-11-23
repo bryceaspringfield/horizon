@@ -1,3 +1,4 @@
+import { useState } from 'react';
 // The pages where the plan is entered: people, accounts, income, Social Security, expenses, milestones, the strategy,
 // and the assumptions.
 import { uid } from '../engine/defaults';
@@ -12,6 +13,7 @@ import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../eng
 import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
 import { MARKET, assumptionAt, consensus } from '../engine/assumptions';
+import { MIT, applyMit, type MitGroup, type MitPlan, type MitTier } from '../engine/benefits';
 import { CONDITIONS, RACES, expectedDeathDate } from '../engine/lifespan';
 import { DIETS, FOOD_PLANS } from '../engine/food';
 import { ADOPTION_ROUTES, ADOPTION_SOURCE, BIRTH_SOURCE, WEDDING_SOURCES, WEDDING_STYLES, adoptionCost, birthCost, weddingCost } from '../engine/lifeCosts';
@@ -174,6 +176,21 @@ function StepsEditor({ steps, nominal, onChange }: { steps?: Step[]; nominal?: b
         </div>
       ))}
       <button className="ghost" onClick={() => onChange([...list, { year: new Date().getFullYear() + 1, amount: 0 }])}>+ A change in amount</button>
+    </div>
+  );
+}
+
+/** MIT's 2026 benefits applied to a salary: the pay group, the medical plan, and who is covered. */
+function MitPreset({ onApply }: { onApply: (g: MitGroup, p: MitPlan, t: MitTier) => void }) {
+  const [g, setG] = useState<MitGroup>('staff');
+  const [p, setP] = useState<MitPlan>('ppo');
+  const [t, setT] = useState<MitTier>('employee');
+  return (
+    <div className="span row">
+      <Select label="MIT pay group" value={g} options={Object.entries(MIT.groups).map(([k, v]) => [k as MitGroup, v.label])} onChange={setG} />
+      <Select label="MIT medical plan" value={p} options={[['ppo', MIT.medical.ppo.name], ['hdhp', MIT.medical.hdhp.name]]} onChange={setP} />
+      <Select label="Covered" value={t} options={MIT.tiers as [MitTier, string][]} onChange={setT} />
+      <button className="ghost" onClick={() => onApply(g, p, t)}>Apply MIT's {MIT.year} benefits</button>
     </div>
   );
 }
@@ -448,6 +465,8 @@ export function IncomePage() {
                 {x.kind === 'salary' && <>
                   <Num label="Keeps pace with inflation from year (0: from the start)" value={x.indexFrom ?? 0} onChange={(v) => set((y) => { y.indexFrom = v || undefined; })} />
                   <Num label="Paychecks a year" value={x.paychecks ?? 26} onChange={(v) => set((y) => { y.paychecks = Math.max(1, Math.round(v)); })} />
+                  <MitPreset onApply={(g, pl, t) => set((y) => { Object.assign(y, applyMit(y, g, pl, t)); })} />
+                  <Num label="Employer HSA deposit a year" value={x.employerHsa ?? 0} onChange={(v) => set((y) => { y.employerHsa = v > 0 ? v : undefined; })} />
                   <DeductionsEditor list={x.deductions} onChange={(d) => set((y) => { y.deductions = d.length ? d : undefined; })} />
                 </>}
                 <Check label="Keeps pace with inflation" value={x.inflationAdjusted} onChange={(v) => set((y) => { y.inflationAdjusted = v; })} />

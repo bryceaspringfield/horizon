@@ -379,6 +379,10 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       income[inc.id] = amt;
       if (inc.kind === 'salary') {
         wages += amt;
+        if (inc.employerHsa) {
+          const h = accounts.find((x) => x.kind === 'hsa' && x.ownerId === inc.ownerId) ?? accounts.find((x) => x.kind === 'hsa');
+          if (h) { const v = inc.employerHsa * index; deposit(h.id, v); match += v; }
+        }
         // a contribution set in dollars (today's, kept up with inflation) becomes its share of the year's pay
         const cRate = inc.contributionAmount ? Math.min(1, (inc.contributionAmount * index) / Math.max(1, amt)) : (inc.contributionRate ?? 0);
         if (cRate) {
