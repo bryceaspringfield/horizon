@@ -15,11 +15,12 @@ by_users = {r['iso2']: i + 1 for i, r in enumerate(sorted([r for r in ok if r['i
 # a flag for a two-letter code flagcdn.com holds; a blank of the same width otherwise (Artsakh, Transnistria)
 flag = lambda c: (f"<img class=f loading=lazy alt='' width=20 height=15 src='https://flagcdn.com/20x15/{c.lower()}.png' srcset='https://flagcdn.com/40x30/{c.lower()}.png 2x'>"
                   if len(c) == 2 else "<span class=f style='display:inline-block;width:20px;height:15px'></span>")
+nth = lambda v: '' if v == '' else v + ('th' if v[-2:] in ('11', '12', '13') else {'1': 'st', '2': 'nd', '3': 'rd'}.get(v[-1], 'th'))
 n = lambda v: f'{int(v):,}' if v != '' else ''
 tr = ''.join(
     f"<tr><td class=r>{r['order']}</td><td class=r data-v='{by_users.get(r['iso2'], 9999)}'>{by_users.get(r['iso2'], '')}</td><td>{flag(r['iso2'])}{html.escape(r['country'])}</td><td>{r['iso2'] if len(r['iso2']) == 2 else ''}</td>"
     f"<td>{html.escape(r['basis'])}</td><td class=r data-v='{r['internet_users'] or 0}'>{n(r['internet_users'])}</td><td class=r data-v='{r['population'] or 0}'>{n(r['population'])}</td>"
-    f"<td class=r data-v='{r['subnational_order'] or 9999}'>{r['subnational_order']}</td><td class=w>{html.escape('. '.join(x for x in (r['includes'], r['note']) if x))}</td></tr>"
+    f"<td class=r data-v='{r['subnational_order'] or 9999}'>{nth(r['subnational_order'])}</td><td class=w>{html.escape('. '.join(x for x in (r['includes'], r['note']) if x))}</td></tr>"
     for r in ok)
 page = '''<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow"><title>Horizon: country order for tax systems</title>
@@ -38,9 +39,9 @@ th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;c
 <p>A dependency is counted in its host country, where it becomes a choice among the country's states, provinces, and territories.</p>
 <p>Internet users = total population (World Bank indicator SP.POP.TOTL) times individuals using the Internet as a percentage of the population (IT.NET.USER.ZS), each at its newest year with a value. __N__ countries and territories; those with no Internet-use figure come last. Built __DATE__. A click on a column heading sorts by the column.</p>
 <div class="bar"><input id="q" type="search" placeholder="Filter by country"></div>
-<div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r title="The order in which the country's state and province taxes are added">States and provinces</th><th>Counted in the country, and notes</th></tr></thead><tbody>__ROWS__</tbody></table></div>
-<h2>States and provinces</h2>
-<p>State taxes and province taxes inside each country are added in the order of the "States and provinces" column. The United States comes first, then the large federations by Internet users.</p>
+<div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r title="The order in which the country's state and province taxes are added">Build order for state and province taxes</th><th>Counted in the country, and notes</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+<h2>State and province taxes</h2>
+<p>The column "Build order for state and province taxes" is a place in line, and it is no count of states. The United States is 1st, meaning the taxes of all 50 states, the District of Columbia, and the territories are built before any other country's regional taxes. The large federations follow by Internet users.</p>
 </main><script>
 const tb = document.querySelector('#t tbody'), rows = [...tb.rows];
 document.getElementById('q').addEventListener('input', e => { const v = e.target.value.toLowerCase(); for (const r of rows) r.hidden = !r.cells[2].textContent.toLowerCase().includes(v); });
