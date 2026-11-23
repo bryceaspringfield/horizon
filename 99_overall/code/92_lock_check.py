@@ -43,6 +43,7 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page()
+        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
         errors = []
         pg.on('pageerror', lambda e: errors.append(str(e)))
         pg.goto(url + 'people'); pg.wait_for_timeout(1500)

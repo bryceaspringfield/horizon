@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ProjectionLab&#x27;s Archived on changemap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <link href="/static/css/bootstrap.css" rel="stylesheet" />
+    <link href="/static/css/font-awesome.css?v=2" rel="stylesheet" />
+    <link href="/static/css/general.css?v=2" rel="stylesheet" />
+    <link href="/static/img/favicon.png" rel="shortcut icon" />
+    <link rel="apple-touch-icon" sizes="196x196" href="/static/img/touch_icon.png"/>
+    <script src="/static/js/jquery-2.0.2.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/jquery-ui.min.js"></script>
+
+    <script src="/static/js/stimulus.umd.js"></script>
+    <script src="/static/js/emojione.min.js"></script>
+    <script src="/static/js/maps.js?v=6"></script>
+    <script src="/static/js/select2.min.js"></script>
+    
+    <meta property="og:title" content="ProjectionLab&#x27;s Archived on changemap" />
+    <meta property="og:description" content="**Welcome to the ProjectionLab Changemap archive.**
+
+Over the years, you&#x27;ve used this board to share ideas, vote on features and help shape ProjectionLab. Thank you to everyone who contributed. Everything you shared here has been saved, and it will continue to inform how we develop ProjectionLab.
+
+With ProjectionLab 5.0, feedback has moved into the app. Open **Feedback** at the bottom of the left menu to send ideas straight to our team. You can read more in [Meet the new ProjectionLab](https://projectionlab.com/blog/meet-the-new-projectionlab).
+
+This board is now a read-only archive, so it no longer accepts new suggestions, votes or comments. Item statuses show where things stood when the board was archived and aren&#x27;t commitments or timelines. To talk through ideas with the community, join the conversation on Discord - #feature-ideas channel." />
+    <meta property="og:image" content="https://changemap.co/static/img/touch_icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://changemap.co/projectifi/projectifi/" />
+
+    <script>
+        window.categories = [];
+    </script>
+
+    
+    
+</head>
+<body id="" data-spy="scroll" data-target="#sidebar" data-offset="150">
+<div id="drop-highlight" style="display: none">Drop on a list to move this task.</div>
+<nav id="sidebar">
+    <div id="nav-toggle" class="visible-xs-block">
+        <a role="button" class="collapsed" data-toggle="collapse" href="#sidebar-content"><i class="fa fa-search" style="margin-right: 5px"></i> <i class="fa fa-bars fa-lg"></i> <span class="sr-only">Menu</span></a>
+    </div>
+
+    
+<h2><a href="/projectifi/projectifi/">
+    ProjectionLab&#x27;s Archived</a>
+</h2>
+
+    <div id="sidebar-content" class="sidebar-content collapse">
+    
+    <ul class="user-panel">
+    
+        <li class="user"><a class="action" href="/social/email/?next=/projectifi/projectifi/%3F"><i class="fa fa-fw fa-user-o"></i> Log in/sign up</span>
+        </a></li>
+
+
+    
+    
+    <li class="search-li" data-controller="search">
+        <form action="/projectifi/projectifi/search/" method="get" class="form-inline" id="search-form">
+            <div class="form-group">
+                <label class="sr-only">Search:</label>
+                <a href="#" id="search-close" style="display:none" data-target="search.clear" data-action="search#clear">&times;</a>
+                <input data-target="search.searchbox" data-action="keyup->search#suggest keyup->search#setClear focus->search#setClear" type="text" class="form-control" placeholder="Search..." value="" name="q" id="search" data-team="239" data-map="264" />
+            </div>
+            <button class="button" type="submit"><i class="fa fa-fw fa-search"></i><span class="sr-only">Go</span></button>
+        </form>
+
+        <ul class="search-menu">
+
+        </ul>
+    </li>
+    
+
+</ul>
+
+
+    
+        <div id="sidebar-nav">
+<h3>Tasks</h3>
+
+<ul class="nav nav-map nav-pills nav-stacked"  data-controller="sidebarmenu">
+    
+    <li  data-target="sidebarmenu.list" data-list-id="1252">
+        <a href="#suggestions">
+            <div class="icon" style="background: #46d6ff"></div>
+            <span>Suggestions</span></a>
+    </li>
+
+    <li  data-target="sidebarmenu.list" data-list-id="3563">
+        <a href="#duplicate-closed">
+            <div class="icon" style="background: #ff3e3e"></div>
+            <span>Duplicate - Closed</span></a>
+    </li>
+
+    <li  data-target="sidebarmenu.list" data-list-id="1254">
+        <a href="#rejected">
+            <div class="icon" style="background: #ff3e3e"></div>
+            <span>Rejected</span></a>
+    </li>
+
+    <li  data-target="sidebarmenu.list" data-list-id="3472">
+        <a href="#pending-more-detail">
+            <div class="icon" style="background: #ff6d46"></div>
+            <span>Pending more detail</span></a>
+    </li>
+
+    <li  data-target="sidebarmenu.list" data-list-id="1253">
+        <a href="#planned">
+            <div class="icon" style="background: #f4ad22"></div>
+            <span>Planned</span></a>
+    </li>
+
+    <li  data-target="sidebarmenu.list" data-list-id="1255">
+        <a href="#building">
+            <div class="icon" style="background: #a5db2f"></div>
+            <span>Building</span></a>
+    </li>
+
+    <li  data-target="sidebarmenu.list" data-list-id="3349">
+        <a href="#early-access">
+            <div class="icon" style="background: #a5db2f"></div>
+            <span>Early Access</span></a>
+    </li>
+
+    <li  data-target="sidebarmenu.list" data-list-id="1256">
+        <a href="#completed">
+            <div class="icon" style="background: #37eb90"></div>
+            <span>Completed</span></a>
+    </li>
+
+</ul>
+</div>
+
+<div id="sidebar-other">
+<h3>Activity</h3>
+<ul class="nav nav-pills nav-stacked">
+    
+
+    <li ><a href="/projectifi/projectifi/activity/">
+        <div class="icon"><i class="fa fa-fw fa-newspaper-o"></i></div>
+        <span>Timeline</span></a></li>
+    
+</ul>
+</div>
+
+    
+
+
+
+    </div>
+
+    <footer>
+        <a href="/" class="logo">Changemap</a>
+        <p>Roadmap and changelog for teams building in public.</p>
+    </footer>
+</nav>
+
+<main>
+    <div class="container-fluid">
+        
+
+        
+<div class="row">
+    <div class="col-xs-12 col-md-10 col-md-offset-1 col-lg-6 col-lg-offset-2">
+        <article class="map-list map-list-header">
+
+
+            <div class="item comment welcome">
+                <div class="box">
+                    
+                        <img src="/media/avatars/m_projectifi1668008283.png" class="avatar" alt="avatar"/>
+                    
+
+                    <div class="intro">
+                    <h4>ProjectionLab&#x27;s Archived public roadmap</h4>
+                        
+                        <p><strong>Welcome to the ProjectionLab Changemap archive.</strong></p>
+<p>Over the years, you&rsquo;ve used this board to share ideas, vote on features and help shape ProjectionLab. Thank you to everyone who contributed. Everything you shared here has been saved, and it will continue to inform how we develop ProjectionLab.</p>
+<p>With ProjectionLab 5.0, feedback has moved into the app. Open <strong>Feedback</strong> at the bottom of the left menu to send ideas straight to our team. You can read more in <a href="https://projectionlab.com/blog/meet-the-new-projectionlab" rel="nofollow">Meet the new ProjectionLab</a>.</p>
+<p>This board is now a read-only archive, so it no longer accepts new suggestions, votes or comments. Item statuses show where things stood when the board was archived and aren&rsquo;t commitments or timelines. To talk through ideas with the community, join the conversation on Discord - #feature-ideas channel.</p>
+                        
+                    </div>
+
+                    <div class="meta">
+                        
+                            <p><i class="fa fa-fw fa-globe"></i> <a href="https://projectionlab.com" rel="nofollow">ProjectionLab&#x27;s Archived website</a>
+                        
+                        </p>
+                        
+                    </div>
+                </div>
+
+                <div class="actions">
+                
+                    
+                    <p><a href="https://discord.com/invite/dZQ5DDEmT7" rel="nofollow" class="button button-light">Support</a></p>
+                    
+                
+                </div>
+
+            </div>
+
+        </article>
+    </div>
+</div>
+
+<div class="row">
+
+    <div class="col-xs-12 col-md-10 col-md-offset-1 col-lg-6 col-lg-offset-2">
+
+        
+            
+                <article data-controller="list-preview" id="suggestions" class="map-list list-suggestions  ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #46d6ff"></div>
+        <a href="/projectifi/projectifi/1252-suggestions/"><span>Suggestions</span></a>
+        
+        </h3>
+
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6055">
+            
+            <a href="/projectifi/projectifi/task/6055-option-to-link-accounts-for/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:bulb:</span>
+                
+                Option to link accounts for real-time balance updates
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        545
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        134
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6249">
+            
+            <a href="/projectifi/projectifi/task/6249-family-account/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Family account
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        249
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        39
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6212">
+            
+            <a href="/projectifi/projectifi/task/6212-enhancement-to-rsu-grant-vesting/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Enhancement to RSU Grant: Vesting Schedule
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        227
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        13
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6024">
+            
+            <a href="/projectifi/projectifi/task/6024-add-support-for-monthlydaily-simulation/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:tools:</span>
+                
+                Add support for monthly/daily simulation granularity
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        165
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        37
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="7129">
+            
+            <a href="/projectifi/projectifi/task/7129-allow-changes-to-the-default/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Allow changes to the default plan to flow into clones
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        156
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        12
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        <div class="item more"><a href="/projectifi/projectifi/1252-suggestions/">
+            View all 637 suggestions
+            </a></div>
+        
+
+    
+</article>
+
+            
+        
+            
+                <article data-controller="list-preview" id="duplicate-closed" class="map-list list-rejected  ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #ff3e3e"></div>
+        <a href="/projectifi/projectifi/3563-duplicate-closed/"><span>Duplicate - Closed</span></a>
+        
+        </h3>
+
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6738">
+            
+            <a href="/projectifi/projectifi/task/6738-interest-only-loans/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Interest-only loans
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        10
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="9609">
+            
+            <a href="/projectifi/projectifi/task/9609-refinance-mortgage/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Refinance Mortgage
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        9
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        4
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="9466">
+            
+            <a href="/projectifi/projectifi/task/9466-housing-allow-multiple-mortgages/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Housing - Allow multiple mortgages
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        5
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        1
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6253">
+            
+            <a href="/projectifi/projectifi/task/6253-triggered-expenses-donations-a/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Triggered Expenses / Donations (a DAF funding idea)
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        2
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="11454">
+            
+            <a href="/projectifi/projectifi/task/11454-optiontoggle-to-hide-monetary-values/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Option/Toggle to hide monetary values
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        2
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment-o"></i>
+                        
+                        0
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        <div class="item more"><a href="/projectifi/projectifi/3563-duplicate-closed/">
+            View all 42 duplicate - closed
+            </a></div>
+        
+
+    
+</article>
+
+            
+        
+            
+                <article data-controller="list-preview" id="rejected" class="map-list list-rejected  ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #ff3e3e"></div>
+        <a href="/projectifi/projectifi/1254-rejected/"><span>Rejected</span></a>
+        
+        </h3>
+
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="9335">
+            
+            <a href="/projectifi/projectifi/task/9335-allow-milestones-to-delay-start/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Allow milestones to delay start of a House&#x27;s &quot;Generate Rental Income&quot; option
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        5
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        3
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="11271">
+            
+            <a href="/projectifi/projectifi/task/11271-cashflow-sankey-diagram-inflow/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Cashflow Sankey diagram: Inflow --&gt; Accounts --&gt; Outflows
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        3
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="11547">
+            
+            <a href="/projectifi/projectifi/task/11547-indicate-cumulative-total-costs-for/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Indicate Cumulative Total Costs for Roth conversions
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="11514">
+            
+            <a href="/projectifi/projectifi/task/11514-importexport-for-pro-tier-or/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Import/Export for Pro tier (or ability to create Template)
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        1
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="11502">
+            
+            <a href="/projectifi/projectifi/task/11502-change-tax-treatment-of-income/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Change Tax treatment of income at milestone
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        1
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        <div class="item more"><a href="/projectifi/projectifi/1254-rejected/">
+            View all 12 rejected
+            </a></div>
+        
+
+    
+</article>
+
+            
+        
+            
+                <article data-controller="list-preview" id="pending-more-detail" class="map-list list-on_hold  ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #ff6d46"></div>
+        <a href="/projectifi/projectifi/3472-pending-more-detail/"><span>Pending more detail</span></a>
+        
+        </h3>
+
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10571">
+            
+            <a href="/projectifi/projectifi/task/10571-failure-reduction-modifications/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Failure Reduction Modifications
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10674">
+            
+            <a href="/projectifi/projectifi/task/10674-allow-for-two-planning-profiles/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Allow for two planning profiles per paid account; non-co-mingled couple finances
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        9
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10830">
+            
+            <a href="/projectifi/projectifi/task/10830-plan-summary-for-fas/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Plan Summary for FAs
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        4
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10843">
+            
+            <a href="/projectifi/projectifi/task/10843-investment-account-types-for-the/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Investment account types for The Netherlands
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        1
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10884">
+            
+            <a href="/projectifi/projectifi/task/10884-pension-buy-in-modeling/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Pension Buy in modeling
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10937">
+            
+            <a href="/projectifi/projectifi/task/10937-add-shmoo-plots-to-help/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add shmoo plots to help explore options.
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        4
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10963">
+            
+            <a href="/projectifi/projectifi/task/10963-unify-withdrawal-strategy-and-flexed/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Unify Withdrawal Strategy and Flexed Spending
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        3
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10967">
+            
+            <a href="/projectifi/projectifi/task/10967-401k-and-other-workplace-qualified/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                401(k) (and other workplace qualified accounts) rollover to Traditional IRA
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        1
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        1
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        <div class="item more"><a href="/projectifi/projectifi/3472-pending-more-detail/">
+            View all 16 pending more detail
+            </a></div>
+        
+
+    
+</article>
+
+            
+        
+            
+                <article data-controller="list-preview" id="planned" class="map-list list-planned  ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #f4ad22"></div>
+        <a href="/projectifi/projectifi/1253-planned/"><span>Planned</span></a>
+        
+        </h3>
+
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6243">
+            
+            <a href="/projectifi/projectifi/task/6243-branching-plan-model-with-variables/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Branching &quot;plan&quot; model with variables shared with parent plan
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        276
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        20
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5670">
+            
+            <a href="/projectifi/projectifi/task/5670-asset-specification-allocation/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Asset specification + allocation
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        226
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        33
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5546">
+            
+            <a href="/projectifi/projectifi/task/5546-multi-currency-planning/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:bulb:</span>
+                
+                Multi-currency Planning
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        154
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        48
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6255">
+            
+            <a href="/projectifi/projectifi/task/6255-housing-allow-modeling-of/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Housing - Allow modeling of rental activity / owner occupancy as a series of events
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        95
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        26
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6254">
+            
+            <a href="/projectifi/projectifi/task/6254-housing-allow-modeling-of/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Housing - Allow modeling of mortgage series
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        91
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        24
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6244">
+            
+            <a href="/projectifi/projectifi/task/6244-change-history-feature-with-undo/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Change history feature with &quot;undo&quot;
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        77
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        11
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5735">
+            
+            <a href="/projectifi/projectifi/task/5735-better-support-for-modeling-stock/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:bulb:</span>
+                
+                Better support for modeling stock options
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        63
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        5
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5850">
+            
+            <a href="/projectifi/projectifi/task/5850-decision-variables/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                &quot;Decision variables&quot;
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        53
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        5
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5847">
+            
+            <a href="/projectifi/projectifi/task/5847-specifying-expensesdeductions-as-percentages-of/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Specifying expenses/deductions as percentages of other things
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        44
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        13
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="7976">
+            
+            <a href="/projectifi/projectifi/task/7976-add-first-home-savings-account/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add First Home Savings Account (FHSA) for Canada
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        37
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        8
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        <div class="item more"><a href="/projectifi/projectifi/1253-planned/">
+            View all 37 planned
+            </a></div>
+        
+
+    
+</article>
+
+            
+        
+            
+                <article data-controller="list-preview" id="building" class="map-list list-in_progress  ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #a5db2f"></div>
+        <a href="/projectifi/projectifi/1255-building/"><span>Building</span></a>
+        
+        </h3>
+
+    
+        
+        <div class="item empty">Nothing in here right now.</div>
+        
+
+    
+</article>
+
+            
+        
+            
+                <article data-controller="list-preview" id="early-access" class="map-list list-in_progress  ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #a5db2f"></div>
+        <a href="/projectifi/projectifi/3349-early-access/"><span>Early Access</span></a>
+        
+        </h3>
+
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5224">
+            
+            <a href="/projectifi/projectifi/task/5224-living-expenses-itemizer-with-templates/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:bulb:</span>
+                
+                Living expenses itemizer, with templates
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        127
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        22
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5731">
+            
+            <a href="/projectifi/projectifi/task/5731-convert-progress-points-to-snapshots/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:bulb:</span>
+                
+                Convert Progress Points to &quot;Snapshots&quot;
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        75
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        11
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="10235">
+            
+            <a href="/projectifi/projectifi/task/10235-add-legacy-planning/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add: Legacy planning
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        48
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        8
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="9246">
+            
+            <a href="/projectifi/projectifi/task/9246-add-childrendependents-namesbdays-to-set/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add Children/Dependents names/bdays to set expenses around their ages
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        37
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        9
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="7301">
+            
+            <a href="/projectifi/projectifi/task/7301-add-more-milestone-types/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add more Milestone types
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        35
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        10
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6214">
+            
+            <a href="/projectifi/projectifi/task/6214-model-living-expenses-as-a/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Model living expenses as a roll up of individual expenses
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        27
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        6
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="7949">
+            
+            <a href="/projectifi/projectifi/task/7949-add-solo-401k-employer-contributions/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add Solo 401k Employer Contributions
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        21
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        7
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6736">
+            
+            <a href="/projectifi/projectifi/task/6736-import-data-from-csv/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Import data from CSV
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        13
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        1
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="7638">
+            
+            <a href="/projectifi/projectifi/task/7638-add-new-net-worth-calculation/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add new Net Worth Calculation that Excludes Primary Residence Equity
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        10
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="6675">
+            
+            <a href="/projectifi/projectifi/task/6675-support-2nd-mortgageheloc-linked-to/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                support 2nd mortgage/HELOC linked to Home
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        10
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        2
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        <div class="item more"><a href="/projectifi/projectifi/3349-early-access/">
+            View all 49 early access
+            </a></div>
+        
+
+    
+</article>
+
+            
+        
+            
+                <article data-controller="list-preview" id="completed" class="map-list list-completed map-list-last ">
+    
+    <h3 data-target="list-preview.title">
+        <div class="icon" style="background: #37eb90"></div>
+        <a href="/projectifi/projectifi/1256-completed/"><span>Completed</span></a>
+        
+        </h3>
+
+    
+        
+        
+        
+        
+            
+                <div class="item date"><h5>Week of 09 November</h5></div>
+            
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="8022">
+            
+            <a href="/projectifi/projectifi/task/8022-add-nontaxable-checkbox-in-more/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add &#x27;NonTaxable&#x27; checkbox in More Options in Charity Expense and Custom Expense
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        12
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        3
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+            
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="8272">
+            
+            <a href="/projectifi/projectifi/task/8272-limit-to-only-medicalhealth-care/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Limit to only Medical/Health Care Tax Exemptions that exceed 7.5% of AGI
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        19
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        8
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+            
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="5958">
+            
+            <a href="/projectifi/projectifi/task/5958-tax-withholding-link-to-tax/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Tax withholding (link to tax rates)
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        22
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        6
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+            
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="7497">
+            
+            <a href="/projectifi/projectifi/task/7497-add-option-to-withhold-taxes/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add option to withhold taxes from pension just like salary
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        24
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        3
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        
+        
+        
+            
+        
+        <div class="card card-wide" data-controller="task" data-target="task.card" data-task-id="8745">
+            
+            <a href="/projectifi/projectifi/task/8745-add-an-option-to-drawdown/" class="dragcontent">
+                
+                <span class="category" data-target="task.category">:speech_balloon:</span>
+                
+                Add an option to drawdown from other accounts to fund Emergency Fund
+            </a>
+            <div class="meta">
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-thumbs-up"></i>
+                        
+                        32
+                    
+                </span>
+
+                <span class="count">
+                    
+                        
+                        <i class="fa fa-fw fa-comment"></i>
+                        
+                        5
+                    
+
+                </span>
+            </div>
+
+        </div>
+        
+        
+    
+        
+        <div class="item more"><a href="/projectifi/projectifi/1256-completed/">
+            View all 269 completed
+            </a></div>
+        
+
+    
+</article>
+
+            
+        
+    </div>
+</div>
+
+    </div>        
+</main>
+
+<footer>
+    <div class="container">
+        
+        <a href="/" class="logo">Changemap</a> is a combined
+        roadmap and changelog for teams building in public. Built by <a href="http://hellocode.co">Hello Code</a> in Melbourne, AU.
+        Copyright 2026. <a href="https://twitter.com/ChangemapApp" target="_blank"><i class="fa fa-twitter"></i> @ChangemapApp</a>
+        
+    </div>
+</footer>
+</body>
+</html>

@@ -3,6 +3,14 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { vaultStorage } from './vault';
+import { accountStorage, signedIn } from './account';
+
+/** Signed in: the account's encrypted copy on the server; otherwise this device's storage (a password vault or plain). */
+const appStorage = {
+  getItem: (n: string) => (signedIn() ? accountStorage.getItem() : vaultStorage.getItem(n)),
+  setItem: (n: string, v: string) => (signedIn() ? accountStorage.setItem(n, v) : vaultStorage.setItem(n, v)),
+  removeItem: (n: string) => (signedIn() ? accountStorage.removeItem() : vaultStorage.removeItem(n)),
+};
 import { examplePlan, uid, upgradePlan } from './engine/defaults';
 import type { Plan } from './engine/types';
 
@@ -99,7 +107,7 @@ export const useStore = create<AppState>()(
     }),
     // The state is read only after the login screen (main.tsx) unlocks a vault, or at once when there is none.
     {
-      name: 'horizon-v1', storage: createJSONStorage(() => vaultStorage), skipHydration: true, version: 2,
+      name: 'horizon-v1', storage: createJSONStorage(() => appStorage), skipHydration: true, version: 2,
       migrate: (state) => {
         const s = state as { plans?: Plan[] };
         s.plans?.forEach(upgradePlan);

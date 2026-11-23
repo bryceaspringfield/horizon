@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+"""Checks accounts end to end on this machine: starts the account server (40_sync_server, wrangler dev, fresh storage),
+builds the app pointed at it, and in headless Chromium, as two devices:
+  1. creates an account, renames the plan, and waits for "Saved";
+  2. on a second device, a wrong password fails, the right one opens the renamed plan;
+  3. the server's storage holds no plan text (the plan name is absent from its files);
+  4. a save from each device in turn: the older one sees the conflict notice;
+  5. changes the password: the old one fails, the new one opens the plan;
+  6. deletes the account: signing in fails.
+Prints PASS or FAIL a step, and ALL_OK at the end.
+
+  python3 99_overall/code/94_account_check.py
+"""
+import functools
+import http.server
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import urllib.request
+
+from playwright.sync_api import sync_playwright
+
+H = '/home/baspring/projects/independent/horizon'
+TOOLS = os.path.expanduser('~/.conda/envs/tools/bin')
+ENV = {**os.environ, 'PATH': TOOLS + ':' + os.environ['PATH'], 'WRANGLER_SEND_METRICS': 'false'}
+API = 'http://127.0.0.1:8787'
+APP_PORT = 8765
+NAME = 'Zanzibar retirement ' + str(int(time.time()))
+results = []
+
+
+def step(name, ok, note=''):
+    results.append(ok)
+    print(('PASS ' if ok else 'FAIL ') + name + (f' ({note})' if note else ''), flush=True)
+
+
+def wait_up(url, seconds=90):
+    for _ in range(seconds):
+        try:
+            urllib.request.urlopen(urllib.request.Request(url + '/salt', data=b'{"username":"probe"}', method='POST',
+                                                          headers={'Content-Type': 'application/json'}), timeout=3)
+            return True
+        except Exception:
+            time.sleep(1)
+    return False
+
+
+def main():
+    state = tempfile.mkdtemp(prefix='horizon_sync_')
+    dist = tempfile.mkdtemp(prefix='horizon_dist_')
+    server = subprocess.Popen(['npx', 'wrangler', 'dev', '--port', '8787', '--ip', '127.0.0.1', '--persist-to', state],
+                              cwd=H + '/40_sync_server/code', env=ENV, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+    try:
+        build = subprocess.run(['npx', 'vite', 'build', '--outDir', dist, '--emptyOutDir'], cwd=H + '/10_app/code',
+                               env={**ENV, 'VITE_SYNC_URL': API}, capture_output=True, text=True)
+        if build.returncode != 0:
+            print(build.stdout[-2000:], build.stderr[-2000:])
+            sys.exit(1)
+
+        class SPA(http.server.SimpleHTTPRequestHandler):
+            def send_head(self):
+                if not os.path.exists(self.translate_path(self.path)) or self.path.rstrip('/').count('.') == 0 and self.path != '/':
+                    self.path = '/index.html'
+                return super().send_head()
+
+            def log_message(self, *a):
+                pass
+
+        srv = http.server.ThreadingHTTPServer(('127.0.0.1', APP_PORT), functools.partial(SPA, directory=dist))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        app = f'http://127.0.0.1:{APP_PORT}/'
+        step('server starts', wait_up(API))
+
+        with sync_playwright() as p:
+            b = p.chromium.launch()
+            errors = []
+
+            def device():
+                ctx = b.new_context()
+                pg = ctx.new_page()
+                pg.on('pageerror', lambda e: errors.append(str(e)))
+                return pg
+
+            def sign_in(pg, user, pw):
+                pg.goto(app); pg.wait_for_selector('text=Create account')
+                pg.fill('input[name=username]', user); pg.fill('input[name=password]', pw)
+                pg.click('form button[type=submit]')
+                pg.wait_for_timeout(6000)
+                return pg.locator('nav').count() > 0, pg.locator('.login .error').all_inner_texts()
+
+            # 1. Create an account and rename the plan.
+            a = device()
+            a.goto(app); a.wait_for_selector('text=Create account')
+            a.click('button:has-text("Create account")')
+            a.fill('input[name=username]', 'tester'); a.fill('input[name=password]', 'correct horse battery')
+            a.fill('input[name=password2]', 'correct horse battery')
+            a.click('form button[type=submit]')
+            a.wait_for_selector('nav', timeout=30000)
+            a.goto(app + 'people'); a.wait_for_timeout(1500)
+            a.locator('label.field:has-text("Plan name") input').fill(NAME)
+            a.wait_for_timeout(4000)
+            pill = a.locator('.topbar .pill').all_inner_texts()
+            step('account created and the edit saved', any('Saved' in t for t in pill), ' | '.join(pill))
+
+            # 2. A second device: a wrong password fails, the right one opens the renamed plan.
+            c = device()
+            ok, err = sign_in(c, 'tester', 'wrong password!!')
+            step('wrong password refused', not ok and any('Wrong' in e for e in err), '; '.join(err))
+            ok, err = sign_in(c, 'tester', 'correct horse battery')
+            c.goto(app + 'people'); c.wait_for_timeout(2000)
+            val = c.locator('label.field:has-text("Plan name") input').input_value() if ok else ''
+            step('second device opens the plan', ok and val == NAME, val)
+
+            # 3. The server's storage never holds the plan's text.
+            blob = b''
+            for root, _, files in os.walk(state):
+                for f in files:
+                    blob += open(os.path.join(root, f), 'rb').read()
+            step('server stores only ciphertext', len(blob) > 0 and NAME.encode() not in blob and b'Living expenses' not in blob,
+                 f'{len(blob)} bytes searched')
+
+            # 4. Device C saves; device A, behind, saves and sees the conflict notice.
+            c.locator('label.field:has-text("Plan name") input').fill(NAME + ' C'); c.wait_for_timeout(4000)
+            a.locator('label.field:has-text("Plan name") input').fill(NAME + ' A'); a.wait_for_timeout(4000)
+            step('a stale save is reported as a conflict', a.locator('text=Your plans changed on another device').count() == 1)
+            a.click('button:has-text("Use the other copy")'); a.wait_for_timeout(5000)
+            a.goto(app + 'people'); a.wait_for_timeout(2000)
+            v = a.locator('label.field:has-text("Plan name") input').input_value()
+            step('taking the other copy loads it', v == NAME + ' C', v)
+
+            # 5. Change the password on A.
+            a.goto(app + 'settings'); a.wait_for_timeout(1500)
+            card = a.locator('section.card:has(h3:has-text("Account"))')
+            card.locator('input').nth(0).fill('a brand new passphrase'); card.locator('input').nth(1).fill('a brand new passphrase')
+            card.locator('button:has-text("Change password")').click(); a.wait_for_timeout(5000)
+            d = device()
+            ok_old, _ = sign_in(d, 'tester', 'correct horse battery')
+            e = device()
+            ok_new, _ = sign_in(e, 'tester', 'a brand new passphrase')
+            e.goto(app + 'people'); e.wait_for_timeout(2000)
+            v = e.locator('label.field:has-text("Plan name") input').input_value() if ok_new else ''
+            step('password change: the old fails, the new opens the plan', not ok_old and ok_new and v == NAME + ' C', v)
+
+            # 6. Delete the account.
+            e.goto(app + 'settings'); e.wait_for_timeout(1500)
+            e.once('dialog', lambda dlg: dlg.accept('a brand new passphrase'))
+            e.locator('button:has-text("Delete account")').click(); e.wait_for_timeout(5000)
+            f = device()
+            ok, err = sign_in(f, 'tester', 'a brand new passphrase')
+            step('deleted account cannot sign in', not ok, '; '.join(err))
+            step('no page errors', not errors, '; '.join(errors[:3]))
+            b.close()
+    finally:
+        server.terminate()
+        try:
+            server.wait(10)
+        except subprocess.TimeoutExpired:
+            server.kill()
+        shutil.rmtree(state, ignore_errors=True)
+        shutil.rmtree(dist, ignore_errors=True)
+    print('ALL_OK' if all(results) else 'SOME_FAILED')
+
+
+if __name__ == '__main__':
+    main()

@@ -7,10 +7,55 @@ import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWort
 import { useActivePlan, useStore } from './store';
 import { Card, Check, Select } from './ui';
 import { examplePlan } from './engine/defaults';
+import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
 import { hasVault, lock, openExport, removePassword, sealExport, setPassword } from './vault';
 
 /** The app's state as the store saves it. */
 const snapshotOfState = () => JSON.stringify({ state: useStore.getState(), version: 2 });
+
+const SYNC_LABEL: Record<SyncStatus, string> = { saved: 'Saved', saving: 'Saving…', offline: 'Offline, will retry', conflict: 'Changed on another device', signedOut: 'Signed out' };
+
+function useSync() {
+  const [s, setS] = useState(syncStatus());
+  useEffect(() => { const off = onSyncStatus(setS); return () => { off(); }; }, []);
+  return s;
+}
+
+/** The account card: who is signed in, the password, signing out, and deleting the account. */
+function AccountCard() {
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [msg, setMsg] = useState('');
+  const sync = useSync();
+  if (!signedIn()) return (
+    <Card title="Account">
+      <p className="muted">You use Horizon without an account; your plans stay on this device. With an account, they are encrypted in your browser and kept on Horizon's server, so you can sign in from any device.</p>
+      <button onClick={() => { localStorage.removeItem(MODE_KEY); location.reload(); }}>Sign in or create an account</button>
+    </Card>
+  );
+  const change = async () => {
+    if (pw.length < 10) return setMsg('Use at least 10 characters.');
+    if (pw !== pw2) return setMsg('The two passwords differ.');
+    const err = await changePassword(pw);
+    setPw(''); setPw2('');
+    setMsg(err ?? 'Password changed; other devices are signed out.');
+  };
+  return (
+    <Card title="Account" actions={<span className="badge"><Icon name="lock" size={13} />{SYNC_LABEL[sync]}</span>}>
+      <div className="lockbox">
+        <p className="muted">Signed in as <b>{accountName()}</b>. Your plans are encrypted in this browser (AES-256-GCM, a key from your password with PBKDF2-SHA-256 and 600,000 iterations) before they reach the server, which cannot read them. A lost password cannot be recovered; keep an encrypted backup.</p>
+        <label className="field"><span>New password</span><div className="input"><input type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} /></div></label>
+        <label className="field"><span>Repeat it</span><div className="input"><input type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></div></label>
+        {msg && <p className="muted">{msg}</p>}
+        <div className="row">
+          <button onClick={change}>Change password</button>
+          <button className="ghost" onClick={signOut}>Sign out</button>
+          <button className="ghost danger" onClick={async () => { const p = prompt('Delete the account and its plans on the server? Enter your password to confirm.'); if (p) setMsg((await deleteAccount(p)) ?? ''); }}>Delete account</button>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 function PasswordCard() {
   const [pw, setPw] = useState('');
@@ -97,6 +142,7 @@ const GROUPS: [string, PageKey[]][] = [
 export default function App() {
   const [page, setPage] = useState<PageKey>(pageFromUrl);
   const theme = useStore((s) => s.settings.theme);
+  const sync = useSync();
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
   // Addresses are paths under the app's base (/horizon/taxes); an old #taxes link is turned into its path.
   useEffect(() => {
@@ -150,15 +196,25 @@ export default function App() {
             <span className={'pill' + (settings.realDollars ? ' on' : '')} onClick={() => setSettings({ realDollars: !settings.realDollars })}>
               {settings.realDollars ? "Today's dollars" : 'Future dollars'}
             </span>
-            <span className="pill" onClick={() => (hasVault() ? lock() : go('settings'))} title={hasVault() ? 'Lock the app now' : 'Protect your plans with a password'}>
+            {signedIn() ? <>
+              <span className={'pill' + (sync === 'conflict' || sync === 'signedOut' ? ' warn' : '')} title="Sync with your account" onClick={() => go('settings')}>{SYNC_LABEL[sync]}</span>
+              <span className="pill" onClick={signOut} title={'Signed in as ' + accountName()}><Icon name="lock" size={15} />Sign out</span>
+            </> : <span className="pill" onClick={() => (hasVault() ? lock() : go('settings'))} title={hasVault() ? 'Lock the app now' : 'Protect your plans with a password'}>
               <Icon name="lock" size={15} />{hasVault() ? 'Lock' : 'Set a password'}
-            </span>
+            </span>}
             <span className="pill" onClick={() => setSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
               <Icon name={settings.theme === 'dark' ? 'sun' : 'moon'} size={15} />
             </span>
           </div>
         </div>
-        {page === 'dashboard' && !hasVault() && !settings.dismissedLockTip && (
+        {sync === 'conflict' && (
+          <section className="card tip">
+            <Icon name="shield" size={20} />
+            <div><b>Your plans changed on another device.</b> Keep the other device's copy, or replace it with this one.</div>
+            <div className="row"><button onClick={takeServerCopy}>Use the other copy</button><button className="ghost" onClick={keepThisCopy}>Keep this copy</button></div>
+          </section>
+        )}
+        {page === 'dashboard' && !signedIn() && !hasVault() && !settings.dismissedLockTip && (
           <section className="card tip">
             <Icon name="shield" size={20} />
             <div><b>Your plans are saved in this browser, unencrypted.</b> Set a password to encrypt them and ask for it each time Horizon opens.</div>
@@ -229,7 +285,8 @@ function SettingsPage() {
           <Select label="Theme" value={settings.theme} options={[['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />
         </div>
       </Card>
-      <PasswordCard />
+      <AccountCard />
+      {!signedIn() && <PasswordCard />}
       <Card title="Your data">
         <p className="muted">Everything stays in this browser's storage; nothing is sent anywhere. To use another device, export an encrypted backup and import it there.</p>
         <div className="row">

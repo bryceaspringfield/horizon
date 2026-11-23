@@ -39,6 +39,7 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page(viewport={'width': 1440, 'height': 1000})
+        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
         errors = []
         pg.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
         pg.on('pageerror', lambda e: errors.append(str(e)))
@@ -100,6 +101,7 @@ def main():
         bad += len(hashed) + (0 if lockbtn == 1 else 1)
         # Phone width: no page may scroll sideways, and the menu drawer opens and leads to a page.
         ph = b.new_page(viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
+        ph.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
         perr = []
         ph.on('pageerror', lambda e: perr.append(str(e)))
         wide = []

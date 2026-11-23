@@ -1,0 +1,1891 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title><![CDATA[ProjectionLab Changelog]]></title>
+        <description><![CDATA[Release history for ProjectionLab]]></description>
+        <link>https://projectionlab.com</link>
+        <image>
+            <url>https://projectionlab.com/images/logos/icon-rounded.png</url>
+            <title>ProjectionLab Changelog</title>
+            <link>https://projectionlab.com</link>
+        </image>
+        <generator>RSS for Node</generator>
+        <lastBuildDate>Fri, 20 Nov 2026 00:00:00 GMT</lastBuildDate>
+        <atom:link href="https://projectionlab.com/feed/changelog" rel="self" type="application/rss+xml"/>
+        <pubDate>Fri, 20 Nov 2026 00:00:00 GMT</pubDate>
+        <language><![CDATA[en]]></language>
+        <ttl>60</ttl>
+        <category><![CDATA[Personal Finance]]></category>
+        <category><![CDATA[Financial Independence]]></category>
+        <category><![CDATA[Technology]]></category>
+        <item>
+            <title><![CDATA[Version 5.0.0]]></title>
+            <description><![CDATA[
+  <h4>Design & Planning</h4>  
+  <ul>
+    <li>Reorganized the app with new left navigation, cleaner pages, and less visual clutter.</li>
+		<li>A new Home brings your finances, household, and milestones together, with a timeline to explore the years ahead.</li>
+		<li>Edit income, expenses, and other plan events beside live charts on Overview and the new Income, Expenses, Real Assets, and Flows pages.</li>
+		<li>Explore a year and see its figures across the page.</li>
+		<li>New charts, a searchable chart library, and quick controls to choose your level of detail.</li>
+		<li>Redesigned editors with streamlined input fields.</li>
+		<li>Guided setup builds your first plan around your household, finances, and goals.</li>
+  </ul>
+      
+  <h4>Milestones</h4>  
+  <ul>
+    <li>A redesigned Milestones page shows your progress, what you've reached, and what's ahead.</li>
+		<li>Visualize your life in weeks, months, or years, with an interactive chart of your milestones and life chapters.</li>
+		<li>Edit milestones as readable sentences, with their linked income and expenses in one place.</li>
+		<li>Coast FI milestones estimate what you need invested today to reach your retirement target without further savings.</li>
+  </ul>
+      
+  <h4>Household</h4>  
+  <ul>
+    <li>New Household view for you, your partner, children, and parents you support.</li>
+		<li>Personalize everyone with a new character editor, and see your household through the years.</li>
+		<li>Plan childcare, college, and family support around each person's age.</li>
+		<li>Connect relatives' accounts to future inheritances, and name the heirs to your estate.</li>
+		<li>Expanded US family tax estimates for children, dependent care, and college, plus some dependent exemptions and credits.</li>
+		<li>ACA subsidy estimates can follow changes in your tax household.</li>
+  </ul>
+      
+  <h4>Net Worth & History</h4>  
+  <ul>
+    <li>Your accounts, assets, and debts in one place, with bulk updates and account-level history.</li>
+		<li>Manual tracking and historical charts are now included in Basic.</li>
+		<li>Edit or export history, import CSV files, or paste from a spreadsheet.</li>
+  </ul>
+      
+  <h4>Self-Employment & Retirement Accounts</h4>  
+  <ul>
+    <li>New Solo 401k, Roth Solo 401k, and SEP IRA accounts.</li>
+		<li>Refined US self-employment tax estimates and deductions, including QBI and health insurance.</li>
+  </ul>
+      
+  <h4>Other Improvements</h4>  
+  <ul>
+    <li>Chance of Success runs are now repeatable by default, making changes easier to compare.</li>
+		<li>New Bonus, Windfall, and Long-term Care income and expense types.</li>
+		<li>Hide Amounts in Display Options lets you share your screen without showing personal currency values.</li>
+		<li>Overhauled the app's underlying infrastructure to better support future improvements.</li>
+		<li>Revamped the Help Center with clearer navigation and improved search to help you find answers faster.</li>
+  </ul>
+      
+  <h4>Resources</h4>  
+  <ul>
+    <li><a href="/help/projectionlab-v5-early-access-guide">V5 transition guide</a>.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">5.0.0</guid>
+            <pubDate>Fri, 20 Nov 2026 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.6.0]]></title>
+            <description><![CDATA[
+  <h4>Tax Strategies</h4>  
+  <ul>
+    <li>Create a tax strategy via Optimize > Tax Strategy.</li>
+		<li>Target a federal bracket, IRMAA cliff, ACA subsidy limit, or income threshold, along with other optional ceilings and constraints.</li>
+		<li>Roth Conversions, withdrawal shielding, and capital gain harvesting occur opportunistically based on your tax strategy.</li>
+		<li>Withdrawal shielding shifts withdrawals to tax-free sources after reaching your target bracket, threshold, or ceiling.</li>
+		<li>Gain harvesting proactively realizes gains in favorable years.</li>
+		<li>Tax Strategy > Optimize automatically hones in on the best performing strategies for your goals.</li>
+		<li>Rich charting and visualization options to highlight the impacts of your strategy.</li>
+		<li>Automatic income-aware withdrawal splitting to improve realism for couples and tax-efficiency for international scenarios.</li>
+		<li>Tax Strategy > Compare shows a heatmap of common strategies and performance metrics.</li>
+		<li>Tax Strategy > Targets view shows how income interacts with strategy constraints over time.</li>
+  </ul>
+      
+  <h4>ACA & Healthcare</h4>  
+  <ul>
+    <li>Affordable Care Act subsidy estimation for expenses with Healthcare Type: ACA Marketplace.</li>
+		<li>Tax strategy can target specific Federal Poverty Level multiples to preserve subsidies.</li>
+		<li>Healthcare expenses now default to match inflation +2%, with growth modeled starting today even for future expenses.</li>
+  </ul>
+      
+  <h4>Benefits Estimation</h4>  
+  <ul>
+    <li>Social Security estimation based on inputs from your SSA account statement.</li>
+		<li>Improved Medicare estimation as a formal plan expense type with Part B, Part D, and supplemental coverage.</li>
+		<li>Benefit COLA modifier in Rates > Inflation to adjust assumed cost-of-living increases for government benefits.</li>
+  </ul>
+      
+  <h4>Income, Bonds, and Dividends</h4>  
+  <ul>
+    <li>Automatic income withholding option, using a quick heuristic estimate to help reduce EOY tax settlement activity in most cases.</li>
+		<li>Bond income composition inputs to improve tax estimation: Municipal bonds, Treasury bonds, Other bonds.</li>
+		<li>Dividend composition inputs: Qualified and Ordinary.</li>
+		<li>Plan-level dividend reinvestment timeboxing with account-level overrides.</li>
+		<li>Redesigned multiple plan event forms with clearer controls and layout.</li>
+  </ul>
+      
+  <h4>Canada</h4>  
+  <ul>
+    <li>Canada Pension Plan and survivor benefits estimation.</li>
+		<li>Canadian pension income splitting for couples.</li>
+		<li>CPP pension sharing for couples.</li>
+		<li>Dividend composition inputs: Eligible, Non-Eligible, Foreign.</li>
+		<li>Dividend tax credit estimation.</li>
+  </ul>
+      
+  <h4>United Kingdom</h4>  
+  <ul>
+    <li>UFPLS and PCLS pension withdrawal methods for defined contribution pensions.</li>
+		<li>Marriage allowance estimation.</li>
+		<li>Improvements to SIPP MPAA and TAA calculations.</li>
+  </ul>
+      
+  <h4>Australia</h4>  
+  <ul>
+    <li>Dividend composition inputs: Franked and Unfranked.</li>
+		<li>Franking credit estimation.</li>
+  </ul>
+      
+  <h4>Currency & Inflation</h4>  
+  <ul>
+    <li>Grow from Today option for event starting amounts to model growth from the current year even if the event starts in the future.</li>
+		<li>Today's Currency now always refers to real-world current year as the reference frame, which may change the meaning of certain inputs in fixed-date plans. We recommend reviewing fixed-date plans accordingly.</li>
+		<li>Intra-year inflation proration for actual progress data overlay in fixed-date plans.</li>
+  </ul>
+      
+  <h4>Chance of Success</h4>  
+  <ul>
+    <li>Fan chart offering a different way to visualize uncertainty bands over time.</li>
+		<li>Click any distribution histogram bar to filter trials.</li>
+		<li>Variable and All filter modes for milestone timing distributions.</li>
+  </ul>
+      
+  <h4>UI & Design</h4>  
+  <ul>
+    <li>Glassmorphic design language for floating elements, with an accessibility option to reduce transparency.</li>
+		<li>Renamed Priorities to Flows for improved clarity and discoverability.</li>
+		<li>New plan setup wizard.</li>
+		<li>New surface framework with themed presets for menus, tooltips, modals, drawers, and cards.</li>
+		<li>Notable event stack capping prevents icon overflow on dense charts.</li>
+		<li>Redesigned form sections with more title popovers to improve educational scaffolding.</li>
+		<li>Line charts now use monotone interpolation to improve curve fidelity.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>New visualizations on Flexible Spending page.</li>
+		<li>Redesigned input controls across the app for a more consistent form experience.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.6.0</guid>
+            <pubDate>Mon, 20 Apr 2026 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.5.0]]></title>
+            <description><![CDATA[
+  <h4>Transfers</h4>  
+  <ul>
+    <li>New cash flow priority subtype to move money between accounts.</li>
+		<li>Multiple amount types and frequencies.</li>
+		<li>Automatic tax treatment for common scenarios like in-plan conversions, with advanced settings when needed.</li>
+		<li>External destination options for gifts or money leaving the plan.</li>
+  </ul>
+      
+  <h4>Estate Planning</h4>  
+  <ul>
+    <li>Estate tab with insights and visualizations.</li>
+		<li>Estimate legacy, net legacy, and estate taxes & costs using configurable assumptions.</li>
+		<li>Federal estate tax estimation (US) and inheritance tax (UK).</li>
+		<li>Added estate metrics to Tax Analytics and Roth conversion analysis tables.</li>
+  </ul>
+      
+  <h4>Charitable Giving</h4>  
+  <ul>
+    <li>Specific donation types for more realistic charitable giving.</li>
+		<li>Qualified Charitable Distributions (QCDs).</li>
+		<li>Donor-Advised Fund (DAF) contributions.</li>
+		<li>Charitable deduction carryforward and tax treatment settings.</li>
+  </ul>
+      
+  <h4>Expenses & Priorities</h4>  
+  <ul>
+    <li>Expenses can be marked partially discretionary with a percent input.</li>
+		<li>Savings and emergency fund goals include a new "Always Fund" option.</li>
+  </ul>
+      
+  <h4>Sankey Charts</h4>  
+  <ul>
+    <li>New options for grouping and coloring expense outflows.</li>
+		<li>Polished design, animations, hover, dimming, curvature, and layout algorithms.</li>
+		<li>Added notable event icons to the slider.</li>
+  </ul>
+      
+  <h4>Chance of Success</h4>  
+  <ul>
+    <li>Revamped milestone section with interactive percentile range distributions and IQR indicators.</li>
+		<li>Sparkline charts in trial cards and table rows for quick visual comparison of trajectories.</li>
+		<li>Filter trials by milestone timing or outcome type.</li>
+  </ul>
+      
+  <h4>Metrics</h4>  
+  <ul>
+    <li>Animated gauges and sparklines for Tax Analytics and Estate metrics, with improved metric selector UX.</li>
+		<li>New Tax Analytics metrics for Net Legacy, Estate Drag, Giving, Federal Estate Tax (US), and Inheritance Tax (UK).</li>
+		<li>Withdrawal Rate calculation now subtracts reinvested inflows for better alignment with traditional SWR planning.</li>
+		<li>Expenses and taxable transfers from tax-deferred accounts reduce RMD requirements.</li>
+		<li>Redesigned metric, estate, and withdrawal strategy settings to use nav drawers instead of modals.</li>
+  </ul>
+      
+  <h4>Event Timing</h4>  
+  <ul>
+    <li>Once Per Year frequency option for modeling discrete annual events that may have already occurred in the current year.</li>
+		<li>Track distributions already taken this year to improve first-year precision.</li>
+		<li>Ability to enter dates in the past for many inputs.</li>
+  </ul>
+      
+  <h4>UI Enhancements</h4>  
+  <ul>
+    <li>Consolidated Chart Options and Summary Options into a unified Display Options menu.</li>
+		<li>Chart notable event stabilization to make animations more intuitive and consistent.</li>
+		<li>New growth rates UI with refreshed defaults (7% / 1.5%).</li>
+		<li>Chart tooltips now use glassmorphic design with right-aligned values.</li>
+		<li>Refined account and priority event colors.</li>
+		<li>Improved contextual plan warnings.</li>
+		<li>Trailing zeros option for SI prefixes.</li>
+		<li>Removed "2 More" plan tab.</li>
+		<li>Refined account and priority forms.</li>
+		<li>Added tooltips for cost basis, post-tax contributions, restricted conversions.</li>
+		<li>New users default to system light/dark theme preference.</li>
+		<li>Refreshed slider input design.</li>
+		<li>Numerous layout tweaks.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>Refined tax estimation for Spain and Germany.</li>
+		<li>Added 2025 to historical datasets.</li>
+		<li>Major type safety push to bring stronger typing to dozens of modules.</li>
+		<li>Frontend tech debt burndown, completed migration from Vue 2 Options API to Vue 3 Composition API.</li>
+		<li>Numerous engine changes to support transfers, charitable giving, and estate planning.</li>
+		<li>Custom Chart.js plugin to improve stacked bar rounding.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.5.0</guid>
+            <pubDate>Wed, 18 Feb 2026 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.4.1]]></title>
+            <description><![CDATA[
+  <h4>Pro Dashboard</h4>  
+  <ul>
+    <li>Redesigned Pro dashboard with new analytics like total assets / AUA, net worth, and usage.</li>
+		<li>Improved and standardized layout, UI elements, and visualizations.</li>
+  </ul>
+      
+  <h4>Advisor Directory</h4>  
+  <ul>
+    <li>ProjectionLab Pro subscribers can now submit a profile for the upcoming financial advisor and coach directory.</li>
+		<li>Listings will be reviewed and published when the directory goes live.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>You can now add a custom profile picture URL in Account Settings.</li>
+		<li>Added account settings for product tours and plan setup wizard.</li>
+  </ul>
+      
+  <h4>Tax Tweaks</h4>  
+  <ul>
+    <li>More consistent AMT handling for deductible expenses, refinements to state itemized deduction phaseouts, and other minor fixes.</li>
+		<li>Updated inflation adjustment assumptions for certain thresholds to align more strictly with current legislation (NIIT threshold, Additional Medicare threshold, mortgage interest deduction debt limit, primary residence exclusion).</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.4.1</guid>
+            <pubDate>Thu, 06 Nov 2025 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.4.0]]></title>
+            <description><![CDATA[
+  <h4>Flex Spending</h4>  
+  <ul>
+    <li>Dynamically adjust spending based on portfolio performance to help simulate more realistic spending profiles.</li>
+		<li>Added Spending as a customizable metric distinct from expenses.</li>
+		<li>Expenses are now categorized as essential / discretionary / not spending.</li>
+		<li>Define behavioral rules in Plan Settings > Flexibility for how you want to flex your spending based on portfolio performance.</li>
+		<li>Spending, Essential Spending, Discretionary Spending, and Spending Flex can now be visualized in both Plan mode and Chance of Success.</li>
+		<li>Spending can now be referenced in milestones.</li>
+  </ul>
+      
+  <h4>Location & Tax Estimation</h4>  
+  <ul>
+    <li>Location is now a first-class input during onboarding, and can be adjusted in Account Settings or plan starting conditions.</li>
+		<li>Tax estimation is now free, with support for international locations. For detailed tax insights, upgrade to Premium.</li>
+		<li>Tax credits and deductions can now be scoped to specific jurisdictions (Federal, State/Province, Local) and itemized or not.</li>
+		<li>The Move milestone type now auto-enables Relocation when activated.</li>
+		<li>Added state-level itemization and phase-out ranges to US state tax estimation.</li>
+		<li>Updated WA state cap gains config, improved NJ contribution/withdrawal taxation for certain retirement account types.</li>
+		<li>Improved UK National Insurance handling and several other international enhancements (see below).</li>
+		<li>Migration for existing plans to infer starting location and enable tax estimation if a strong international preset match is detected.</li>
+  </ul>
+      
+  <h4>Tables & Reports</h4>  
+  <ul>
+    <li>Table views are now located in the plan-level Reports tab with ability to export to PDF, CSV, or JSON.</li>
+		<li>View tabular data for any plot, built-in table, or custom exploration.</li>
+		<li>Improved table layout with optional chart view and draggable height.</li>
+  </ul>
+      
+  <h4>Tax Analytics</h4>  
+  <ul>
+    <li>Income by Tax Rate visualization with heatmap color-coding.</li>
+		<li>Filter charts by jurisdiction or tax type to dig into Federal vs State vs Local taxable income, taxes, rates, deductions, and more.</li>
+		<li>Improved chart legend with hover interactivity and quick dataset toggles.</li>
+  </ul>
+      
+  <h4>Mega Backdoor Roth</h4>  
+  <ul>
+    <li>Mega Backdoor Roth contributions can now be modeled via new options in the Roth 401k/403b cash-flow priority type.</li>
+		<li>You can max remaining after-tax contribution space, or contribute a fixed % or amount, and route to a Roth IRA or in-plan.</li>
+  </ul>
+      
+  <h4>Canada OAS, GIS, EI + CPP Contributions</h4>  
+  <ul>
+    <li>Canadian tax engine now includes Employment Insurance (EI) and Canada Pension Plan (CPP) contributions.</li>
+		<li>Added Old Age Security (OAS) and Guaranteed Income Supplement (GIS) estimated income streams.</li>
+		<li>RRSP to RRIF conversion age is now configurable.</li>
+  </ul>
+      
+  <h4>Netherlands Wealth Tax (Box 3)</h4>  
+  <ul>
+    <li>Improved wealth tax estimation for the Netherlands with deemed return rates and asset categories.</li>
+  </ul>
+      
+  <h4>Metrics & Plots</h4>  
+  <ul>
+    <li>Yearly summary metric hover menus now show chart previews.</li>
+		<li>One-click plots for any summary subsection or line item.</li>
+		<li>Added State Taxable Income and Local Taxable Income metrics.</li>
+		<li>Restructured all income-related summary metrics.</li>
+		<li>Refined categorization and color-coding for Expenses and Spending plots.</li>
+		<li>Stacked bar tooltip totals are now dynamic and update when datasets are hidden.</li>
+		<li>Cleaned up summary metric names and visibility/ordering defaults.</li>
+		<li>Improved mobile UX for summary metrics and plots.</li>
+  </ul>
+      
+  <h4>Chance of Success</h4>  
+  <ul>
+    <li>Block Bootstrap historical sampling method: stitch random blocks of consecutive years to mix eras while keeping year-to-year patterns.</li>
+		<li>Block Length input for # of years in each historical block, allowing you to explore sequence variety vs regime persistence.</li>
+		<li>If you set specific accounts to use custom normal distributions for returns, those now move together as a 100% correlated group.</li>
+		<li>Added historical data for 2024, and improved configuration UI.</li>
+  </ul>
+      
+  <h4>Account Types & Selection</h4>  
+  <ul>
+    <li>Redesigned account selection UI in Current Finances, Plan > Accounts, and Cash Flow Priorities.</li>
+		<li>US employer retirement accounts now have distinct types for 401k, 403b, 401a, 457b, and Roth variants.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Employer contributions to Roth accounts can now be designated as Traditional or Roth.</li>
+		<li>Taxes and Withdrawals summary metric hover menus now include quick links to related plan settings.</li>
+		<li>Charts show a clearer "no data" state.</li>
+		<li>Adopted editable preview card UI components in Onboarding and Basic Info pages.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>Rebuilt the tax engine and tax data models using jurisdiction as the main organizing principle.</li>
+		<li>Made the yearly summary metrics framework more flexible and declarative, with support for derived metrics.</li>
+		<li>Restructured multiple UI components to improve visual consistency and code quality.</li>
+		<li>Migrated numerous components to TypeScript, Script Setup, & Composition API.</li>
+		<li>Stacked bar charts no longer use Chart.js minBarLength due to unpredictable effects on stack height.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.4.0</guid>
+            <pubDate>Mon, 13 Oct 2025 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.3.1]]></title>
+            <description><![CDATA[
+  <h4>One Big Beautiful Bill Act (OBBBA)</h4>  
+  <ul>
+    <li>Updated US tax estimation to support OBBBA, which was signed into law on July 4, 2025.</li>
+		<li>Controls in Plan Settings > Tax > Assumptions to toggle expiration for certain provisions.</li>
+		<li>$40k SALT deduction cap with phase-out ranges, 1% annual increases, sunset in 2030 back to $10k.</li>
+		<li>$6k senior bonus deduction with phase-out ranges, sunset in 2029.</li>
+  </ul>
+      
+  <h4>Simulation Engine Performance</h4>  
+  <ul>
+    <li>Significant optimization work to improve Chance of Success speed by ~2x.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Minimum Withdrawals RMD type for Inherited IRAs now automatically applies stretch treatment for beneficiaries < 10 years younger than the original owner.</li>
+		<li>Improved reporting clarity of inflation-adjusted investment growth in partial years with calendar year alignment.</li>
+		<li>Added the ability to completely delete your account in Account Settings > Danger Zone.</li>
+		<li>Minor adjustments to tax config for a few US states.</li>
+		<li>Improved tax bracket alpha interpolation and hover effects on Effective Brackets chart.</li>
+		<li>Made handling of %-of-balance extra debt payment goals more intuitive for partial years.</li>
+		<li>Updated account-level passive income defaults to count dividends as passive income, but not growth (appreciation in value).</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.3.1</guid>
+            <pubDate>Mon, 14 Jul 2025 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.3.0]]></title>
+            <description><![CDATA[
+  <h4>Monthly Time Range Inputs</h4>  
+  <ul>
+    <li>Choose specific start/end months for income streams, expenses, milestones, and other events.</li>
+		<li>The simulation engine still uses an annual timestep for performance, but event values will now be prorated based on how their time bindings overlap with the simulated year.</li>
+  </ul>
+      
+  <h4>Calendar Year Alignment</h4>  
+  <ul>
+    <li>Choose whether the simulation engine aligns to the calendar year, uses a rolling year, or uses a different tax year or fiscal year system (Account Settings > Plans > Year Alignment).</li>
+		<li>Calendar year alignment is the new default.</li>
+		<li>The reported values in the yearly summary and cash-flow views always represent what PL believes happened in the full year. If the plan starts in the middle of a year, the impacts of events will be prorated accordingly.</li>
+  </ul>
+      
+  <h4>Inherited IRAs</h4>  
+  <ul>
+    <li>Added support for traditional and Roth inherited IRAs.</li>
+		<li>10-year divestment and stretch IRA RMD treatment options.</li>
+		<li>Ability to define a custom distribution schedule using the Advanced Editor for non-standard scenarios.</li>
+  </ul>
+      
+  <h4>Tax Enhancements</h4>  
+  <ul>
+    <li>Added US state income tax exemption modeling for income types like social security, pensions, and/or retirement income, taking into account max exemption amounts and per-taxpayer scaling.</li>
+		<li>Improved US local tax estimation. Many localities focus on earned income, with other notable improvements for special cases like New York City, Philadelphia, Wilmington, Detroit, Newark, and others.</li>
+		<li>New Locality selector in Plan Settings > Tax > Ordinary Income Tax for applicable US states.</li>
+		<li>Better property tax and assessed value modeling options, with automatic Prop 13 handling for California and customization options for other states/counties.</li>
+		<li>Added SDI to California state income tax estimation.</li>
+		<li>Local Income Tax is now differentiated from Property Tax in all reporting, with separate Effective Tax Rate controls for each.</li>
+		<li>The Tax Deduction event type now has a Jurisdiction multi-select (Federal, State, Local) and itemization toggle, allowing you to scope custom deductions more precisely.</li>
+		<li>The impact of any custom tax rate modifiers will now be shown in the Effective Brackets chart.</li>
+  </ul>
+      
+  <h4>Other New Features</h4>  
+  <ul>
+    <li>Account Cost Basis and Past Contributions are now defined as dollar amounts in Current Finances rather than as percentages within each plan.</li>
+		<li>Income streams or asset sale proceeds can now be routed directly towards paying off financed asset loans.</li>
+		<li>Option to control if the yearly summary pane should automatically hide metrics inapplicable to the selected year.</li>
+		<li>Added Quarterly and Bi-Weekly frequency options for income/expenses.</li>
+		<li>Event form usability improvements: richer section previews for Compact view, better input organization.</li>
+		<li>Compare Mode support for plans with different start/end years.</li>
+		<li>Cost component breakdown in medicare and IRMAA tooltips.</li>
+		<li>More tooltips and descriptions for yearly summary events.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Sankey chart now animates on first render.</li>
+		<li>Improved spacing consistency and x-axis tick display for bar charts.</li>
+		<li>Cleaned up year slider and chart tooltip UI elements.</li>
+		<li>Monthly payment input for debts linked to Current Finances can now be easily overridden in each plan, or reset to the inherited amount.</li>
+		<li>Reorganized advanced options for Withdrawal Strategy mode to improve discoverability.</li>
+		<li>Asset auto-liquidation now ensures proceeds don't get locked in an illiquid account when proceeds are configured to be routed to a specific account.</li>
+		<li>Updated UK dividend tax allowance.</li>
+		<li>Negative year offsets are now supported in milestone definitions.</li>
+		<li>Mobile usability improvements for the Effective Brackets chart.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>Complete rebuild of the time binding and milestone resolution system (and related types) to support more granular inputs.</li>
+		<li>Migrated 20+ legacy UI components to TypeScript + Vue 3 Composition API.</li>
+		<li>Overhauled legacy app data modernization framework and improved error handling UX.</li>
+		<li>UI components now use conventional Vue modelValue syntax.</li>
+		<li>Upgraded to Vuetify 3.8</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.3.0</guid>
+            <pubDate>Mon, 23 Jun 2025 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.2.3]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Partner life expectancy is now a separate milestone that can be used to model one partner outliving the other, with transfer of assets, step-up in basis, and change in tax filing status estimated accordingly.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Redesigned pricing page, upgrade page, and change plan page to improve clarity and consistency.</li>
+		<li>Liquidate if Necessary now earmarks sale proceeds as ineligible for discretionary spending to improve compatibility with the "Spend Anything Left Over" setting.</li>
+		<li>Clarified Sankey chart labeling for Roth 401k employer matches.</li>
+		<li>Improved interaction between tax-deferred distribution withholding settings and 72t / RMD operations.</li>
+		<li>Using Liquidate if Necessary on multiple real assets with sale proceeds routed directly to specific accounts now performs less aggressive auto-liquidation of subsequent assets, depending on the relative drawdown order of the destination accounts.</li>
+		<li>Improved RMD estimation for spouses with a 10+ year age gap.</li>
+  </ul>
+      
+  <h4>Update on Self-Hosting</h4>  
+  <ul>
+    <li>We've decided to focus entirely on the web version of ProjectionLab and will only release future updates there. Learn more <a href="/blog/update-on-self-hosting" target="_blank">here</a>.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>The simulation engine now assumes birthdays occur on the 1st of the month rather than the middle of the month, based on community feedback.</li>
+		<li>Expanded legacy app data modernization framework to support the new partner life expectancy feature in a way that's minimally disruptive to existing plans.</li>
+		<li>Upgraded CI job docker images, Node.js versions, and GCP cloud functions runtime versions.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.2.3</guid>
+            <pubDate>Thu, 06 Mar 2025 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.2.2]]></title>
+            <description><![CDATA[
+  <h4>Bond Allocation and Location</h4>  
+  <ul>
+    <li>When you define a portfolio-wide bond allocation in Plan Settings > Bonds, you can now choose whether it should be distributed evenly across accounts, or if certain accounts should receive more bonds than others.</li>
+		<li>You can also now define a custom bond allocation for each account to override the portfolio-wide allocation in specific cases. The simulation engine will still do its best to work around this and achieve the portfolio-wide target allocation.</li>
+		<li>Added 1-click plots for Portfolio Allocations to help visualize the effects of applying different portfolio-wide or account-specific bond settings.</li>
+		<li>Added Account Allocations section to the yearly summary pane, with the ability to plot the breakdown for each account individually.</li>
+  </ul>
+      
+  <h4>Chance of Success Treatment for Accounts</h4>  
+  <ul>
+    <li>If you set a fixed or custom growth rate for an investment account, it will now ask you how you want that account treated in Chance of Success mode. Auto: to ensure the account still varies in Chance of Success trials, or Fixed: to keep the growth rate fixed at the value you set.</li>
+  </ul>
+      
+  <h4>Other New Features</h4>  
+  <ul>
+    <li>Drawdown Order cards now show a preview plot illustrating when withdrawals occur for each account type.</li>
+		<li>Additional flexibility for Compare > What If mode: Keep Changes, Revert Changes, or Save as New Plan.</li>
+		<li>Unlinking a Pro client account now seamlessly spins off the client to their own individual account, with data and settings preserved from the original Pro client profile.</li>
+		<li>Added Restore Defaults buttons in Chance of Success config and Plan Settings > Growth Rates.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Sankey chart now shows the underlying account names for investment/savings flows, rather than their cash-flow priority names.</li>
+		<li>Improved session recovery mechanism for free accounts.</li>
+		<li>Rebuilt modal dialogs in Account Settings using the new standardized modal framework.</li>
+		<li>App preferences like theme are now cached locally to improve UX at app startup.</li>
+		<li>Increased input precision for Hourly Wage input.</li>
+		<li>Tweaked activation logic for TCJA reversion in now-based plans to activate in the simulation year where the majority of the time falls in calendar year 2026 (as opposed to simply the simulation year that ends in 2026).</li>
+		<li>Minor enhancement to settings state synchronization when editing simultaneously on multiple devices.</li>
+		<li>Refined tax estimation for non-qualified 72t distributions from Roth account types.</li>
+		<li>Brackets for US social security income taxability are no longer assumed to increase with inflation.</li>
+		<li>Improved input field style consistency.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.2.2</guid>
+            <pubDate>Fri, 31 Jan 2025 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.2.1]]></title>
+            <description><![CDATA[
+  <h4>2025 Tax Updates</h4>  
+  <ul>
+    <li>Updated account contribution limits for 2025.</li>
+		<li>Added 2025 tax brackets and rates to US tax estimator.</li>
+		<li>Updated international tax presets for Canada, Germany, Switzerland, Singapore, China, Hong Kong, Netherlands, Spain, Brazil, Norway, Belgium, and Israel.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added bar chart option "Fill Canvas" so you can control whether the Chart.js bar chart sizing workaround from v4.2.0 is enabled, since it has a minor effect on x-axis tick visibility in some cases.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.2.1</guid>
+            <pubDate>Sun, 29 Dec 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.2.0]]></title>
+            <description><![CDATA[
+  <h4>Compare Mode Upgrades</h4>  
+  <ul>
+    <li>Visualize the baseline plan overlaid on the current plan.</li>
+		<li>See how milestones and notable events have changed in the chart.</li>
+		<li>Review deltas in the yearly summary pane for individual line-items.</li>
+		<li>Works for built-in plots and custom plots, and can plot multiple metrics at once.</li>
+		<li>Fewer clicks to activate/deactivate, and easier to discover.</li>
+  </ul>
+      
+  <h4>Plan View Enhancements</h4>  
+  <ul>
+    <li>Hover over any metric in the yearly summary pane and see a line chart, bar chart, or granular breakdown with a single click.</li>
+		<li>Notable event icons above the chart are now clickable, and will open the related item if possible.</li>
+		<li>View 25+ built-in plots, covering a wider range of metrics with improved color-coding.</li>
+		<li>Built-in plots now include: Income, Expenses, Taxes, Contributions, Withdrawals, Debt Payments, Taxable Income, and more.</li>
+  </ul>
+      
+  <h4>Other New Features</h4>  
+  <ul>
+    <li>Tax withholding rates can now be defined for account types that have non-tax-free withdrawals or conversions via Plan Settings > Tax > Tax Withholding.</li>
+		<li>Additional milestone criteria types: <i>Before Age</i> and <i>Before Calendar Year</i>.</li>
+		<li><i>Route Directly to Account(s)</i> is now a multi-select that allows you to split an income item evenly across a group of accounts.</li>
+		<li><i>Fund with Specific Account(s)</i> is now a multi-select where you can specify more than one account to pull from, if the first is insufficient.</li>
+		<li>More customization options for bar charts: solid/transparent fill, rounded bars, thick bars, overlap bars, etc.</li>
+		<li>High-contrast option for non-summed Plot Builder metrics that render line items as separate datasets.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Yearly summary expansion panels now keep subsections open and maintain scroll position when changing selected year.</li>
+		<li>Roth Conversion and SEPP forms now cache their old state when enabling/disabling.</li>
+		<li>Updated US tax config to improve fidelity for several states.</li>
+		<li>Stacked bar charts should now look slightly more vibrant, and tooltips now include the total.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>Streamlined simulation engine results data structures and improved modularity of the drawdown system.</li>
+		<li>Developed a mechanism to force Chart.js bar charts to fill more of the available canvas space.</li>
+		<li>Built async queue system for handling Firestore snapshots to avoid concurrent handler execution and reduce surface area for bugs.</li>
+		<li>Converted critical legacy plan synchronization, runner, and viewer mixins to Vue 3 composables with TypeScript support.</li>
+		<li>Fixed minor Sankey chart rendering issue.</li>
+		<li>Migrated another two dozen Vue components from JavaScript Options API to TypeScript Script Setup + Composition API.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.2.0</guid>
+            <pubDate>Fri, 13 Dec 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.1.0]]></title>
+            <description><![CDATA[
+  <h4>ProjectionLab for Employers</h4>  
+  <ul>
+    <li>Companies can now effortlessly <a href="/employers" target="_blank">offer ProjectionLab as a benefit</a> to their employees.</li>
+		<li>Want ProjectionLab for free? <a href="/refer-your-employer" target="_blank">Refer your employer</a> and get ProjectionLab as a company benefit.</li>
+		<li>Get setup in minutes and only ever pay for employees who sign up.</li>
+		<li>No sales process required.</li>
+		<li>Built for companies of any size.</li>
+		<li>Domain verification support. Optionally restrict member sign-ups to emails matching specific domains.</li>
+  </ul>
+      
+  <h4>New Features</h4>  
+  <ul>
+    <li>Multifactor Authentication can now be enabled in Account Settings, with support for TOTP and SMS.</li>
+		<li>Plans can now be rearranged with drag-and-drop, from both the navigation drawer and the Dashboard page.</li>
+		<li>Chance of Success mode will now re-run itself automatically when plan variables are changed that cause results to become stale.</li>
+		<li>Auth session persistence is now optional and can be adjusted in Account Settings via the "Keep me logged in" switch.</li>
+		<li>Added advanced options toggle to Income and Expense forms that can show/hide additional fields that were previously exclusive to Custom event types.</li>
+  </ul>
+      
+  <h4>New Content</h4>  
+  <ul>
+    <li>Tutorial video on <a href="https://youtu.be/PXTZy2d8_8w" target="_blank">Housing Assets</a>.</li>
+		<li>Tutorial video on <a href="https://youtu.be/mZRXiqiPwJY" target="_blank">Chance of Success</a>.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Improved form & input styling, layout, and consistency across the app.</li>
+		<li>Added pending sign-out modal to handle sign-out process more gracefully.</li>
+		<li>Improved fidelity of non-qualified 529 account distribution modeling.</li>
+		<li>Fixed issue where the Plans list sometimes didn't preserve the index of newly created plans after reloading the app.</li>
+		<li>Roth drawdown modules are now always visible in Plan Settings > Drawdown any time Roth conversions are involved, even if there is initially no Roth account in the plan itself.</li>
+		<li>Improved handling of US primary residence exemption in scenarios with joint ownership but separate filing.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>Added TypeScript support to ~75% of the simulation engine codebase.</li>
+		<li>Migrated several dozen Vue components from Options API to Script Setup + Composition API.</li>
+		<li>Systematized UI components for cards, menus, dialogs, action lists, etc. Migrated ~30% of legacy components to this new framework.</li>
+		<li>Firestore snapshot handlers for key documents are now more idempotent.</li>
+		<li>Upgraded Firebase Auth to Identity Platform.</li>
+		<li>Implemented distributed locking mechanism for Paddle API operations in GCP.</li>
+		<li>Automated profile metadata sync & denormalization in Firestore to improve support for search use cases.</li>
+		<li>Firebase template emails such as password reset should now come from our domain.</li>
+		<li>Refactored form tree UI components to reduce Vue mixin usage.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.1.0</guid>
+            <pubDate>Fri, 01 Nov 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 4.0.0]]></title>
+            <description><![CDATA[
+  <h4>Technical Overhaul</h4>  
+  <ul>
+    <li>Migrated frontend stack to Vue 3, Vite, Vuetify 3, Pinia, and Vitest.</li>
+		<li>Overhauled backend infrastructure, GCP cloud functions, and automation utils.</li>
+		<li>Migrated from the Firebase Namespaced API to the Firebase Modular API.</li>
+		<li>Rebuilt Auth UI to remove firebaseui-auth dependency that had no migration path.</li>
+		<li>Improved performance monitoring.</li>
+		<li>Added migration wizard for cases where the early access build involves non-forwards-compatible schema modernizations.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>APR and other percent inputs can now be entered with more precision.</li>
+		<li>Cost basis input can now be defined as >100%.</li>
+		<li>Switched to a unified data source for historical US inflation data.</li>
+		<li>Tweaked the legacy upgrade flow to reduce accidental selection of the former local persistence option.</li>
+  </ul>
+      
+  <h4>Key Highlights Since v3.0</h4>  
+  <ul>
+    <li>Quit my day job to work on PL full-time!! 🙌</li>
+		<li>Redesigned the entire app.</li>
+		<li>Created the Cash-Flow page + Sankey chart to visualize how cash flows in each simulated year.</li>
+		<li>Added Roth Conversion modeling, 72t (SEPP) distribution modeling, and the ability to set a variable portfolio-wide bond allocation over time.</li>
+		<li>Released Withdrawal Strategy mode, for exploring textbook strategies like VPW, X% Rule, Ratcheting Safe Withdrawal Rate, Clyatt 95%, Guyton-Klinger, etc.</li>
+		<li>Improved international support with more account types and tax presets.</li>
+		<li>You can now gift a subscription to a friend or family member!</li>
+		<li>Created option to spend anything left over or save anything left over, to support different cash-flow / budgeting philosophies.</li>
+		<li>And much more!</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">4.0.0</guid>
+            <pubDate>Sat, 17 Aug 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.7.3]]></title>
+            <description><![CDATA[
+  <h4>New Content</h4>  
+  <ul>
+    <li>Released part 1 of our <a href="https://youtu.be/GaRTibmFWlc" target="_blank">Quick Tips</a> video tutorial series.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Improved US NIIT estimator.</li>
+		<li>Updated Australian tax template based on upcoming July 2024 bracket/rate changes.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>Overhauled GCP cloud functions implementation, including test framework & CI/CD.</li>
+		<li>Streamlined PL repo structure to improve component sharing across projects.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.7.3</guid>
+            <pubDate>Tue, 14 May 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.7.2]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Simultaneous editing. When you make changes on one device, they should now propagate to any active tabs on other devices.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Created a video tutorial on Tax Analytics in ProjectionLab.</li>
+		<li>Modeling and visualization of items expressed in Today's vs Actual Currency should now be more intuitive, based on community feedback.</li>
+		<li>Improved US estimator for the taxable portion of social security benefits.</li>
+		<li>Added more posts to the help center.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.7.2</guid>
+            <pubDate>Tue, 16 Apr 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.7.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Overhauled the Help Center. This lays the groundwork for introducing higher quality educational content over the course of this year -- like getting started guides, advanced tutorials, etc.</li>
+		<li>Added Canadian provincial tax config presets for Ontario, Alberta, British Columbia, and Quebec.</li>
+  </ul>
+      
+  <h4>New Content</h4>  
+  <ul>
+    <li>Launched our YouTube channel with a video on <a href="https://www.youtube.com/watch?v=R5qOiUe_8no" target="_blank">Getting Started with ProjectionLab</a>.</li>
+		<li>Created a video tutorial on <a href="https://youtu.be/IdZgenAbEck" target="_blank">modeling Roth conversions in ProjectionLab</a>.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Improved interaction of non-reinvested dividends with the cash-flow priority system, and tweaked dividend calculation methodology/assumptions to be more intuitive.</li>
+		<li>Updated UK tax config preset.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.7.1</guid>
+            <pubDate>Mon, 04 Mar 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.7.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added Plugins page to Account Settings, where you can enable support for community plugins or review the Plugin API Docs to develop your own.</li>
+		<li>Created Danger Zone page in Account Settings, with option to clear data and start over from scratch.</li>
+		<li>If you would like some 1-on-1 help from a human, you can now <a target="_blank" href="/training">book a 1-on-1 session</a> for educational/training purposes.</li>
+  </ul>
+      
+  <h4>New Blog Site</h4>  
+  <ul>
+    <li>Overhauled and replaced the old blog site. Now directly integrated with the primary domain.</li>
+		<li>Updated existing blog posts and wrote several new ones.</li>
+		<li>Created blog/content search interface.</li>
+		<li>Added glossary pages defining common financial terms.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added another light theme.</li>
+		<li>Improved granularity of referral tracking.</li>
+		<li>Updated design and copy on legal pages.</li>
+		<li>When sampling from custom probability distributions in Monte Carlo mode, dividends are now clamped to a min of 0.</li>
+		<li>Added cookie consent management interface to accompany referral tracking updates.</li>
+		<li>Increased precision of slider input when experimenting with Plan tab assumptions like investment growth rate.</li>
+		<li>Improved consistency of UI menu styling.</li>
+  </ul>
+      
+  <h4>Under the Hood</h4>  
+  <ul>
+    <li>Improved front-end code structure and modularity.</li>
+		<li>Refactored several large components, streamlined state management logic.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.7.0</guid>
+            <pubDate>Tue, 06 Feb 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.6.3]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Updated to 2024 tax brackets, rates, and account contribution limits.</li>
+		<li>Added 2023 historical returns/inflation data.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Structural tweaks in preparation for launch of new blog site (coming soon).</li>
+		<li>All designated Roth accounts now default to having no RMDs, since they will no longer be required.</li>
+		<li>Tweaked RMD scheduling to use the simulation year that ends at RMD age.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.6.3</guid>
+            <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.6.2]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added Account Settings page.</li>
+		<li>Auth providers like email/password or login with Google can now be easily linked and unlinked from your account.</li>
+		<li>Added self-serve options to change account email address or reset password.</li>
+  </ul>
+      
+  <h4>UX Tweaks</h4>  
+  <ul>
+    <li>An indicator is now shown if connection to Google Firebase is unsuccessful.</li>
+		<li>Improved snackbar menu style.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.6.2</guid>
+            <pubDate>Fri, 17 Nov 2023 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.6.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>TCJA expiration is now assumed in US mode, and can be toggled on/off via Plan Settings > Tax.</li>
+		<li>Added Alternative Minimum Tax (AMT) to US tax estimator.</li>
+		<li>Offset accounts can now be linked to mortgages to offset your balance and reduce the amount of interest you pay.</li>
+		<li>Real assets can now be automatically liquidated if needed via a checkbox in the More Options section.</li>
+		<li>Proceeds from real asset sales can now be routed directly to a specific account.</li>
+		<li>Added option to reduce capital gains tax on the sale of specific assets.</li>
+		<li>Drawdown order can now be used to dictate at what point eligible real assets should be automatically liquidated.</li>
+		<li>Added option for withdrawal strategy mode to treat calculated amount as desired annual spend vs total withdrawals.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>"Contributions are fixed" cash-flow priority option is now available on more account types (HSAs, IRAs, TFSAs, ISAs, etc.)</li>
+		<li>Added separate HSA contribution limit options for family vs individual limit.</li>
+		<li>Accuracy improvements for US itemized deductions (e.g. debt limit for personal property mortgage interest deduction).</li>
+		<li>Updated default UK workplace pension contribution limits.</li>
+		<li>Option to tax only net rental income is now available for international use cases.</li>
+		<li>Tweaked savings rate metric calculation.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Account card growth labels are now responsive based on plan-level assumptions mode.</li>
+		<li>Improved estimation for US SALT deductions.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.6.1</guid>
+            <pubDate>Tue, 05 Sep 2023 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.6.0]]></title>
+            <description><![CDATA[
+  <h4>Self-Hosting</h4>  
+  <ul>
+    <li>Self-hosting became available for Lifetime customers in this release. It has since been sunset and no longer receives new feature updates.</li>
+		<li>JSON export/import remains available for backups, portability, and migration.</li>
+  </ul>
+      
+  <h4>Rebuilt Landing Page</h4>  
+  <ul>
+    <li>Redesigned the ProjectionLab landing page and deployed it as a separate project from the core app.</li>
+		<li>Note: the core app is now located at app.projectionlab.com. If you use the mobile PWA, you may need to reinstall it.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added tax withholding option to Side Hustle income type, which can also be useful for modeling estimated tax payments throughout the year.</li>
+		<li>Improved in-app routing and forward/backward support.</li>
+		<li>Better UX when a subscription is past due, paused, cancelled, or a gift has expired.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Improved filtering logic for year-select modifiers in cases where the bound milestone has multiple criteria with both leading + trailing activation types.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.6.0</guid>
+            <pubDate>Sun, 04 Jun 2023 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.5.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Redesigned Monte Carlo summary view.</li>
+		<li>You can now customize the definitions, names, and designs for how different success rates should be characterized and presented.</li>
+		<li>The random number generator for Monte Carlo mode can now be seeded if you want to preserve the same returns sequence across multiple runs.</li>
+		<li>You can now adjust the thresholds, names, and colors for different categories of success and failure in Monte Carlo mode.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added historical data for 2022 to Monte Carlo mode.</li>
+		<li>Exposed data import/export API via window.pl object to support community plugin development (currently on Early Access site only).</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.5.1</guid>
+            <pubDate>Tue, 21 Feb 2023 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.5.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Released the new Tax Analytics mode, where you can review advanced visualizations for estimated taxes and income analysis. This includes detailed plots of income, taxes, marginal rates, effective brackets per income type, and how additional dollars of each type would be taxed.</li>
+		<li>Redesigned Sankey chart.</li>
+		<li>Rebuilt yearly summary panels and added more educational popups.</li>
+		<li>US tax mode now estimates IRMAA and medicare premiums during retirement, with the ability to toggle these on/off in Settings > Tax.</li>
+		<li>Added tabs to the Plan interface to improve navigation and discoverability.</li>
+		<li>Backdoor Roth IRAs can be modeled more easily via a new contribution limit option within the Roth IRA priority form.</li>
+		<li>Custom income items now include tax-handling options to distinguish between self-employment and wage income.</li>
+		<li>US tax estimation now includes the tax-free portion of any social security income, and improved accuracy for NIIT calculations.</li>
+		<li>Yearly summary metrics can now be rearranged, and panel appearance can be customized.</li>
+		<li>Added chart option for minimal design, replacing x-axis tick labels with a more modern style x-range button group.</li>
+		<li>Total Tax and Effective Tax Rate metrics can now be visualized in Monte Carlo mode.</li>
+		<li>Cash accounts now have a More Options section where you can define whether excess savings should be repurposed to support other goals.</li>
+		<li>Effective Tax Rate calculation method can be customized.</li>
+		<li>If you create a cash savings goal to build up to a target balance (e.g. for a down payment), you'll now see when it reaches its target balance in the chart and be able to use that as a binding for when other things occur.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Updated US RMD rules based on Secure Act 2.0</li>
+		<li>Updated contribution limits and tax brackets for 2023.</li>
+		<li>Increased accuracy of estimates for state-level US income and capital gains tax, as well as FICA tax when filing jointly.</li>
+		<li>Additional Standard Deduction is now factored in for eligible US taxpayers.</li>
+		<li>Savings Rate metric includes more details on calculation method.</li>
+		<li>UX tweaks for default milestones.</li>
+		<li>Added calendar year to time range selectors.</li>
+		<li>Added search bar for Pro dashboard.</li>
+		<li>Improved contrast for custom plots of single metrics when showing individual line-items.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.5.0</guid>
+            <pubDate>Wed, 18 Jan 2023 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.4.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Redesigned forms to support a compact view and a full view.</li>
+		<li>Added liquidity settings, including option to disable withdrawals on specific accounts until a certain age/milestone.</li>
+		<li>Roth Conversion Ladders are now available for US tax-deferred accounts.</li>
+		<li>72t (SEPP) distributions can be modeled for US retirement accounts.</li>
+		<li>Added multiple 72t calculation methods: RMD, fixed amortization, or custom.</li>
+		<li>Added analyzers for 72t and Roth Conversions to the account forms.</li>
+		<li>Bond allocation over time can be specified with the Advanced editor for more precise data entry.</li>
+		<li>Loan term can now be set directly by clicking the initial "Years to pay off" value, and monthly payment will be updated accordingly.</li>
+		<li>Added option to choose which metric is used for wealth tax computation.</li>
+		<li>Y-Axis chart setting to always start at zero if possible.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Changed the default Life Expectancy milestone to "End of Plan", with a broader range of criteria types to improve flexibility for couples with different life expectancies.</li>
+		<li>Adjustments to Plan data model. Migration should happen seamlessly.</li>
+		<li>Added newsletter link to homepage and navigation drawer.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed issue with settings persistence for 529 plans inherited from the Current Finances section.</li>
+		<li>Resolved unintuitive behavior when cloning plans that use unique starting conditions.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.4.0</guid>
+            <pubDate>Mon, 10 Oct 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.3.2]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Switched website analytics over to a privacy-friendly GA alternative that is cookies-free!</li>
+		<li>Expenses can now be tied to specific accounts if desired, which can be helpful for things like paying for education expenses out of a 529 account, or medical expenses with an HSA. This is a more generalized replacement for the old "Fund with Taxable Investments" option. Existing expenses using the old option should be migrated to the new system automatically.</li>
+		<li>529 plan contributions can be marked as tax-deductible.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Improved accuracy of US rental property tax deductions.</li>
+		<li>Added optional QBI deduction for net rental income and carry-forward losses.</li>
+		<li>Optimized web bundle for faster page loading times.</li>
+  </ul>
+      
+  <h4>Pricing Update</h4>  
+  <ul>
+    <li>Bumped up pricing for new users based on feedback from the community. All existing users are grandfathered in at their current rate.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Sliders for milestone criteria now work better for fractional inputs.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.3.2</guid>
+            <pubDate>Tue, 06 Sep 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.3.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Redesigned home page.</li>
+		<li>Automatic progress point creation can now optionally be disabled via the ellipsis menu on the Progress screen.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Pages loaded asynchronously now show a "Loading content" indicator if the connection is slow.</li>
+		<li>Added more detail to tooltips on charts within the advanced change-over-time interface.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.3.1</guid>
+            <pubDate>Tue, 09 Aug 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.3.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Redesigned Current Finances, Dashboard, Progress, Plan Settings, Monte Carlo screens, and other UI components.</li>
+		<li>Added alternate Withdrawal Strategies, allowing you to explore classic withdrawal strategies from FI literature or suggested by the community (VPW, X% Rule, Clyatt 95%, Guyton-Klinger, etc.), and compare these textbook approaches to your own plans.</li>
+		<li>Improved Monte Carlo interface and added ability to visualize mulitple metrics per run.</li>
+		<li>Mobile design and usability improvements.</li>
+		<li>Progress Points are now created automatically whenever you update Current Finances.</li>
+		<li>Created stats panels for Monte Carlo mode to show details like median, average, stdev, smallest, largest for the selected metric.</li>
+		<li>More metrics can also be plotted in monte carlo individual trial view.</li>
+		<li>Added bar chart option for monte carlo individual trial view.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Total Expenses metric now includes the items from Debt Payments and Taxes Paid From Last Year, which are still shown as separate metrics.</li>
+		<li>Added fullscreen view for Sankey cash-flow chart, with better mobile support.</li>
+		<li>Nav drawer now includes a link to the Early Access site.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.3.0</guid>
+            <pubDate>Sun, 31 Jul 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.2.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added Sankey chart to visualize cash-flow for each simulated year.</li>
+		<li>Created Filing Separately option to improve support for countries that don't have joint tax filing.</li>
+		<li>When planning as a couple, you can now change your display name and choose icons and colors to represent you and your partner throughout the app.</li>
+		<li>Added two ways to model loan forgiveness. One: the "Forgive At" input in the debt form's More Options drop-down... or two: with a "Custom Income" item routed directly to the loan.</li>
+		<li>Cash-flow priorities now support dedicating a % of remaining income, offering more flexibility for how to direct cash-flow.</li>
+		<li>Added slider controls for milestone criteria and plan variables (e.g. return rates, inflation) so you can rapidly experiment with a series of adjustments and visualize how things change.</li>
+		<li>529 Savings Accounts are now modeled as an actual account type (with several configuration options) rather than as an expense. Migration logic should port existing events into the new representation, but it's a good idea to double-check.</li>
+		<li>Events can now be copied from one plan to another via the Duplicate button.</li>
+		<li>Added calendar year milestone type, and new chart option to display x-labels as calendar years.</li>
+		<li>Couples can now define separate/joint ownership details for income, assets, and expenses.</li>
+		<li>Better support for planning as a couple even if you're not married yet. Add your partner to Current Finances, incorporate their data into your plans, assign ownership accordingly, set tax filing status to Separate, then create a milestone with Tax Consequences to switch over to joint filing when you get married.</li>
+		<li>Updated international tax presets to default to filing separately where applicable.</li>
+		<li>Accounts with customizable dividend tax handling now include a "Tax-Free" option.</li>
+		<li>Yearly summary pane can now be filtered to show just the metrics you care about.</li>
+		<li>Added optional summary metric "Net Earned Income", which includes estimates of net income per source. Note: the actual tax calculation system works independently based on aggregate numbers, so these estimates are separate and don't directly impact results.</li>
+		<li>Some expense types and cash-flow priorities can now be modeled as payroll deductions, which won't usually impact the aggregate results but can help with estimating net income per source.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Updated start/end year alignment and semantics to try to make the presentation of results more intuitive and more consistent with the chart labels. This may cause some existing items to appear to shift by a year, so this is a good time to review the timing of your events.</li>
+		<li>When planning as a couple, some yearly summary categories like Net Worth and Taxable Income now have nested breakdowns with subtotals by person.</li>
+		<li>Added "at spouse's age" milestone criteria type.</li>
+		<li>Chart tooltips and yearly summary sliders now show both account primary's age and spouse's age.</li>
+		<li>Added select options in time range inputs relative to spouse's age.</li>
+		<li>You can now change the account that existing cash-flow priorities are mapped to (limited to accounts of same type).</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.2.0</guid>
+            <pubDate>Fri, 24 Jun 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.1.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>You can now gift a subscription to a friend or family member! You'll get a code they can redeem right away, with no need for them to enter a credit card.</li>
+		<li>Added more options to cash-reserve / emergency-fund priority types, adding flexibility for different saving strategies that differ from building up to a set target balance.</li>
+		<li>Created cash-flow priority option to "Spend/save anything left over" to improve support for different budgeting philosophies.</li>
+		<li>Made it possible to switch easily from one subscription plan to another.</li>
+		<li>Milestones can now be quickly deactivated/reactivated via a button in the tile dropdown.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added an About Me section to the home page including my social links.</li>
+		<li>Implemented activate-on-scroll (AOS) animations for home page, wizards, and dashboards on first load.</li>
+		<li>If you cancel a subscription, you now retain access to premium features until the next bill date.</li>
+		<li>Updated unsaved changes icon in event form header to reduce confusion.</li>
+		<li>Prompt about saving data is now shown earlier during onboarding.</li>
+		<li>Improved hover/click UX for toolbar items.</li>
+		<li>Compare mode must now be finalized before navigating away to other plans.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed computation issue with recurring asset purchases that scale up over time.</li>
+		<li>Improved state income tax estimation for Illinois and California.</li>
+		<li>Resolved invite link warning when activating client accounts in pro mode using the same browser.</li>
+		<li>Improved accuracy of start date for catch-up contributions on specific account types when planning as a couple.</li>
+		<li>Tweaked savings rate calculation to improve consistency across different withholding scenarios.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.1.0</guid>
+            <pubDate>Thu, 26 May 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 3.0.0]]></title>
+            <description><![CDATA[
+  <h4>Key Highlights Since v2.0</h4>  
+  <ul>
+    <li>You can now create your own plots using whatever combination of metrics you want, turn aggregation on or off, choose colors, set plot type, view tabular output, export data, etc.</li>
+		<li>Introduced Milestone system, bringing a new level of flexibility to your planning experience with support for conditional logic, tax consequences, and bindings to the start/end of anything in your plan.</li>
+		<li>Created advanced editor for precisely modeling how things change over time: accounts, events, plan-level growth/inflation rates, etc.</li>
+		<li>Rebranded from ProjectiFi to ProjectionLab!</li>
+		<li>Released Pro version for financial advisors.</li>
+		<li>Added Sandbox mode for new users to skip onboarding and see how things work using a template persona.</li>
+		<li>Compare Mode: review deltas between plans or test multiple changes, with ability to roll back if needed.</li>
+		<li>Added international tax presets and investment account types.</li>
+		<li>Enhanced US tax estimator.</li>
+		<li>Historical data with custom start and loopback years can optionally be used in deterministic mode.</li>
+		<li>Added Help Center, with searchable answers to frequently asked questions.</li>
+		<li>You can now track actual progress and compare with initial projections.</li>
+		<li>Major performance improvements for both UI and core simulation engine.</li>
+		<li>Complete UI redesign and data modeling overhaul.</li>
+		<li>And much more! Review the release history below for more detail 😃</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">3.0.0</guid>
+            <pubDate>Sun, 03 Apr 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.7.2]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Multiple worker threads can now be used in Monte Carlo mode for improved performance on runs with a high number of trials. Speedup benchmarked at ~3X for 1k trials with 8 workers.</li>
+		<li>UI control to adjust number of worker threads as desired.</li>
+		<li>Added more Help Center topics.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Improved display of Historical Sequence column in Monte Carlo trials table when "Random + Non-Chronological" sampling is used.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.7.2</guid>
+            <pubDate>Sun, 03 Apr 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.7.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added Help Center, with searchable answers to frequently asked questions.</li>
+		<li>Created advanced editor for exploring custom sequences of returns/inflation in deterministic mode.</li>
+		<li>Notes can now be added to any event within a plan, an entire plan itself, and individual items in Current Finances.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added 2 more templates for mid/late career.</li>
+		<li>Rental income can be classified as self-employment income if desired (in US tax estimation mode).</li>
+		<li>Progress point dialog now clarifies workflow for updating current finances vs recording historical progress.</li>
+		<li>Spouse's Retirement milestone now displays using their name if you specify one.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed issue with form validation for cash-flow priorities that have employer contributions expressed as currency values.</li>
+		<li>Improved input field behavior when entering negative numbers.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.7.1</guid>
+            <pubDate>Sat, 02 Apr 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.7.0]]></title>
+            <description><![CDATA[
+  <h4>Announcements</h4>  
+  <ul>
+    <li>Rebranded from ProjectiFi to ProjectionLab!</li>
+  </ul>
+      
+  <h4>New Features</h4>  
+  <ul>
+    <li>Advanced editor to model change over time! Build your own graphs to model things like change in income, expenses, asset values, and account growth rates.</li>
+		<li>Milestones now support multiple criteria with conditional logic, so you can do things like: "Net Worth > 25*Expenses and Mortgage Paid Off or Age 55, whichever comes first."</li>
+		<li>Milestones are now more flexible and support a wider variety of metrics and calculation options.</li>
+		<li>Added previews of alternate representations to custom change-over-time editor to help clarify the effects of the graphs / control points you create.</li>
+		<li>Take any plot and view it as a table via Chart Options > View > Table.</li>
+		<li>Data from table view can be exported to CSV or JSON.</li>
+		<li>Added "Goal Heatmap" as one of the built-in chart types.</li>
+		<li>New Monte Carlo sampling option: Historical, No Looping.</li>
+		<li>Made it possible to edit starting conditions sections directly from the Dashboard by clicking the corresponding stat cards.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Deprecated custom income option "Add directly to investment bucket", and replaced with "Route directly to account". Please double-check that the migration logic chooses a suitable receiving account when it ports any existing income items that had been using the older setting.</li>
+		<li>Milestones can now be rearranged via click-and-drag within the Settings interface.</li>
+		<li>Clicking a row in table view opens the corresponding age in the yearly summary panel.</li>
+		<li>Updated HSA contribution limits for 2022.</li>
+		<li>Updated RMD table and life-expectancy factors for 2022.</li>
+		<li>Improved home page.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Improved handling of duplicate dataset names in custom plots that use non-aggregated metrics.</li>
+		<li>Fixed tooltip position issues that sometimes occured in zoomed-out bar charts.</li>
+		<li>Fixed currency formatting issue with en-IN locale.</li>
+		<li>Improved consistency of goals that hit contribution limits displaying in the correct summary category.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.7.0</guid>
+            <pubDate>Fri, 25 Mar 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.6.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Create your own plots! Launch the new Plot Builder from the chart dropdown or chart options menu. Add whatever metrics you want, turn aggregation on or off, choose colors, set plot type, and more.</li>
+		<li>Faster simulation engine. Deterministic mode should feel more responsive, and Monte Carlo should be about 3x faster than v2.5.0.</li>
+		<li>Compare mode: review the deltas between two plans or test several changes in one plan with ability to roll back if desired. Accessed via: Advanced > Compare.</li>
+		<li>Milestones can be assigned tax consequences. This opens up the possibility of modeling things like the tax implications of moving to other places.</li>
+		<li>Historical data with custom start and loopback years can optionally be used in deterministic mode instead of the standard fixed-rate long-term growth assumptions.</li>
+		<li>Recurrence patterns can be defined for asset purchases/sales and several expense/income types, with option to define stopping point and/or scaling factor.</li>
+		<li>Added histogram to Monte Carlo mode showing distribution of outcomes by age, with ability to split view or focus on a specific chart.</li>
+		<li>Added Withdrawal Rate metric.</li>
+		<li>When deterministic mode is using historical data, the key datapoints for each year are displayed in a new summary expansion panel.</li>
+		<li>Preferred chart types can be assigned for each built-in plot individually.</li>
+		<li>Weekly and Daily frequency options for income/expenses.</li>
+		<li>Added summary category "Passive Income" which includes dividends, investment growth, and any income sources marked as "Passive" in the UI.</li>
+		<li>Dividends and investment returns can optionally be excluded from Passive Income using a setting at the account level.</li>
+		<li>New milestone types for when passive income reaches criteria.</li>
+		<li>Extra option for individual financed assets to not count loan balance as a detractor in Liquid Net Worth calculation.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added warning for any years where early withdrawal penalties are incurred.</li>
+		<li>Updated default selected datasets and chart types.</li>
+		<li>Hovering milestone icons and variables in the plan view now activates the corresponding menus directly instead of showing a tooltip first.</li>
+		<li>Switching between compatible milestone types no longer resets to the default input value.</li>
+		<li>Improved menu transitions.</li>
+		<li>Added historical returns/inflation data for 2021.</li>
+		<li>Updated yearly summary category colors to improve consistency and reduce visual noise.</li>
+		<li>Added completion rate to Conditional Milestones table in Monte Carlo mode.</li>
+		<li>Made changelog visible on home page and via /whats-new route.</li>
+		<li>Chart option to control animation duration.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed calculation issue with US primary residence capital gains exclusion.</li>
+		<li>NIIT threshold is now assumed to increase over time matching inflation.</li>
+		<li>Fixed issue where time-range modifiers for pay-extra type goals linked to financed assets were being overwritten by changes to the linked asset.</li>
+		<li>Updated Monte Carlo mode to now display Final Net Worth column for failed trials as "Bankrupt."</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.6.0</guid>
+            <pubDate>Sat, 26 Feb 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.5.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Milestones! Add as many as you want, define completion criteria, choose colors and icons, and bind them to the start/end dates of anything in your plan to simplify configuration and experimentation.</li>
+		<li>Added new table to Monte Carlo mode showing milestone completion ages by trial percentile.</li>
+		<li>Two new stacked plots: "Stacked by Account" and "Stacked Liquid Net Worth"</li>
+		<li>Monte Carlo net worth percentile plot now only shows milestone icons that occur at fixed ages.</li>
+		<li>Stacked plots can now be rendered as stacked bar charts.</li>
+		<li>Updated templates to use some example milestones.</li>
+		<li>Added Liquid Net Worth dataset to Net Worth plot.</li>
+		<li>Introduced tax preset for Israel and KH account type.</li>
+		<li>RSS feed for release history.</li>
+		<li>Chart option to disable gradient fills.</li>
+		<li>Chart option to disable smooth curves.</li>
+		<li>Chart option for whether to include financed assets within Debt datasets.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added real rate of return calculation info for deterministic investment variables.</li>
+		<li>Improved form input design (e.g. age range selectors show milestone icons/colors).</li>
+		<li>Updated contribution limits and tax brackets for 2022.</li>
+		<li>Most accounts with early withdrawal penalties now have the option to not permit any early withdrawals.</li>
+		<li>You can now choose when individual accounts should be considered "liquid" in the Net Worth plot.</li>
+		<li>Added "Liquid Net Worth" expansion panel to yearly summary.</li>
+		<li>Early withdrawal age inputs for accounts now refer to the starting age in each simulated year rather than the ending age.</li>
+		<li>Redesigned Stacked plot to display Equity in Real Assets rather than always classifying mortgages as debt. Total debt is now shown beneath the x-axis.</li>
+		<li>Improved y-axis tick configuration for plots with datasets that go negative.</li>
+		<li>Chart options menu now uses expansion panels</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed preview card reactivity issue that occurred sometimes in cloned plans.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.5.0</guid>
+            <pubDate>Thu, 03 Feb 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.4.1]]></title>
+            <description><![CDATA[
+  <h4>Enhancements to US Tax Estimation</h4>  
+  <ul>
+    <li>Added estimator for rental property tax deductions.</li>
+		<li>Some potential itemized deductions are now factored in, e.g. mortgage interest for up to 2 properties, personal property tax / state income tax up to limit.</li>
+		<li>Any configured tax-deductible expenses can optionally be marked as deductible only when itemizing.</li>
+		<li>Itemized vs standard deduction is now chosen in each year depending on which seems better.</li>
+		<li>Added primary residence capital gains exclusion (projections assume this increases to match inflation).</li>
+  </ul>
+      
+  <h4>New Features</h4>  
+  <ul>
+    <li>Several expense types (e.g. charity) can now be marked as tax-deductible.</li>
+		<li>Chart option for how many event icons to show on top (e.g. all, milestones only, none).</li>
+		<li>Chart options to apply SI prefixes when formatting values in tooltips and yearly summary panels.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Improved in-app routing to support forward + back navigation more consistently and increase precision of bookmarks.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed issue with tooltip label for defined-benefit pension final / career-average pay when viewing in Today's Currency.</li>
+		<li>Inputs and UI elements with click-outside behavior now work more intuitively.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.4.1</guid>
+            <pubDate>Sat, 22 Jan 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.4.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Upgraded chart library, bringing improved performance, more controls, and better animations.</li>
+		<li>Age range selectors are now more flexible: you can include/exclude years or specify custom offsets, e.g. "Retirement+5".</li>
+		<li>Added support for 457b and Roth 457b retirement account types.</li>
+		<li>Plan preview cards in the dashboard now show key event icons (e.g. retirement) and overlaid progress.</li>
+		<li>New chart options: chart height, grid style, SI prefixes, overlap y-axis, show/hide first+last ticks.</li>
+		<li>Hold shift + click-and-drag the chart to zoom to a selection.</li>
+		<li>Use the scroll wheel while holding shift to zoom in on a specific point in the chart.</li>
+		<li>Added slider control to yearly summary panel.</li>
+		<li>Keyboard left and right can now step through years in simulation results.</li>
+		<li>Added button to duplicate plan items.</li>
+		<li>Monte Carlo mode now has more chart controls and improved color scheme.</li>
+		<li>Selected datasets are now persistent in deterministic mode, and selected percentiles are persistent in Monte Carlo mode.</li>
+		<li>Added "Match Inflation +/- X%" to yearly change options, which may be helpful for Monte Carlo simulations where inflation is variable.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Redesigned Plan screen using flatter and more minimal design elements.</li>
+		<li>Improved mobile/tablet usability.</li>
+		<li>Monte Carlo mode now illustrates bankruptcy more clearly in percentile chart.</li>
+		<li>Chart y-axis range now updates automatically when zooming in to look at smaller sections.</li>
+		<li>Generated return percentages from normal distributions in Monte Carlo mode are now clamped at the min of -100% for improved clarity.</li>
+		<li>Improved UX in plan forms.</li>
+		<li>Updated toolbar icons.</li>
+		<li>Improved plan preview design and controls.</li>
+		<li>Updated changelog UI.</li>
+		<li>Tweaked progress chart appearance and controls for better mobile usability.</li>
+		<li>Detailed form dialogues are now allowed to consume more vertical screen space.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Summary tables in Current Finances section can now be paginated without opening edit interface.</li>
+		<li>Custom income types can now be mapped to any cash-flow priority that requires a linked income stream.</li>
+		<li>Added to RRSP contribution limit: no more than 18% of earned income reported in previous year.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.4.0</guid>
+            <pubDate>Mon, 10 Jan 2022 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.3.2]]></title>
+            <description><![CDATA[
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Added SI prefixes to charts and summary cards.</li>
+		<li>UK-based templates default to pounds sterling.</li>
+		<li>JSON exports include date in default file name.</li>
+		<li>Chart tooltips now exclude unused asset types.</li>
+		<li>Added "generate income" option to custom assets.</li>
+		<li>Added account-level dividend tax treatment and reinvestment settings.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Tweaked validation timing for some forms/inputs.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.3.2</guid>
+            <pubDate>Mon, 20 Dec 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.3.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Cryptocurrency can now be modeled as its own asset class and is currently treated like a kind of taxable investment.</li>
+		<li>Added "Treat as dividend income" option to Custom income type.</li>
+		<li>Added SIPP account type for UK scenarios.</li>
+		<li>Added yearly fee modeling options to investment account types. </li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.3.1</guid>
+            <pubDate>Sun, 12 Dec 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.3.0]]></title>
+            <description><![CDATA[
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>
+          Added Progressive Web App (PWA) support.
+          <ul>
+            <li>More graceful integration of version updates for active users.</li>
+            <li>Can be installed + pinned to taskbar, or added to home screen on mobile.</li>
+          </ul>
+        </li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.3.0</guid>
+            <pubDate>Thu, 09 Dec 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.2.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added more ways to model employee/employer contributions in cash-flow priorities.</li>
+		<li>Added dense view to plan interface.</li>
+		<li>Extra payment goals now have additional options, e.g. ability to model things like "pay off mortgage at retirement."</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Plan previews now show hoverable warnings for a few kinds of common misconfigurations.</li>
+		<li>Added more form validation warnings when entered values seem surprisingly high/low.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.2.1</guid>
+            <pubDate>Mon, 06 Dec 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.2.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>First release of ProjectionLab Pro! A new subscription plan for financial advisors and coaches.</li>
+		<li>Pro users can create and manage up to 10 client profiles. More available upon request.</li>
+		<li>Advisors can invite and link/unlink client accounts seamlessly.</li>
+		<li>Advisors can set permissions so certain clients can edit plans on their own, if desired.</li>
+		<li>Added Pro Dashboard for creating and managing client profiles.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.2.0</guid>
+            <pubDate>Wed, 24 Nov 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.1.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added ability to capture actual progress and plot this on top of fixed-date plans to compare against initial projections.</li>
+		<li>Accounts are now modeled individually to improve accuracy and support future development.</li>
+		<li>Created plans dashboard to track progress, select and compare plans.</li>
+		<li>Sandbox / template picker to optionally skip manual onboarding.</li>
+		<li>Results can now be visualized in either Today's Currency or Actual Currency.</li>
+		<li>Introduced international tax presets based on preliminary research of rules, rates, and brackets for a handful of countries.</li>
+		<li>Added common international investment account types for countries such as UK, Canada, Australia.</li>
+		<li>Drawdown order can now be customized.</li>
+		<li>You can now define custom tax brackets for national and local income tax and long-term capital gains.</li>
+		<li>Dividend tax treatment can now be customized and defined separately for stocks and bonds.</li>
+		<li>Added financial transaction tax (FTT) option.</li>
+		<li>Added wealth / net worth tax option.</li>
+		<li>Financial goals section has been redesigned and refactored into Cash Flow Priorities. Please update/review your data for this section.</li>
+		<li>Specific accounts can be assigned custom growth rates that differ from the plan default.</li>
+		<li>Plans can now be created with custom Starting Conditions which differ from the <i>Current Finances</i> section.</li>
+		<li>Plans can be assigned either a fixed start date or bound to the current date. Fixed start date plans show progress points on top in the net worth plot.</li>
+		<li>You can now choose your own custom icons to assign to any event or plan.</li>
+		<li>Many inputs can now be modeled in multiple ways, e.g. yearly taxes, maintenance, etc. can be specified as either % of asset value or amount in today's currency.</li>
+		<li>Most amounts, contribution targets, etc., can now be modeled in either Today's Currency or Actual Currency.</li>
+		<li>Defined-Benefit Pensions are now an extra option within salary income streams.</li>
+		<li>Forms with debt/loan information now show estimated years to pay off.</li>
+		<li>Added "Change in Net Worth" expansion panel to yearly summary data, listing all things that affected net worth each year.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Redesigned <i>Current Finances</i> screen.</li>
+		<li>Redesigned event card columns in the plan interface to function more like pin-able tabs.</li>
+		<li>All event cards can now be rearranged with click-and-drag.</li>
+		<li>Redesigned plan settings interface.</li>
+		<li>Redesigned themes</li>
+		<li>Added step-by-step UI tour.</li>
+		<li>Improved Monte Carlo simulation speed by about 2x.</li>
+		<li>Added preview widget during plan creation process</li>
+		<li>Added more info for failed Monte Carlo trials.</li>
+		<li>Marital status is now defined in the <i>Current Finances</i> section. Make sure yours is correct.</li>
+		<li>When planning as a couple, ownership can now be assigned to each account to aid with calculation of things like RMDs.</li>
+		<li>Spouse retirement age is now an additional plan variable.</li>
+		<li>Added contextual warnings when some form field values look unrealistic.</li>
+		<li>Tax-deferred contributions now always reduce taxable income even in the basic fixed/effective tax rate mode. Taxable income shown in yearly breakdown as well.</li>
+		<li>Retirement account contributions can now be "fixed" so they occur every year regardless of priority order and whether or not there is leftover income.</li>
+		<li>Cash-flow priorities can be optionally assigned a starting and ending age.</li>
+		<li>Improved chart responsiveness when changing plot type, visible datasets, x-axis range.</li>
+		<li>Added select-all to chart/dataset options.</li>
+		<li>Improved mobile experience.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed issue where changing state of residence affected all plans. Please update this setting in your plans.</li>
+		<li>Charts no longer interfere with scrolling on mobile.</li>
+		<li>Numbers can now be pasted into form inputs more reliably.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.1.0</guid>
+            <pubDate>Fri, 12 Nov 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.0.1]]></title>
+            <description><![CDATA[
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Net Worth now shows in all chart tooltips in deterministic mode.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.0.1</guid>
+            <pubDate>Sun, 25 Jul 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 2.0.0]]></title>
+            <description><![CDATA[
+  <h4>Summary of Changes Since 1.0</h4>  
+  <ul>
+    <li>Monte Carlo mode with customizable simulations, variables, probability distributions.</li>
+		<li>Backtesting on historical data.</li>
+		<li>Stock/bond allocation curve over time.</li>
+		<li>Improved support for international use cases (currency + locale selector, custom options and contribution limits for financial goals).</li>
+		<li>Ability to quickly switch between deterministic and probabilistic modes.</li>
+		<li>Better support for married filing jointly / couples planning.</li>
+		<li>Redesigned landing page, additional UI improvements.</li>
+		<li>And more!</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">2.0.0</guid>
+            <pubDate>Wed, 14 Jul 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.3.3]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added more options for dependents and 529 plans, such as specifying dependent starting age, 529 plan usage age, and any preexisting 529 balance / initial value.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Improved handling of chart event icons when looking at individual Monte Carlo trials.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed currency input bug in Safari.</li>
+		<li>Added fallback currency parser to handle rare cases where vue-currency-input library exhibits unexpected behavior.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.3.3</guid>
+            <pubDate>Fri, 25 Jun 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.3.2]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added more granular controls in Monte Carlo mode and improved parameter descriptions.</li>
+		<li>Created vested RSU Grant income type which goes directly to taxable investments.</li>
+		<li>Added general option to "Other Income" events to directly modify investments.</li>
+		<li>Implemented advanced option where you can choose to sell some taxable investments to help with large asset purchases or expenses, which can be useful if you want to ensure yearly savings go towards maintaining contribution levels on other financial priorities, such as tax-advantaged accounts.</li>
+  </ul>
+      
+  <h4>UX Improvements</h4>  
+  <ul>
+    <li>Made display currency inputs more user-friendly.</li>
+		<li>Onboarding and new plan wizards now auto-scroll to top after each step on all devices.</li>
+		<li>Added create-a-plan button to today screen, visible if user has no plans.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed inflation-related bug in Monte Carlo simulations.</li>
+		<li>Resolved issue with onboarding flow for users that create an account before getting started.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.3.2</guid>
+            <pubDate>Tue, 22 Jun 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.3.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Redesigned landing page.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Updated mobile layouts.</li>
+		<li>Added high-level summary to privacy policy.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.3.1</guid>
+            <pubDate>Wed, 16 Jun 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.3.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Introduced Advanced Simulation mode, featuring backtesting on historical data as well as custom Monte Carlo simulations.</li>
+		<li>Added option to choose custom yearly contribution limits (or the US defaults) for various investment types.</li>
+		<li>Created tax filing status picker to accommodate both "Single" and "Married Filing Jointly". Wedding events now have a checkbox which can update status to married. Updated tax bracket data and investment account contribution limits.</li>
+		<li>Added lifetime subscription option.</li>
+		<li>Added "Tax-Exempt" option to income streams.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.3.0</guid>
+            <pubDate>Wed, 09 Jun 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.2.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added currency and locale selector to Onboarding and Today sections. At the moment, this is for display purposes only and has no effect on underlying values such as IRS limits and US income tax brackets. Users leveraging the US-based auto tax estimation and related features should use USD currency, as the limit values are not recalculated for other currencies.</li>
+		<li>Added 7-day free trial for ProjectionLab Premium.</li>
+  </ul>
+      
+  <h4>General Improvements</h4>  
+  <ul>
+    <li>Made chart settings persistent (e.g. plot choice, time range, y-scale).</li>
+		<li>Inheritance tax handling now factors in estate tax exemption.</li>
+		<li>Added stock % to bond allocation chart tooltips.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Switching plans no longer produces the appearance of unsaved changes.</li>
+		<li>Other assorted tweaks.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.2.0</guid>
+            <pubDate>Thu, 03 Jun 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.1.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added customizable stock vs. bond allocation over time.</li>
+		<li>Updated scrollbar styles.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed unfortunate typo in Minnesota income tax brackets.</li>
+		<li>Repaired issue where unchecking max-out on auto-created extra payment goals was introducing NaN values due to a missing field in the data model.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.1.0</guid>
+            <pubDate>Wed, 12 May 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.0.2]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added early access notification and details to beta channel.</li>
+		<li>Increased precision on percentage inputs to 2 decimal places.</li>
+  </ul>
+      
+  <h4>UX Improvements</h4>  
+  <ul>
+    <li>Increased delay on initial welcome modal. Made contextual so it only shows up if the user hasn't already started creating a plan.</li>
+		<li>Improved discoverability of Hide/Show buttons for quickly comparing simulation results with or without specific items.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Addressed asset card display issue. Assets inherited from the today section now show the correct starting value.</li>
+		<li>Fixed issue with selling multiple assets in one year.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.0.2</guid>
+            <pubDate>Sun, 02 May 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.0.1]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>Added release history page and new version notifications.</li>
+		<li>Mobile UX improvements.</li>
+		<li>Nav bar can now be pinned open by clicking top icon.</li>
+		<li>Removed theme selector from onboarding process.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Fixed unfortunate typo in Minnesota income tax brackets.</li>
+		<li>Other assorted tweaks.</li>
+  </ul>
+      
+  <h4>Thanks to everyone for the feedback and discussion on Hacker News!</h4>  
+  <ul>
+    <li><a target="_blank" href="https://news.ycombinator.com/item?id=26969173">https://news.ycombinator.com/item?id=26969173</a></li>
+		<li>The outpouring of ideas, commentary, and feature requests is truly appreciated. Stay tuned as we continue to roll out new functionality and improvements!</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.0.1</guid>
+            <pubDate>Sat, 01 May 2021 00:00:00 GMT</pubDate>
+        </item>
+        <item>
+            <title><![CDATA[Version 1.0.0]]></title>
+            <description><![CDATA[
+  <h4>New Features</h4>  
+  <ul>
+    <li>First Major Release!</li>
+		<li>Added tax credits and deductions.</li>
+		<li>Updated contribution limits and other US tax rules.</li>
+		<li>Added support for <a href="https://www.irs.gov/newsroom/what-is-the-additional-medicare-tax-and-who-pays-it" target="_blank">AMT</a> and <a target="_blank" href="https://www.irs.gov/newsroom/questions-and-answers-on-the-net-investment-income-tax">NIIT</a>.</li>
+		<li>Introduced capital gains tax estimator.</li>
+		<li>Implemented hoverable event icons in plots.</li>
+		<li>First draft of onboarding process and create-a-plan wizard.</li>
+		<li>Updated UI styles and icons.</li>
+		<li>Added "More Info" references and links to other helpful resources.</li>
+		<li>Implemented unsaved changes widget.</li>
+		<li>Added more income and expense type presets.</li>
+  </ul>
+      
+  <h4>Bug Fixes</h4>  
+  <ul>
+    <li>Improved mobile layouts after initial usability testing.</li>
+		<li>Yearly summary expansion panel tooltips are now working properly on mobile and tablet.</li>
+  </ul>
+      ]]></description>
+            <link>https://projectionlab.com/changelog</link>
+            <guid isPermaLink="false">1.0.0</guid>
+            <pubDate>Mon, 12 Apr 2021 00:00:00 GMT</pubDate>
+        </item>
+    </channel>
+</rss>

@@ -1,0 +1,13 @@
+# Horizon's account server (worker.js): one SQLite-backed Durable Object holds every account.
+name = "horizon-sync"
+main = "worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "ACCOUNTS"
+class_name = "Accounts"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Accounts"]

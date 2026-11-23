@@ -191,3 +191,8 @@ button.icon { padding: 6px; }
   body { background: #fff !important; }
   .card { box-shadow: none !important; border: 1px solid #ddd; break-inside: avoid; }
 }
+
+/* The sign-in screen's two tabs. */
+.login .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.login .tabs button { width: 100%; }
+.pill.warn { color: #b45309; border-color: #f59e0b; }
