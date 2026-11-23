@@ -278,4 +278,5 @@ export const HELP: Record<string, string> = {
   "Municipal share of bond income": "The share of this account's bond interest from in-state municipal bonds, which is free of federal and state income tax.",
   "Keep income under this multiple of the poverty line": "The income ceiling for ACA withdrawals, as a multiple of the federal poverty line: 4 keeps the premium credit, 2.5 keeps cost-sharing reductions, and 1.38 keeps Medicaid in expansion states.",
   "Use SSA's announced COLAs (2.8% for 2026, 3.6% for 2027)": "Social Security grows by the cost-of-living adjustments SSA has announced for the years they are known, and by the plan's inflation after.",
+  "Change the order when": "Switch to the second withdrawal order in a set year, or the year after a milestone is reached.",
 };

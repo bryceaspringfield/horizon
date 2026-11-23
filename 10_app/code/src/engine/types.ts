@@ -295,7 +295,7 @@ export interface Strategy {
   retirementAge: Record<string, number>;
   withdrawalOrder: WithdrawalStep[];
   /** A second withdrawal order, used from this year on (after a milestone such as Medicare or the end of conversions). */
-  withdrawalOrderLater?: { year: number; order: WithdrawalStep[] };
+  withdrawalOrderLater?: { year: number; order: WithdrawalStep[]; /** From the year after this milestone is reached, in place of the year. */ milestoneId?: string };
   /** Cash kept on hand; surplus above it is invested. */
   cashTarget: number;
   /** Surplus after expenses: the share invested in taxable (the rest stays in cash up to the target). */

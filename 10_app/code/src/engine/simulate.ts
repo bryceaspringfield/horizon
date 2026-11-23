@@ -900,7 +900,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
 
     function withdraw(need: number) {
       let left = need, traditional = 0, g = 0, e = 0, amount = 0;
-      const order: WithdrawalStep[] = s.withdrawalOrderLater && y >= s.withdrawalOrderLater.year ? s.withdrawalOrderLater.order : s.withdrawalOrder;
+      const order: WithdrawalStep[] = s.withdrawalOrderLater && (s.withdrawalOrderLater.milestoneId ? reachedAt[s.withdrawalOrderLater.milestoneId] !== undefined && y >= reachedAt[s.withdrawalOrderLater.milestoneId] : y >= s.withdrawalOrderLater.year) ? s.withdrawalOrderLater.order : s.withdrawalOrder;
       if (s.withdrawalMethod === 'proportional') {
         // Cash first, then every other account in proportion to its balance, in one pass.
         const cash = accounts.filter((x) => x.kind === 'cash' && state.balance[x.id] > 0);

@@ -802,7 +802,8 @@ export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
         </ol>
         <div className="grid">
           <Check label="Change the order from a later year" value={!!s.withdrawalOrderLater} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater = v ? { year: p.startYear + 20, order: [...p.strategy.withdrawalOrder] } : undefined; })} />
-          {s.withdrawalOrderLater && <Num label="From the year" value={s.withdrawalOrderLater.year} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater!.year = v; })} />}
+          {s.withdrawalOrderLater && <Select label="Change the order when" value={s.withdrawalOrderLater.milestoneId ?? ''} options={[['', 'A year comes'], ...plan.milestones.map((m) => [m.id, m.name + ' is reached'] as [string, string])]} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater!.milestoneId = v || undefined; })} />}
+          {s.withdrawalOrderLater && !s.withdrawalOrderLater.milestoneId && <Num label="From the year" value={s.withdrawalOrderLater.year} onChange={(v) => update((p) => { p.strategy.withdrawalOrderLater!.year = v; })} />}
         </div>
         {s.withdrawalOrderLater && <ol className="order">
           {s.withdrawalOrderLater.order.map((step, i) => (
