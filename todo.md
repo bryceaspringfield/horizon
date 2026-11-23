@@ -54,7 +54,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Tax strategy: several targets at once (bracket, IRMAA, ACA, an income ceiling) with constraints, in place of one shield.
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)
-- Optimize pages: each strategy's impact, with it and without (more or less in lifetime taxes, more or less in net legacy, chance of success with and without).
 - Flexible spending: several rules (when performance is down by X, flex discretionary spending by Y), step or interpolated, a time range, a scope.
 - Estate: heirs' tax rate on tax-deferred accounts, capital gains rate, stepped-up basis, liquidation cost, administrative cost, the final tax return, estate drag, and a breakdown by account.
 - Tax analytics: by income item, gross, tax, net, and effective rate; notable events (penalized distributions, RMDs, Roth conversions, tax-deferred distributions).

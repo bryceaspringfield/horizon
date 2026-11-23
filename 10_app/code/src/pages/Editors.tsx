@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 // The pages where the plan is entered: people, accounts, income, Social Security, expenses, milestones, the strategy,
 // and the assumptions.
 import { uid } from '../engine/defaults';
@@ -14,6 +14,7 @@ import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
 import { MARKET, assumptionAt, consensus } from '../engine/assumptions';
 import { PROVINCES } from '../engine/ca';
+import { strategyImpact } from '../engine/impact';
 import { MIT, applyMit, type MitGroup, type MitPlan, type MitTier } from '../engine/benefits';
 import { CONDITIONS, RACES, expectedDeathDate } from '../engine/lifespan';
 import { DIETS, FOOD_PLANS } from '../engine/food';
@@ -177,6 +178,19 @@ function StepsEditor({ steps, nominal, onChange }: { steps?: Step[]; nominal?: b
         </div>
       ))}
       <button className="ghost" onClick={() => onChange([...list, { year: new Date().getFullYear() + 1, amount: 0 }])}>+ A change in amount</button>
+    </div>
+  );
+}
+
+/** A strategy's impact: lifetime taxes and net legacy with it and without (engine/impact.ts). */
+function ImpactCard({ focus }: { focus: StrategyFocus }) {
+  const plan = useActivePlan();
+  const r = useMemo(() => strategyImpact(plan, focus), [plan, focus]);
+  const tone = (v: number, good: boolean) => (Math.abs(v) < 1 ? undefined : good ? 'good' : 'bad') as 'good' | 'bad' | undefined;
+  return (
+    <div className="stats">
+      <Stat label={r.moreTaxes >= 0 ? 'More in lifetime taxes' : 'Less in lifetime taxes'} value={money(Math.abs(r.moreTaxes), true)} sub={`${money(r.on.taxes, true)} with it, ${money(r.off.taxes, true)} without`} tone={tone(r.moreTaxes, r.moreTaxes < 0)} />
+      <Stat label={r.moreLegacy >= 0 ? 'Gained in net legacy' : 'Lost in net legacy'} value={money(Math.abs(r.moreLegacy), true)} sub={`${money(r.on.legacy, true)} with it, ${money(r.off.legacy, true)} without`} tone={tone(r.moreLegacy, r.moreLegacy > 0)} />
     </div>
   );
 }
@@ -824,6 +838,7 @@ export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
   });
   return (
     <>
+      {focus && <ImpactCard focus={focus} />}
       {show('tax') && <Card title="Saving while working">
         <div className="grid">
           <Num label="Cash to keep on hand (today's $)" value={s.cashTarget} onChange={(v) => update((p) => { p.strategy.cashTarget = v; })} />
@@ -887,6 +902,18 @@ export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
             <Num label="Share of discretionary spending cut" percent value={s.flex.cut} onChange={(v) => update((p) => { p.strategy.flex!.cut = Math.max(0, Math.min(1, v)); })} />
             <Num label="Raise when the portfolio is above its start by" percent value={s.flex.rise ?? 0.25} onChange={(v) => update((p) => { p.strategy.flex!.rise = v; })} />
             <Num label="Raise of discretionary spending" percent value={s.flex.boost ?? 0} onChange={(v) => update((p) => { p.strategy.flex!.boost = v; })} />
+            {(s.flex.rules ?? []).map((r, j) => (
+              <div key={j} className="span row">
+                <Num label="Further rule: when under its high by" percent value={r.drop} onChange={(v) => update((p) => { p.strategy.flex!.rules![j].drop = v; })} />
+                <Num label="cut by" percent value={r.cut} onChange={(v) => update((p) => { p.strategy.flex!.rules![j].cut = Math.max(0, Math.min(1, v)); })} />
+                <button className="ghost danger" onClick={() => update((p) => { p.strategy.flex!.rules!.splice(j, 1); })}>Remove</button>
+              </div>
+            ))}
+            <button className="ghost" onClick={() => update((p) => { (p.strategy.flex!.rules ??= []).push({ drop: Math.min(0.9, p.strategy.flex!.drop * 2), cut: Math.min(1, p.strategy.flex!.cut * 1.5) }); })}>+ Add rule</button>
+            <Select label="Between rules" value={s.flex.interpolate ? 'line' : 'step'} options={[['step', 'Step: apply a rule once its drop is met'], ['line', 'Interpolate: grow the cut in a line']]} onChange={(v) => update((p) => { p.strategy.flex!.interpolate = v === 'line' || undefined; })} />
+            <Select label="Flex applies to" value={s.flex.scope ?? 'discretionary'} options={[['discretionary', 'Discretionary spending only'], ['all', 'All spending']]} onChange={(v) => update((p) => { p.strategy.flex!.scope = v === 'all' ? 'all' : undefined; })} />
+            <Num label="Flex from year (0 for the start)" value={s.flex.from ?? 0} onChange={(v) => update((p) => { p.strategy.flex!.from = v || undefined; })} />
+            <Num label="Flex until year (0 for the end)" value={s.flex.to ?? 0} onChange={(v) => update((p) => { p.strategy.flex!.to = v || undefined; })} />
           </>}
           {show('tax') && <Check label="Give to charity from IRAs from 71 (qualified charitable distributions)" value={!!s.qcd} onChange={(v) => update((p) => { p.strategy.qcd = v; })} />}
         </div>
