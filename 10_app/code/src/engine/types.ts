@@ -174,6 +174,10 @@ export interface Expense {
   reimbursedAfterYears?: number;
   /** Paid through a workplace health or dependent-care FSA: the amount (up to the year's limit) leaves taxable pay. */
   fsa?: boolean;
+  /** A share of income in place of a fixed amount (dues, tithes, giving goals): of pay (salary and self-employment) or
+   * of all income (Social Security and the rest too), each year it runs. */
+  incomeShare?: number;
+  incomeBasis?: 'pay' | 'all';
   /** The spending category for card rewards (engine/cards.ts), where the guess from the name is wrong. */
   spendCategory?: import('./cards').SpendCategory;
   /** Whether the spending goes on a card; unset, all but rent and mortgage do. */
@@ -364,6 +368,8 @@ export interface Estate {
 export interface Plan {
   id: string;
   name: string;
+  /** The spending log: transactions from uploaded statements (engine/statements.ts). */
+  transactions?: import('./statements').Txn[];
   /** The currency every result is shown in (ISO 4217); US dollars where unset. */
   currency?: string;
   startYear: number;

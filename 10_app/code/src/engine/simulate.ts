@@ -444,7 +444,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     for (const e of plan.expenses) {
       const stop = e.endYear ?? (e.kind === 'oneTime' ? e.startYear : end);
       if (y < e.startYear || y > stop) continue;
-      let amt = amountIn(y, index, e);
+      let amt = e.incomeShare ? e.incomeShare * ((e.incomeBasis === 'all' ? Object.values(income).reduce((t, v) => t + v, 0) + ssTotal : wages + selfEmp)) : amountIn(y, index, e);
       if (!e.id.startsWith('ev_sup_')) amt *= expenseFactor;
       if (e.fundedBy && state.balance[e.fundedBy] > 0) {
         const take = Math.min(amt, state.balance[e.fundedBy]);

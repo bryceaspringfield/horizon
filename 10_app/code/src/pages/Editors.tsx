@@ -366,6 +366,8 @@ export function ExpensesPage() {
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
               <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
               <Num label="Discretionary share" percent value={x.discretionary ?? 0} hint="The part which could be cut in a bad stretch. Flexible spending (Strategy) uses it." onChange={(v) => set((y) => { y.discretionary = Math.max(0, Math.min(1, v)) || undefined; })} />
+              <Num label="As a share of income (0: a fixed amount)" percent value={x.incomeShare ?? 0} onChange={(v) => set((y) => { y.incomeShare = v || undefined; })} />
+              {!!x.incomeShare && <Select label="Share of" value={x.incomeBasis ?? 'pay'} options={[['pay', 'Pay'], ['all', 'All income']]} onChange={(v) => set((y) => { y.incomeBasis = v; })} />}
               <Select label="Card spending category" value={categoryOf(x)} options={SPEND_CATEGORIES.map(([k, l]) => [k, l] as [SpendCategory, string])} onChange={(v) => set((y) => { y.spendCategory = v; })} />
               <Num label="Paid back to you" percent value={x.reimbursedShare ?? 0} onChange={(v) => set((y) => { y.reimbursedShare = v ? Math.min(1, v) : undefined; })} />
               {!!x.reimbursedShare && <Num label="Paid back after (years; 0 the same year)" value={x.reimbursedAfterYears ?? 0} onChange={(v) => set((y) => { y.reimbursedAfterYears = Math.max(0, v); })} />}

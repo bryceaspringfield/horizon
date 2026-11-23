@@ -47,3 +47,14 @@ describe('essentials', () => {
     expect(ESSENTIALS.length).toBeGreaterThan(8);
   });
 });
+
+describe('an expense as a share of income', () => {
+  it('charges 1% of pay each year', () => {
+    const plan = examplePlan();
+    plan.expenses.push({ id: 'dues', name: 'Dues', kind: 'other', amount: 0, growth: 0, startYear: plan.startYear, incomeShare: 0.01 } as never);
+    const y = simulate(plan).years[0];
+    const pay = plan.incomes.filter((i) => i.kind === 'salary' || i.kind === 'selfEmployment').reduce((t, i) => t + (y.income[i.id] ?? 0), 0);
+    expect(y.expenses.dues).toBeCloseTo(pay * 0.01, 0);
+    expect(y.expenses.dues).toBeGreaterThan(0);
+  });
+});

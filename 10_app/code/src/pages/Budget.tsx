@@ -60,6 +60,7 @@ export function BudgetPage() {
           {rows.map(({ e, m }) => <li key={e.id}><span>{e.name}</span><b>{money(m)}</b><em>{KIND[e.kind] ?? e.kind}</em></li>)}
         </ul>
       </Card>
+      <TimeValue takeHomeYear={takeHome * 12} />
       <Card title="Essentials">
         <ul className="essentials">
           {ESSENTIALS.map((x) => {
@@ -75,5 +76,38 @@ export function BudgetPage() {
         </ul>
       </Card>
     </>
+  );
+}
+
+/** The money value of an hour (Bryce, 2026-11-23): take-home pay less the costs of working, over the hours work takes
+ * (hours worked and commuting); a price in hours of work; and whether paying for a chore beats doing it. */
+function TimeValue({ takeHomeYear }: { takeHomeYear: number }) {
+  const [hours, setHours] = useState(40);
+  const [commute, setCommute] = useState(5);
+  const [costs, setCosts] = useState(0);
+  const [price, setPrice] = useState(1000);
+  const [choreHours, setChoreHours] = useState(2);
+  const [choreCost, setChoreCost] = useState(60);
+  const weeks = 48;
+  const hourly = Math.max(0, takeHomeYear - costs) / Math.max(1, (hours + commute) * weeks);
+  const worth = choreCost < choreHours * hourly;
+  return (
+    <Card title="Value of your time">
+      <div className="grid">
+        <Num label="Hours worked a week" value={hours} onChange={(v) => setHours(Math.max(0, v))} />
+        <Num label="Commute hours a week" value={commute} onChange={(v) => setCommute(Math.max(0, v))} />
+        <Num label="Yearly costs of working" value={costs} onChange={(v) => setCosts(Math.max(0, v))} />
+      </div>
+      <div className="stats">
+        <Stat icon="trend" label="Your time is worth" value={money(hourly)} sub="an hour, after taxes and costs of working" />
+        <Stat icon="trend" label="A price in hours of work" value={hourly ? (price / hourly).toFixed(1) + ' hours' : 'n/a'} sub={'for ' + money(price)} />
+        <Stat icon="trend" label="Paying for the chore" value={worth ? 'Pays off' : 'Costs more'} sub={money(choreCost) + ' against ' + money(choreHours * hourly) + ' of your time'} tone={worth ? 'good' : 'bad'} />
+      </div>
+      <div className="grid">
+        <Num label="A purchase's price" value={price} onChange={(v) => setPrice(Math.max(0, v))} />
+        <Num label="Hours a chore takes you" value={choreHours} onChange={(v) => setChoreHours(Math.max(0, v))} />
+        <Num label="Price to pay someone for it" value={choreCost} onChange={(v) => setChoreCost(Math.max(0, v))} />
+      </div>
+    </Card>
   );
 }

@@ -20,3 +20,18 @@ describe('card rewards', () => {
     expect(v).toBeCloseTo(6000 * (0.06 - 0.02) - 95, 6);
   });
 });
+
+import { findCards } from '../finder';
+describe('card finder', () => {
+  it('ranks a grocery card first for heavy grocery spending and sets aside cards out of reach', () => {
+    const rows = findCards(2026, { groceries: 9000, other: 3000 }, [], { credit: 'good' });
+    const ok = rows.filter((r) => !r.out);
+    expect(ok[0].card.id).toBe('amex-bcp');
+    expect(rows.find((r) => r.card.id === 'amex-gold')!.out).toMatch(/excellent/);
+  });
+  it('applies 5/24 and the fee cap', () => {
+    const rows = findCards(2026, { dining: 5000 }, [], { credit: 'excellent', maxFee: 0, newCards24: 5 });
+    expect(rows.find((r) => r.card.id === 'chase-freedom-unlimited')!.out).toMatch(/5\/24/);
+    expect(rows.find((r) => r.card.id === 'amex-gold')!.out).toMatch(/fee/);
+  });
+});
