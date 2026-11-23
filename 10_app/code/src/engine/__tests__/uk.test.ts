@@ -37,3 +37,10 @@ describe('UK lump sum allowance', () => {
     expect(ukTax({ ...t, ukLumpLeft: 0 }).total).toBeGreaterThan(ukTax({ ...t, ukLumpLeft: 268275 }).total);
   });
 });
+
+describe('UK savings rates from 2027', () => {
+  it('taxes savings 2 points higher from 2027', () => {
+    const p = { earned: 50000, pension: 0, savings: 10000, dividends: 0, gains: 0, employment: 0 };
+    expect(ukPerson(p, 1, false, 2027).income - ukPerson(p, 1, false, 2026).income).toBeCloseTo(0.02 * (10000 - 500), 2);
+  });
+});

@@ -5,8 +5,8 @@
 // April 2026). The UK taxes each person: a couple's income is split evenly between the two. Scotland's bands on earned and
 // pension income (gov.uk/scottish-income-tax, 2026 to 2027: limits above the allowance from the Scottish Rate Resolution)
 // apply to a Scottish taxpayer. A quarter of each pension withdrawal can be taken tax-free (an uncrystallised funds pension
-// lump sum), up to the lump sum allowance of £268,275 a person over a lifetime. Not modeled: the 2-point rise in savings
-// rates from April 2027.
+// lump sum), up to the lump sum allowance of £268,275 a person over a lifetime. Savings income is taxed 2 points higher
+// from April 2027.
 import type { TaxInput, TaxResult } from './tax';
 
 export const UK = {
@@ -21,7 +21,9 @@ export const UK = {
 /** One person's UK taxes, in pounds, with thresholds raised by the index (1 while they stay frozen). */
 export const SCOTLAND = [[0, 0.19], [3967, 0.2], [16956, 0.21], [31092, 0.42], [62430, 0.45]];
 
-export function ukPerson(p: { earned: number; pension: number; savings: number; dividends: number; gains: number; employment: number }, k = 1, scotland = false) {
+export function ukPerson(p: { earned: number; pension: number; savings: number; dividends: number; gains: number; employment: number }, k = 1, scotland = false, year = 2026) {
+  // savings income 2 points higher in each band from April 2027 (gov.uk, Change to tax rates for property, savings and dividend income)
+  const sav = year >= 2027 ? 0.02 : 0;
   const u = UK;
   const total = p.earned + p.pension + p.savings + p.dividends;
   const pa = Math.max(0, u.personalAllowance * k - Math.max(0, total - u.taperFrom * k) / 2);
@@ -47,12 +49,12 @@ export function ukPerson(p: { earned: number; pension: number; savings: number; 
     }
     used += nonSav;
   } else tax += band(nonSav, [u.rates.basic, u.rates.higher, u.rates.additional]);
-  let sav = allowanceLeft(p.savings);
-  const starting = Math.max(0, u.savings.startingBand * k - nonSav), free0 = Math.min(sav, starting);
-  used += free0; sav -= free0;
-  const psa = used + sav > addFrom ? 0 : used + sav > basicTop ? u.savings.psaHigher * k : u.savings.psaBasic * k, free1 = Math.min(sav, psa);
-  used += free1; sav -= free1;
-  tax += band(sav, [u.rates.basic, u.rates.higher, u.rates.additional]);
+  let sv = allowanceLeft(p.savings);
+  const starting = Math.max(0, u.savings.startingBand * k - nonSav), free0 = Math.min(sv, starting);
+  used += free0; sv -= free0;
+  const psa = used + sv > addFrom ? 0 : used + sv > basicTop ? u.savings.psaHigher * k : u.savings.psaBasic * k, free1 = Math.min(sv, psa);
+  used += free1; sv -= free1;
+  tax += band(sv, [u.rates.basic + sav, u.rates.higher + sav, u.rates.additional + sav]);
   let div = allowanceLeft(p.dividends);
   const dAllow = Math.min(div, u.dividend.allowance * k);
   used += dAllow; div -= dAllow;
@@ -71,7 +73,7 @@ export function ukTax(t: TaxInput): TaxResult {
   const per = ukPerson({
     earned: (t.wages + t.selfEmployment - t.preTaxDeductions) / n, pension: (t.otherOrdinary - taxFree + t.socialSecurity) / n,
     savings: t.interest / n, dividends: t.qualifiedDividends / n, gains: Math.max(0, t.longTermGains) / n, employment: (t.wages + t.selfEmployment) / n,
-  }, k, !!t.scotland);
+  }, k, !!t.scotland, t.year);
   const income = per.income * n, cgt = per.cgt * n, ni = per.ni * n, total = income + cgt + ni;
   const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains) + t.socialSecurity;
   return { federal: income, capitalGains: cgt, niit: 0, fica: ni, state: 0, penalty: 0, total, taxableIncome: per.taxable * n,
