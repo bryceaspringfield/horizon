@@ -15,3 +15,18 @@ describe('Canadian tax, Ontario, 2026', () => {
     expect(r.ontario).toBeCloseTo(0.0505 * taxable - 0.0505 * (12989 + cppBase + ei) + Math.min(600, 450 + 0.25 * (taxable - 48000)), 1);
   });
 });
+
+describe('Canadian provinces', () => {
+  it('Alberta taxes $60,000 at 8% less its credit', () => {
+    const r = caPerson({ employment: 60000, other: 0 }, 'AB');
+    const cppBase = (60000 - 3500) * 0.0495, ei = 60000 * 0.0163, taxable = 60000 - (60000 - 3500) * 0.01;
+    expect(r.ontario).toBeCloseTo(0.08 * taxable - 0.08 * (22769 + cppBase + ei), 1);
+  });
+});
+
+describe('OAS recovery tax', () => {
+  it('takes back 15% of income over $95,323, at most the pension', () => {
+    expect(caPerson({ employment: 0, other: 105323, oas: 9000 }).oasRecovery).toBeCloseTo(1500, 2);
+    expect(caPerson({ employment: 0, other: 300000, oas: 9000 }).oasRecovery).toBe(9000);
+  });
+});

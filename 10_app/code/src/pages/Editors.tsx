@@ -13,6 +13,7 @@ import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../eng
 import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
 import { MARKET, assumptionAt, consensus } from '../engine/assumptions';
+import { PROVINCES } from '../engine/ca';
 import { MIT, applyMit, type MitGroup, type MitPlan, type MitTier } from '../engine/benefits';
 import { CONDITIONS, RACES, expectedDeathDate } from '../engine/lifespan';
 import { DIETS, FOOD_PLANS } from '../engine/food';
@@ -1014,7 +1015,8 @@ export function AssumptionsPage() {
     <CurrencyCard />
     <Card title="Tax country">
       <div className="grid">
-        <Select label="Taxes follow" value={a.taxCountry ?? 'US'} options={[['US', 'United States (federal and state)'], ['UK', 'United Kingdom (England, Wales, Northern Ireland)'], ['AU', 'Australia (residents)'], ['CA', 'Canada (Ontario)']]} onChange={(v) => update((p) => { p.assumptions.taxCountry = v === 'US' ? undefined : v; })} />
+        <Select label="Taxes follow" value={a.taxCountry ?? 'US'} options={[['US', 'United States (federal and state)'], ['UK', 'United Kingdom (England, Wales, Northern Ireland)'], ['AU', 'Australia (residents)'], ['CA', 'Canada']]} onChange={(v) => update((p) => { p.assumptions.taxCountry = v === 'US' ? undefined : v; })} />
+        {a.taxCountry === 'CA' && <Select label="Province or territory" value={a.province ?? 'ON'} options={Object.entries(PROVINCES).map(([k, v]) => [k, v.name] as [string, string])} onChange={(v) => update((p) => { p.assumptions.province = v === 'ON' ? undefined : v; })} />}
       </div>
     </Card>
     <ExpatCard />

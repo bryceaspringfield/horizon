@@ -26,6 +26,8 @@ export const rules = rulesFor(YEARS[0]).rules;
 export interface TaxInput {
   /** The country whose taxes apply: the United States where unset, or the UK (engine/uk.ts). */
   country?: 'US' | 'UK' | 'AU' | 'CA';
+  /** Canada: the province or territory (two letters; Ontario where unset). */
+  province?: string;
   /** The spread of incentive stock options exercised and held this year: an AMT preference item (section 56(b)(3)). */
   isoSpread?: number;
   /** A US person's income from abroad: the exclusion and the foreign tax credit. */

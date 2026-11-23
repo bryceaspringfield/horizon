@@ -444,6 +444,8 @@ export interface Assumptions {
   announcedCola?: boolean;
   /** The country whose taxes apply (engine/uk.ts): the United States where unset. */
   taxCountry?: 'US' | 'UK' | 'AU' | 'CA';
+  /** Canada: the province or territory, two letters (engine/ca.ts); Ontario where unset. */
+  province?: string;
   /** The share of taxable accounts' dividends which are qualified (taxed at capital gains rates); the rest is ordinary. 1 where unset. */
   qualifiedDividendShare?: number;
   /** Exchange-rate assumptions by foreign currency: units of the plan's currency for one unit today, and the rate's
