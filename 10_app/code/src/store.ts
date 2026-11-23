@@ -24,6 +24,8 @@ export interface Snapshot {
 }
 
 export interface Settings {
+  /** The unit money amounts with a period are shown and entered in (Bryce, 2026-11-23); unset, each field's own. */
+  amountUnit?: 'year' | 'month';
   realDollars: boolean;
   /** 'auto' follows the device's light or dark setting. */
   theme: 'auto' | 'light' | 'dark';

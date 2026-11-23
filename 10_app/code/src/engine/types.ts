@@ -4,6 +4,9 @@
 export type FilingStatus = 'single' | 'mfj' | 'hoh';
 
 export interface Person {
+  /** Keep this person's own plan-to age and retirement age when the plan sets one for everyone. */
+  ownPlanTo?: boolean;
+  ownRetirementAge?: boolean;
   id: string;
   name: string;
   birthYear: number;
@@ -46,6 +49,16 @@ export interface Account {
    * earns on each category's spending it wins, in place of the flat share and rate above. */
   rewards?: import('./cards').RewardRate[];
   annualFee?: number;
+  /** When the account's money can be drawn: always (the default), from its qualified age, from a year, or never (an
+   * account kept whole, such as one held for a goal). */
+  withdrawRule?: 'always' | 'qualifiedAge' | 'year' | 'never';
+  /** The age from which withdrawals are qualified (no early penalty); 59.5 for retirement accounts where unset. */
+  qualifiedAge?: number;
+  withdrawYear?: number;
+  /** When the account counts as liquid for financial independence and invested-asset milestones: now (the default for
+   * cash and investment accounts), from a year, from its qualified age, or never. */
+  liquidFrom?: 'now' | 'year' | 'qualifiedAge' | 'never';
+  liquidYear?: number;
   /** Assets: a collectible (coins, trading cards, plush toys, art), whose sale gain is taxed as ordinary income (the
    * collectibles rate is capped at 28%; ordinary rates reach 28% only past the 24% bracket). */
   collectible?: boolean;
@@ -93,9 +106,21 @@ export interface Account {
 export interface Step {
   year: number;
   amount: number;
+  /** The exact date the new amount starts (a raise on April 1); the year's amount blends the old and the new. */
+  date?: string;
+  /** The new amount is in the future dollars of its own date (a raise already announced), not today's dollars. */
+  nominal?: boolean;
 }
 
 export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu' | 'bonus' | 'accountBonus' | 'settlement';
+
+export interface PayDeduction {
+  name: string;
+  amount: number;
+  per: 'year' | 'paycheck';
+  treatment: 'all' | 'incomeTax' | 'none';
+  nominal?: boolean;
+}
 
 export interface Income {
   id: string;
@@ -113,6 +138,22 @@ export interface Income {
   inflationAdjusted: boolean;
   /** Salary: employee contribution to the owner's workplace plan, as a share of pay, and the employer's match. */
   contributionRate?: number;
+  /** The workplace contribution as a yearly amount (today's dollars) in place of a share of pay; set, it wins. */
+  contributionAmount?: number;
+  /** Salary: deductions taken from each paycheck other than retirement contributions (health, dental, and vision
+   * premiums, an FSA, commuter benefits, union dues): each an amount a year or a paycheck, in today's dollars unless
+   * nominal, and its tax treatment: excluded from all taxable wages (a section 125 plan: income and payroll tax),
+   * excluded from federal and state income tax only, or not excluded. */
+  deductions?: PayDeduction[];
+  /** Salary: paychecks a year, for deductions set a paycheck (26 biweekly, 24 semimonthly, 52 weekly, 12 monthly). */
+  paychecks?: number;
+  /** The year from which the amount keeps up with inflation; before it, the amount stays as entered (a salary frozen
+   * until a review). Unset, from the start. */
+  indexFrom?: number;
+  /** Exact start and end points (engine/dates.ts): a date, a life event, a milestone, an age, or retirement; set, they
+   * replace startYear and endYear, and each year's amount is prorated by the share of the year the income runs. */
+  start?: import('./dates').DateRef;
+  end?: import('./dates').DateRef;
   contributionRoth?: boolean;
   employerMatch?: number;
   /** Salary: the share of pay the employer matches at most (e.g., 100% of the first 6%). */
@@ -160,6 +201,11 @@ export interface SocialSecurity {
   /** Monthly benefit at full retirement age, in today's dollars (from the SSA statement). */
   pia: number;
   claimAge: number;
+  /** Disability benefits (SSDI) in place of a retirement claim: the full benefit, unreduced, from 5 months after the
+   * disability's onset date, turning into the same retirement benefit at full retirement age; Medicare from 24 months
+   * after benefits start. */
+  ssdi?: boolean;
+  ssdiOnset?: string;
 }
 
 export type ExpenseKind = 'living' | 'housing' | 'healthcare' | 'education' | 'travel' | 'other' | 'oneTime' | 'insurance' | 'longTermCare' | 'childcare';
@@ -177,6 +223,9 @@ export interface Expense {
   /** A share of income in place of a fixed amount (dues, tithes, giving goals): of pay (salary and self-employment) or
    * of all income (Social Security and the rest too), each year it runs. */
   incomeShare?: number;
+  /** Exact start and end points (engine/dates.ts), as for incomes. */
+  start?: import('./dates').DateRef;
+  end?: import('./dates').DateRef;
   incomeBasis?: 'pay' | 'all';
   /** The spending category for card rewards (engine/cards.ts), where the guess from the name is wrong. */
   spendCategory?: import('./cards').SpendCategory;
@@ -216,6 +265,8 @@ export interface Milestone {
 export type WithdrawalStep = 'cash' | 'taxable' | 'traditional' | 'roth' | 'hsa';
 
 export interface Strategy {
+  /** The most converted to Roth in a year (today's dollars), under the bracket fill; unset, no cap. */
+  rothConversionCap?: number;
   /** Retirement: the first year of no salary, per person, by age. */
   retirementAge: Record<string, number>;
   withdrawalOrder: WithdrawalStep[];
@@ -314,6 +365,10 @@ export interface LocalTax {
 }
 
 export interface Assumptions {
+  /** Plan everyone to one age, or to one calendar year, except people who keep their own (Person.ownPlanTo). */
+  planTo?: { mode: 'person' | 'age' | 'year'; age?: number; year?: number };
+  /** One retirement age for everyone, except people who keep their own (Person.ownRetirementAge). */
+  retirementAgeAll?: number;
   inflation: number;
   /** Nominal yearly return and volatility of each asset class. */
   returns: { stocks: number; bonds: number; cash: number };
@@ -343,7 +398,8 @@ export interface Assumptions {
 }
 
 /** Life events which change the plan from their year: buying a home, a child, a career break, or a pay change. */
-export type LifeEvent =
+/** A life event, with an exact date and end date where the user sets them (the year alone otherwise). */
+export type LifeEvent = { date?: string; endDate?: string } & (
   | { id: string; kind: 'homePurchase'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; appreciation: number; closingCosts: number }
   | { id: string; kind: 'child'; name: string; year: number; yearlyCost: number; collegeYearly: number; collegeYears: number }
   | { id: string; kind: 'careerBreak'; name: string; personId: string; year: number; endYear: number }
@@ -352,7 +408,8 @@ export type LifeEvent =
   | { id: string; kind: 'inheritance'; name: string; year: number; amount: number; asIra: boolean }
   | { id: string; kind: 'recurring'; name: string; year: number; amount: number; everyYears: number; endYear: number }
   | { id: string; kind: 'separation'; name: string; year: number; personId: string; keepShare: number; expenseFactor: number; support: number; supportYears: number }
-  | { id: string; kind: 'rentalProperty'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; rent: number; vacancy: number; costs: number; appreciation: number };
+  | { id: string; kind: 'rentalProperty'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; rent: number; vacancy: number; costs: number; appreciation: number }
+);
 
 export interface Estate {
   /** Income tax rate the heirs pay on inherited traditional accounts (withdrawn over ten years). */

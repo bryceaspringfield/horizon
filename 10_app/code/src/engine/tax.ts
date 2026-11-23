@@ -41,6 +41,8 @@ export interface TaxInput {
   socialSecurity: number;
   /** Pre-tax contributions which lower taxable wages (401(k), traditional IRA, HSA). */
   preTaxDeductions: number;
+  /** Wages excluded from payroll tax too (section 125 deductions: health premiums, an FSA). */
+  ficaExcluded?: number;
   earlyWithdrawals: number;
   /** People aged 65 or more. */
   over65: number;
@@ -282,7 +284,7 @@ export function computeTax(t: TaxInput): TaxResult {
 
   const investmentIncome = preferential + t.interest;
   const niit = Math.max(0, Math.min(investmentIncome, agi - r.niit.threshold[t.status])) * r.niit.rate;
-  const ficaTax = fica(Math.max(0, t.wages - (fo?.noUsPayroll ?? 0)), t.selfEmployment, t.status, t.year, k);
+  const ficaTax = fica(Math.max(0, t.wages - (fo?.noUsPayroll ?? 0) - (t.ficaExcluded ?? 0)), t.selfEmployment, t.status, t.year, k);
   const penalty = t.earlyWithdrawals * r.earlyWithdrawalPenalty + (t.hsaPenaltyBase ?? 0) * 0.2;
 
   // Alternative minimum tax: income with the standard deduction (or state and local taxes) added back, less the

@@ -6,12 +6,14 @@
 // raises the tax, which needs more withdrawal) in a few passes. A surplus fills the cash target and the rest goes to
 // the first taxable account. Balances then earn the year's returns, a taxable account's dividends are taxed in the
 // same year, assets appreciate and are sold in their sale year, and debts accrue interest.
+import { resolve, shareOfYear, yearOf } from './dates';
 import { cardRewards, cardable, categoryOf, type SpendCategory } from './cards';
 import { convertCurrencies } from './currency';
 import { acaLimit, acaNetPremium, bracketTop, computeTax, estateTax, medicarePremium, rules, rulesFor, rulesTiers, zeroGainsTop } from './tax';
 import { benefitAtClaim, rmdStartAge, spousalAtClaim } from './retirement';
-import type { Account, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
+import type { Step, Account, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
 
+const ONE_TIME = new Set(['windfall', 'accountBonus', 'settlement']);
 const LIQUID: Account['kind'][] = ['cash', 'taxable', 'traditional', 'roth', 'hsa', 'college529'];
 
 interface State {
@@ -50,8 +52,20 @@ export function loanPayment(principal: number, rate: number, years: number): num
 }
 
 /** Turns a plan's life events into the accounts and expenses they create (a home and its mortgage, a child's costs). */
+/** The plan-wide defaults (Bryce, 2026-11-23): one plan-to age or year, and one retirement age, for every person who
+ * keeps no value of their own. Applied to the copy of the plan a projection runs on. */
+export function applyDefaults(plan: Plan): void {
+  const t = plan.assumptions.planTo, r = plan.assumptions.retirementAgeAll;
+  for (const p of plan.people) {
+    if (!p.ownPlanTo && t?.mode === 'age' && t.age) p.lifeExpectancy = t.age;
+    if (!p.ownPlanTo && t?.mode === 'year' && t.year) p.lifeExpectancy = t.year - p.birthYear;
+    if (!p.ownRetirementAge && r) plan.strategy.retirementAge[p.id] = r;
+  }
+}
+
 export function expandEvents(plan: Plan): Plan {
   convertCurrencies(plan);
+  applyDefaults(plan);
   for (const e of plan.events ?? []) {
     // Applied once: a plan already expanded keeps its accounts and expenses.
     const made = (id: string) => id.startsWith('ev_') && id.endsWith('_' + e.id);
@@ -151,6 +165,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   let depletionYear: number | null = null;
   let fiYear: number | null = null;
   const reached = new Set<string>();
+  // the fractional year from which each reached milestone counts (the start of the year after it is reached)
+  const reachedAt: Record<string, number> = {};
   let guardrailSpend: number | null = null;
   let flexHigh: number | null = null, flexStart: number | null = null;
   let guardrailRate: number | null = null;
@@ -185,13 +201,30 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   let expenseFactor = 1;
   /** Cumulative inflation at a year's start: from the path inside the plan, at the assumed rate before it. */
   const indexOf = (yr: number) => indexAt[yr] ?? Math.pow(1 + a.inflation, yr - plan.startYear);
-  /** A yearly amount in a year: the item's base amount or its last step, in today's dollars (grown with inflation)
-   * or in the future dollars of the year it starts, with its real growth. */
-  const amountIn = (y: number, index: number, it: { amount: number; growth: number; startYear: number; steps?: { year: number; amount: number }[]; nominal?: boolean }, inflationAdjusted = true) => {
-    let amount = it.amount, from = it.startYear, stepped = false;
-    for (const st of it.steps ?? []) if (st.year <= y && (!stepped || st.year >= from)) { amount = st.amount; from = st.year; stepped = true; }
-    if (it.nominal) return amount * (inflationAdjusted ? index / indexOf(from) : 1) * Math.pow(1 + it.growth, y - from);
-    return amount * (inflationAdjusted ? index : 1) * Math.pow(1 + it.growth, y - (stepped ? from : plan.startYear));
+  /** A yearly amount in a year: the item's base amount or its last change, in today's dollars (grown with inflation) or
+   * in the future dollars of when it starts, with its real growth. A change dated inside the year blends the old and new
+   * amounts by the share of the year each holds; with indexFrom, the amount stays as entered until that year, then grows
+   * with inflation from there. */
+  const amountIn = (y: number, index: number, it: { amount: number; growth: number; startYear: number; steps?: Step[]; nominal?: boolean; indexFrom?: number }, inflationAdjusted = true) => {
+    const at = (st: Step) => (st.date ? yearOf(st.date) : st.year);
+    const value = (amount: number, from: number, nominal: boolean, stepped: boolean) => {
+      let infl = inflationAdjusted ? index : 1;
+      if (inflationAdjusted && nominal) infl = index / indexOf(Math.floor(from));
+      if (inflationAdjusted && it.indexFrom) infl = y < it.indexFrom ? (nominal ? 1 : indexOf(plan.startYear)) : index / indexOf(it.indexFrom);
+      return amount * infl * Math.pow(1 + it.growth, y - (stepped || nominal ? Math.floor(from) : plan.startYear));
+    };
+    const steps = [...(it.steps ?? [])].sort((p, q) => at(p) - at(q));
+    let cur = value(it.amount, it.startYear, !!it.nominal, false);
+    for (const st of steps) if (at(st) <= y) cur = value(st.amount, at(st), st.nominal ?? !!it.nominal, true);
+    // a change inside the year: the old amount until its date, the new one after
+    const inside = steps.filter((st) => at(st) > y && at(st) < y + 1);
+    if (!inside.length) return cur;
+    let total = 0, prev = y, amt = cur;
+    for (const st of inside) {
+      total += amt * (at(st) - prev);
+      amt = value(st.amount, at(st), st.nominal ?? !!it.nominal, true); prev = at(st);
+    }
+    return total + amt * (y + 1 - prev);
   };
   /** People retired by a milestone reached in an earlier year. */
   const retiredBy = new Set<string>();
@@ -273,22 +306,31 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const stop = inc.endYear ?? (inc.kind === 'salary' || inc.kind === 'selfEmployment'
         ? plan.people.find((p) => p.id === inc.ownerId)!.birthYear + (s.retirementAge[inc.ownerId] ?? 200) - 1
         : inc.kind === 'rsu' ? inc.startYear + Math.max(1, inc.vestYears ?? 4) - 1 : end);
-      if (y < inc.startYear || y > stop) continue;
+      // exact start and end points (engine/dates.ts) replace the whole years and prorate the year's amount
+      let share = 1;
+      if (inc.start || inc.end) {
+        const ts = inc.start ? resolve(inc.start, plan, reachedAt) : inc.startYear, te = inc.end ? resolve(inc.end, plan, reachedAt) : stop + 1;
+        if (ts === undefined) continue;
+        if (ONE_TIME.has(inc.kind)) { if (y !== Math.floor(ts)) continue; }
+        else { share = shareOfYear(y, ts, te); if (share <= 0) continue; }
+      } else if (y < inc.startYear || y > stop) continue;
       if ((inc.kind === 'salary' || inc.kind === 'selfEmployment') && retiredBy.has(inc.ownerId)) continue;
-      if ((inc.kind === 'windfall' || inc.kind === 'accountBonus' || inc.kind === 'settlement') && y !== inc.startYear) continue;
+      if (ONE_TIME.has(inc.kind) && !inc.start && y !== inc.startYear) continue;
       const evs = (plan.events ?? []).filter((e) => (e.kind === 'careerBreak' || e.kind === 'payChange') && e.personId === inc.ownerId);
       if ((inc.kind === 'salary' || inc.kind === 'selfEmployment') && evs.some((e) => e.kind === 'careerBreak' && y >= e.year && y <= e.endYear)) continue;
-      let amt = amountIn(y, index, inc, inc.inflationAdjusted);
+      let amt = amountIn(y, index, inc, inc.inflationAdjusted) * share;
       if (inc.kind === 'salary' || inc.kind === 'selfEmployment') for (const e of evs) if (e.kind === 'payChange' && y >= e.year) amt *= e.factor;
       if (inc.kind === 'salary' && inc.bonusRate) amt *= 1 + inc.bonusRate;
       income[inc.id] = amt;
       if (inc.kind === 'salary') {
         wages += amt;
-        if (inc.contributionRate) {
+        // a contribution set in dollars (today's, kept up with inflation) becomes its share of the year's pay
+        const cRate = inc.contributionAmount ? Math.min(1, (inc.contributionAmount * index) / Math.max(1, amt)) : (inc.contributionRate ?? 0);
+        if (cRate) {
           const age = ages[inc.ownerId];
           const limit = (lim['401k'] + (age >= 60 && age <= 63 ? lim['401kCatchUp60to63'] : age >= 50 ? lim['401kCatchUp50'] : 0)) * ri;
           // One limit a person across every employer's plan.
-          const employee = Math.max(0, Math.min(amt * inc.contributionRate, limit - (deferredBy[inc.ownerId] ?? 0)));
+          const employee = Math.max(0, Math.min(amt * cRate, limit - (deferredBy[inc.ownerId] ?? 0)));
           deferredBy[inc.ownerId] = (deferredBy[inc.ownerId] ?? 0) + employee;
           // The deferral, split between the pre-tax and the Roth side; a Roth deferral leaves take-home pay, after tax.
           const rothShare = Math.max(0, Math.min(1, inc.contributionRothShare ?? (inc.contributionRoth ? 1 : 0)));
@@ -298,7 +340,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
             deposit(acc.id, part);
             if (roth) untaxedIncome -= part; else preTax += part;
           }
-          const m = amt * Math.min(inc.contributionRate, inc.matchLimit ?? 1) * (inc.employerMatch ?? 0);
+          const m = amt * Math.min(cRate, inc.matchLimit ?? 1) * (inc.employerMatch ?? 0);
           const tAcc = plan401(inc.ownerId, false);
           if (tAcc && m > 0) {
             deposit(tAcc.id, m);
@@ -325,7 +367,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         sePremium += premium;  // a deduction only: the premium itself is an expense of the plan
         const age = ages[inc.ownerId];
         const deferralLimit = (lim['401k'] + (age >= 60 && age <= 63 ? lim['401kCatchUp60to63'] : age >= 50 ? lim['401kCatchUp50'] : 0)) * ri;
-        const deferral = Math.max(0, Math.min(amt * (inc.contributionRate ?? 0), deferralLimit - (deferredBy[inc.ownerId] ?? 0), amt - premium));
+        const deferral = Math.max(0, Math.min(amt * (inc.contributionAmount ? Math.min(1, (inc.contributionAmount * index) / Math.max(1, amt)) : (inc.contributionRate ?? 0)), deferralLimit - (deferredBy[inc.ownerId] ?? 0), amt - premium));
         const total415 = ((lim as unknown as Record<string, number>)['415c'] ?? 72000) * ri;
         const employer = Math.max(0, Math.min(amt * Math.min(0.2, inc.employerContributionRate ?? 0), total415 - deferral, amt - premium - deferral));
         if (deferral + employer > 0) {
@@ -357,9 +399,19 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     // Social Security, with the survivor taking the larger benefit.
     let ssTotal = 0;
     const ssByPerson: Record<string, number> = {};
+    // Medicare for SSDI recipients: from 24 months after benefits start (the year it begins)
+    const ssdiMedicare: Record<string, number> = {};
+    for (const ss of plan.socialSecurity) if (ss.ssdi && ss.ssdiOnset) ssdiMedicare[ss.ownerId] = Math.floor(yearOf(ss.ssdiOnset) + 5 / 12 + 2);
     for (const ss of plan.socialSecurity) {
       const p = plan.people.find((q) => q.id === ss.ownerId);
       if (!p || departed.has(ss.ownerId)) continue;
+      if (ss.ssdi && ss.ssdiOnset) {
+        // SSDI: unreduced, from the end of the 5-month waiting period after onset; prorated in the first year
+        const from = yearOf(ss.ssdiOnset) + 5 / 12;
+        const sh = shareOfYear(y, from, Infinity);
+        if (sh > 0) ssByPerson[ss.ownerId] = ss.pia * 12 * sh * index * Math.pow(1 + (a.benefitCola ?? 0), y - plan.startYear);
+        continue;
+      }
       const claimYear = p.birthYear + ss.claimAge;
       if (y >= claimYear) ssByPerson[ss.ownerId] = benefitAtClaim(ss.pia, ss.claimAge) * 12 * index * Math.pow(1 + (a.benefitCola ?? 0), y - plan.startYear);
     }
@@ -443,8 +495,14 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     let totalExpenses = 0, fsaSpend = 0;
     for (const e of plan.expenses) {
       const stop = e.endYear ?? (e.kind === 'oneTime' ? e.startYear : end);
-      if (y < e.startYear || y > stop) continue;
-      let amt = e.incomeShare ? e.incomeShare * ((e.incomeBasis === 'all' ? Object.values(income).reduce((t, v) => t + v, 0) + ssTotal : wages + selfEmp)) : amountIn(y, index, e);
+      let eShare = 1;
+      if (e.start || e.end) {
+        const ts = e.start ? resolve(e.start, plan, reachedAt) : e.startYear, te = e.end ? resolve(e.end, plan, reachedAt) : stop + 1;
+        if (ts === undefined) continue;
+        if (e.kind === 'oneTime') { if (y !== Math.floor(ts)) continue; }
+        else { eShare = shareOfYear(y, ts, te); if (eShare <= 0) continue; }
+      } else if (y < e.startYear || y > stop) continue;
+      let amt = eShare * (e.incomeShare ? e.incomeShare * ((e.incomeBasis === 'all' ? Object.values(income).reduce((t, v) => t + v, 0) + ssTotal : wages + selfEmp)) : amountIn(y, index, e));
       if (!e.id.startsWith('ev_sup_')) amt *= expenseFactor;
       if (e.fundedBy && state.balance[e.fundedBy] > 0) {
         const take = Math.min(amt, state.balance[e.fundedBy]);
@@ -463,6 +521,19 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     // Repayments of spending paid back (untaxed), and FSA spending taken out of taxable pay (2026 limit $3,400, indexed).
     if (reimbursements[y]) { income['__reimbursed'] = reimbursements[y]; untaxedIncome += reimbursements[y]; }
     if (fsaSpend > 0 && wages > 0) preTax += Math.min(fsaSpend, 3400 * index, wages);
+    // Paycheck deductions of each salary paid this year: spending, and wages left out of income tax (and payroll tax)
+    let ficaExcluded = 0;
+    for (const inc of plan.incomes) {
+      if (inc.kind !== 'salary' || !inc.deductions?.length || !(income[inc.id] > 0)) continue;
+      for (const [k, d] of inc.deductions.entries()) {
+        const amt = d.amount * (d.per === 'paycheck' ? inc.paychecks ?? 26 : 1) * (d.nominal ? 1 : index);
+        if (amt <= 0) continue;
+        const id = 'ded_' + inc.id + '_' + k;
+        expenses[id] = amt; totalExpenses += amt;
+        if (d.treatment !== 'none') preTax += Math.min(amt, wages);
+        if (d.treatment === 'all') ficaExcluded += amt;
+      }
+    }
     // Cash back: each credit card returns its rate on the share of the year's spending charged to it (a rebate, untaxed).
     {
       const spend = totalExpenses;
@@ -489,7 +560,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     let flexChange = 0;
     const discretionary = plan.expenses.reduce((t, e) => t + (expenses[e.id] ?? 0) * (e.discretionary ?? 0), 0);
     if (s.flex?.enabled) {
-      const realPortfolio = liquid(state, accounts) / index;
+      const realPortfolio = liquid(state, accounts, y, (id) => ages[id]) / index;
       flexHigh = Math.max(flexHigh ?? realPortfolio, realPortfolio); flexStart ??= realPortfolio;
       const factor = realPortfolio < flexHigh * (1 - s.flex.drop) ? 1 - s.flex.cut
         : s.flex.boost && realPortfolio > flexStart * (1 + (s.flex.rise ?? 0.25)) ? 1 + s.flex.boost : 1;
@@ -511,7 +582,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     let medicare = 0, aca = 0;
     if (hc.medicare) {
       const back = magiBy[y - 2] ?? magiBy[plan.startYear] ?? 0;
-      for (const p of alive) if (ages[p.id] >= 65) medicare += medicarePremium(y, back, status, hc.partDBase, ri, healthIndex) + (hc.medigap ?? 0) * 12 * healthIndex;
+      for (const p of alive) if (ages[p.id] >= 65 || y >= (ssdiMedicare[p.id] ?? Infinity)) medicare += medicarePremium(y, back, status, hc.partDBase, ri, healthIndex) + (hc.medigap ?? 0) * 12 * healthIndex;
     }
     if (hc.aca) {
       const covered = alive.filter((p) => ages[p.id] < 65 && !working(p.id)).length;
@@ -559,7 +630,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
 
     // Retirement spending rules replace the plan's living expenses once everyone has retired.
     if (retired && s.spending !== 'expenses') {
-      const portfolio = liquid(state, accounts);
+      const portfolio = liquid(state, accounts, y, (id) => ages[id]);
       const living = plan.expenses.filter((e) => e.kind === 'living').reduce((t, e) => t + (expenses[e.id] ?? 0), 0);
       let target = living;
       if (s.spending === 'fixedPercent') target = portfolio * s.spendingRate;
@@ -653,7 +724,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       // HSA money beyond the year's medical spending is income, with 20% more before 65.
       const hsaOver = Math.max(0, hsaDrawn - medicalSpend);
       const netGains = g + harvested + xGains - lossCarry, lossUsed = Math.min(3000, Math.max(0, -netGains));
-      return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + collectGain + rmd + conv + tr + xTrad + hsaOver - lossUsed,
+      return computeTax({ year: y, status, index: ri, wages, ficaExcluded, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + collectGain + rmd + conv + tr + xTrad + hsaOver - lossUsed,
         interest, qualifiedDividends: qualified, longTermGains: Math.max(0, netGains), socialSecurity: ssTotal, preTaxDeductions: preTax + sePremium,
         hsaPenaltyBase: hsaOwner && ages[hsaOwner] < 65 ? hsaOver : 0, flatRate, serviceBusiness, foreign,
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
@@ -669,7 +740,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const room = bracketTop(s.rothConversionBracket, status, y, ri) - base.ordinaryTaxable;
       const trad = accounts.filter((x) => x.kind === 'traditional' && isAlive(x.ownerId));
       const avail = trad.reduce((t, x) => t + Math.max(0, state.balance[x.id]), 0);
-      conversion = Math.max(0, Math.min(room, avail));
+      conversion = Math.max(0, Math.min(room, avail, s.rothConversionCap ? s.rothConversionCap * index : Infinity));
       let left = conversion;
       for (const x of trad) {
         const take = Math.min(left, Math.max(0, state.balance[x.id]));
@@ -787,7 +858,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
           const take = Math.min(left, state.balance[x.id]);
           state.balance[x.id] -= take; withdrawals[x.id] = (withdrawals[x.id] ?? 0) + take; left -= take; amount += take;
         }
-        const pool = accounts.filter((x) => ['taxable', 'traditional', 'roth', 'hsa'].includes(x.kind) && state.balance[x.id] > 0);
+        const pool = accounts.filter((x) => ['taxable', 'traditional', 'roth', 'hsa'].includes(x.kind) && state.balance[x.id] > 0 && drawable(x, y, ages[x.ownerId]));
         const total = pool.reduce((t, x) => t + state.balance[x.id], 0);
         if (left > 0 && total > 0) {
           const want = Math.min(left, total);
@@ -800,7 +871,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
               const frac = bal > 0 ? state.basis[x.id] / bal : 1;
               g += take * (1 - frac); state.basis[x.id] -= take * frac;
             }
-            if (x.kind === 'traditional') { traditional += take; if (ages[x.ownerId] < 59.5) e += take; }
+            if (x.kind === 'traditional') { traditional += take; if (ages[x.ownerId] < (x.qualifiedAge ?? 59.5)) e += take; }
             if (x.kind === 'hsa') hsaDrawn += take;
             amount += take;
           }
@@ -809,7 +880,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         return { amount, traditional, gains: g, early: e };
       }
       for (const step of order) {
-        const pool = accounts.filter((x) => x.kind === step && state.balance[x.id] > 0 && (step === 'cash' ? true : isAlive(x.ownerId) || alive.length > 0));
+        const pool = accounts.filter((x) => x.kind === step && state.balance[x.id] > 0 && (step === 'cash' ? true : isAlive(x.ownerId) || alive.length > 0) && drawable(x, y, ages[x.ownerId]));
         for (const x of pool) {
           if (left <= 0) break;
           let avail = state.balance[x.id];
@@ -827,7 +898,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
           }
           if (step === 'traditional') {
             traditional += take;
-            if (ages[x.ownerId] < 59.5) e += take;
+            if (ages[x.ownerId] < (x.qualifiedAge ?? 59.5)) e += take;
           }
           if (step === 'hsa') hsaDrawn += take;
           left -= take;
@@ -896,7 +967,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
 
     const balances = { ...state.balance };
     const netWorth = Object.values(balances).reduce((t, v) => t + v, 0);
-    const liquidNW = liquid(state, accounts);
+    const liquidNW = liquid(state, accounts, y, (id) => ages[id]);
     const realExpenses = totalExpenses / index;
     // Real assets and the debts they secure.
     let realNet = 0;
@@ -930,7 +1001,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         (m.kind === 'age' && m.personId !== undefined && ages[m.personId] === m.age) ||
         (m.kind === 'financialIndependence' && fiYear === y) ||
         (m.kind === 'netWorth' && m.netWorth !== undefined && nwMilestone / index >= m.netWorth);
-      if (hit) { reached.add(m.id); milestonesReached.push(m.id); for (const pid of m.retires ?? []) retiredBy.add(pid); }
+      if (hit) { reachedAt[m.id] = y + 1; reached.add(m.id); milestonesReached.push(m.id); for (const pid of m.retires ?? []) retiredBy.add(pid); }
     }
 
     const gross = wages + selfEmp + otherOrdinary + untaxedIncome + ssTotal + paidOut;
@@ -1008,6 +1079,24 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   };
 }
 
-function liquid(state: State, accounts: Account[]): number {
-  return accounts.filter((x) => LIQUID.includes(x.kind)).reduce((t, x) => t + Math.max(0, state.balance[x.id]), 0);
+function liquid(state: State, accounts: Account[], y?: number, ageOf?: (id: string) => number): number {
+  return accounts.filter((x) => LIQUID.includes(x.kind) && isLiquid(x, y, ageOf)).reduce((t, x) => t + Math.max(0, state.balance[x.id]), 0);
+}
+
+/** Whether an account counts as liquid in a year, by its liquidity setting (liquidFrom). */
+function isLiquid(x: Account, y?: number, ageOf?: (id: string) => number): boolean {
+  const r = x.liquidFrom ?? 'now';
+  if (r === 'now') return true;
+  if (r === 'never' || y === undefined) return r !== 'never' && y === undefined;
+  if (r === 'year') return y >= (x.liquidYear ?? 0);
+  return (ageOf?.(x.ownerId) ?? 0) >= (x.qualifiedAge ?? 59.5);
+}
+
+/** Whether an account's money can be drawn in a year, by its withdrawal rule (withdrawRule). */
+export function drawable(x: Account, y: number, age: number): boolean {
+  const r = x.withdrawRule ?? 'always';
+  if (r === 'always') return true;
+  if (r === 'never') return false;
+  if (r === 'year') return y >= (x.withdrawYear ?? 0);
+  return age >= (x.qualifiedAge ?? 59.5);
 }

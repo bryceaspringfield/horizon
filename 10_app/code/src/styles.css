@@ -305,3 +305,13 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent); tex
 .txns b { text-align: right; font-variant-numeric: tabular-nums; }
 .txns b.in { color: var(--good); }
 .txns .field > span { display: none; }
+
+/* When fields: a mode and its inputs on one row (2026-11-23) */
+.whenrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.whenrow > .field { flex: 1 1 140px; margin: 0; }
+.whenrow .field > span:empty { display: none; }
+.when small { display: block; margin-top: 4px; }
+
+/* The a-year / a-month switch inside amount fields (2026-11-23) */
+.input .unit { border: 0; background: var(--accent-soft); color: var(--accent); font: inherit; font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 7px; margin-left: 6px; cursor: pointer; white-space: nowrap; }
+.input .unit:hover { background: var(--accent); color: #fff; }

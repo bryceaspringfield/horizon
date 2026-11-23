@@ -12,6 +12,13 @@ export function planWarnings(plan: Plan, proj: Projection): PlanWarning[] {
   const age = (year: number) => year - plan.people[0].birthYear;
   if (proj.depletionYear !== null) out.push({ level: 'problem', page: 'cashflow', text: `Money runs short in ${proj.depletionYear} (age ${age(proj.depletionYear)}): from then, the plan's expenses are not fully met.` });
   if (plan.expenses.length === 0 || (first && first.totalExpenses === 0 && plan.expenses.every((e) => e.amount === 0))) out.push({ level: 'problem', page: 'expenses', text: 'No spending is entered, so every result assumes none.' });
+  // SSDI ends when work pays over the substantial gainful activity limit ($1,690 a month in 2026, not blind)
+  for (const ss of plan.socialSecurity) {
+    if (!ss.ssdi) continue;
+    const pay = proj.years[0] ? plan.incomes.filter((i) => i.ownerId === ss.ownerId && (i.kind === 'salary' || i.kind === 'selfEmployment')).reduce((t, i) => t + (proj.years[0].income[i.id] ?? 0), 0) : 0;
+    const who = plan.people.find((p) => p.id === ss.ownerId)?.name ?? 'Someone';
+    if (pay / 12 > 1690) out.push({ level: 'problem', page: 'income', text: who + "'s pay is over the SSDI earnings limit ($1,690 a month in 2026), which ends disability benefits after the trial work period." });
+  }
   const gaps = missingEssentials(plan);
   if (gaps.length && plan.expenses.length) out.push({ level: 'note', page: 'budget', text: `No expense covers ${gaps.length === 1 ? gaps[0].name.toLowerCase() : gaps.slice(0, -1).map((g) => g.name.toLowerCase()).join(', ') + ' or ' + gaps[gaps.length - 1].name.toLowerCase()}; the Budget page adds ${gaps.length === 1 ? 'it' : 'each'} at a starting estimate.` });
   const penalties = proj.years.filter((y) => y.taxes.penalty > 0.5);

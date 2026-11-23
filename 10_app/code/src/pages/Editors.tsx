@@ -2,7 +2,7 @@
 // and the assumptions.
 import { uid } from '../engine/defaults';
 import healthJson from '../data/healthcare.json';
-import type { LocalTax, Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, LifeEvent, Milestone, Step, Transfer, WithdrawalStep } from '../engine/types';
+import type { PayDeduction, LocalTax, Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, LifeEvent, Milestone, Step, Transfer, WithdrawalStep } from '../engine/types';
 import { estimatePia } from '../engine/retirement';
 import { useProjection } from '../useProjection';
 import statesJson from '../data/states.json';
@@ -10,14 +10,15 @@ import { useActivePlan, useStore } from '../store';
 import { Card, Check, ListEditor, Num, Select, Text, money, pct } from '../ui';
 import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../engine/currency';
 import { benefitAtClaim } from '../engine/retirement';
+import { refLabel, type DateRef } from '../engine/dates';
 import { SPEND_CATEGORIES, categoryOf, type RewardRate, type SpendCategory } from '../engine/cards';
 
 const ACCOUNT_KINDS: [AccountKind, string][] = [
   ['cash', 'Cash (checking, savings)'], ['taxable', 'Taxable brokerage'], ['traditional', 'Traditional 401(k) / IRA'],
   ['roth', 'Roth 401(k) / IRA'], ['hsa', 'HSA'], ['college529', '529 college savings'], ['asset', 'Asset (home, car)'], ['debt', 'Debt (mortgage, loan)'],
 ];
-const INCOME_KINDS: [IncomeKind, string][] = [
-  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['bonus', 'Bonus (taxed as wages)'], ['accountBonus', 'Account or referral bonus (one-time)'], ['settlement', 'Settlement payout (one-time)'], ['other', 'Other'],
+const INCOME_KINDS: [IncomeKind | 'socialSecurity' | 'ssdi', string][] = [
+  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['bonus', 'Bonus (taxed as wages)'], ['socialSecurity', 'Social Security (retirement)'], ['ssdi', 'Social Security disability (SSDI)'], ['accountBonus', 'Account or referral bonus (one-time)'], ['settlement', 'Settlement payout (one-time)'], ['other', 'Other'],
 ];
 const BONUS_SOURCES: [NonNullable<Income['bonusSource']>, string][] = [['card', 'Credit card'], ['bank', 'Bank'], ['brokerage', 'Brokerage'], ['referral', 'Referral']];
 const EXPENSE_KINDS: [ExpenseKind, string][] = [
@@ -115,22 +116,97 @@ function RatesEditor({ rates, onChange }: { rates?: RewardRate[]; onChange: (r: 
   );
 }
 
+/** When an income or expense starts or ends (engine/dates.ts): a year, a date picked on a calendar, a life event (its
+ * start or end), a milestone, a person's age, or a person's retirement. A tied point follows its event or milestone. */
+function WhenField({ label, value, year, onChange, onYear, defaultLabel }: {
+  label: string; value?: DateRef; year?: number; onChange: (r: DateRef | undefined) => void; onYear: (y: number | undefined) => void; defaultLabel?: string;
+}) {
+  const plan = useActivePlan();
+  const mode = value?.kind ?? (defaultLabel && !year ? 'default' : 'year');
+  const events = (plan.events ?? []).map((e) => [e.id, e.name] as [string, string]);
+  const people = plan.people.map((p) => [p.id, p.name] as [string, string]);
+  const modes: [string, string][] = [...(defaultLabel ? [['default', defaultLabel]] as [string, string][] : []), ['year', 'Year'], ['date', 'Date'], ['event', 'Life event'], ['milestone', 'Milestone'], ['age', 'Age'], ['retirement', 'Retirement']];
+  const pick = (m: string) => {
+    if (m === 'default') { onChange(undefined); onYear(undefined); }
+    else if (m === 'year') { onChange(undefined); onYear(year ?? plan.startYear + 5); }
+    else if (m === 'date') onChange({ kind: 'date', date: (year ?? plan.startYear) + '-01-01' });
+    else if (m === 'event') onChange(events.length ? { kind: 'event', eventId: events[0][0] } : undefined);
+    else if (m === 'milestone') onChange(plan.milestones.length ? { kind: 'milestone', milestoneId: plan.milestones[0].id } : undefined);
+    else if (m === 'age') onChange({ kind: 'age', personId: people[0][0], age: 65 });
+    else onChange({ kind: 'retirement', personId: people[0][0] });
+  };
+  return (
+    <div className="field when span">
+      <span>{label}</span>
+      <div className="whenrow">
+        <Select label="" value={mode} options={modes} onChange={pick} />
+        {mode === 'year' && <Num label="" value={year ?? plan.startYear} onChange={(v) => onYear(v)} />}
+        {value?.kind === 'date' && (
+          <label className="field"><div className="input"><input type="date" value={value.date} onChange={(e) => { onChange({ kind: 'date', date: e.target.value }); if (e.target.value) onYear(Number(e.target.value.slice(0, 4))); }} /></div></label>
+        )}
+        {value?.kind === 'event' && <>
+          <Select label="" value={value.eventId} options={events} onChange={(v) => onChange({ ...value, eventId: v })} />
+          <Select label="" value={value.at ?? 'start'} options={[['start', 'Its start'], ['end', 'Its end']]} onChange={(v) => onChange({ ...value, at: v })} />
+        </>}
+        {value?.kind === 'milestone' && <Select label="" value={value.milestoneId} options={plan.milestones.map((m) => [m.id, m.name] as [string, string])} onChange={(v) => onChange({ ...value, milestoneId: v })} />}
+        {(value?.kind === 'age' || value?.kind === 'retirement') && <Select label="" value={value.personId} options={people} onChange={(v) => onChange({ ...value, personId: v })} />}
+        {value?.kind === 'age' && <Num label="" value={value.age} onChange={(v) => onChange({ ...value, age: v })} />}
+      </div>
+      {mode === 'event' && !events.length && <small className="muted">Add a life event first.</small>}
+      {mode === 'milestone' && !plan.milestones.length && <small className="muted">Add a milestone first.</small>}
+      {value && value.kind !== 'year' as string && value.kind !== 'date' && <small className="muted">{refLabel(value, plan)}</small>}
+    </div>
+  );
+}
+
 /** Changes of an income's or expense's yearly amount from a year on. */
 function StepsEditor({ steps, nominal, onChange }: { steps?: Step[]; nominal?: boolean; onChange: (s: Step[]) => void }) {
   const list = steps ?? [];
+  const put = (j: number, f: (x: Step) => Step) => onChange(list.map((x, k) => (k === j ? f(x) : x)));
   return (
     <div className="span steps">
       {list.map((st, j) => (
         <div key={j} className="row">
-          <Num label="From year" value={st.year} onChange={(v) => onChange(list.map((x, k) => (k === j ? { ...x, year: v } : x)))} />
-          <Num label={nominal ? 'New yearly amount (that year\'s $)' : "New yearly amount (today's $)"} value={st.amount} onChange={(v) => onChange(list.map((x, k) => (k === j ? { ...x, amount: v } : x)))} />
+          <label className="field"><span>Changes on</span><div className="input"><input type="date" value={st.date ?? st.year + '-01-01'} onChange={(e) => { const d = e.target.value; if (d) put(j, (x) => ({ ...x, date: d.endsWith('-01-01') ? undefined : d, year: Number(d.slice(0, 4)) })); }} /></div></label>
+          <Num label="New yearly amount" value={st.amount} onChange={(v) => put(j, (x) => ({ ...x, amount: v }))} />
+          <Select label="In" value={(st.nominal ?? nominal) ? 'nominal' : 'today'} options={[['today', "Today's dollars"], ['nominal', 'Dollars of that date']]} onChange={(v) => put(j, (x) => ({ ...x, nominal: v === 'nominal' }))} />
           <button className="ghost danger" onClick={() => onChange(list.filter((_, k) => k !== j))}>Remove</button>
         </div>
       ))}
-      <button className="ghost" onClick={() => onChange([...list, { year: new Date().getFullYear() + 5, amount: 0 }])}>+ A change from a year on</button>
+      <button className="ghost" onClick={() => onChange([...list, { year: new Date().getFullYear() + 1, amount: 0 }])}>+ A change in amount</button>
     </div>
   );
 }
+
+/** A salary's paycheck deductions other than retirement contributions, each with its tax treatment. */
+function DeductionsEditor({ list, onChange }: { list?: PayDeduction[]; onChange: (d: PayDeduction[]) => void }) {
+  const ds = list ?? [];
+  const put = (j: number, f: (x: PayDeduction) => PayDeduction) => onChange(ds.map((x, k) => (k === j ? f(x) : x)));
+  return (
+    <div className="span steps">
+      <strong>Paycheck deductions</strong>
+      {ds.map((d, j) => (
+        <div key={j} className="row">
+          <Text label="Deduction" value={d.name} onChange={(v) => put(j, (x) => ({ ...x, name: v }))} />
+          <Num label="Amount" value={d.amount} onChange={(v) => put(j, (x) => ({ ...x, amount: Math.max(0, v) }))} />
+          <Select label="Per" value={d.per} options={[['paycheck', 'Paycheck'], ['year', 'Year']]} onChange={(v) => put(j, (x) => ({ ...x, per: v }))} />
+          <Select label="Taxes" value={d.treatment} options={[['all', 'Excluded from all taxable wages'], ['incomeTax', 'Excluded from federal and state wages'], ['none', 'Not excluded']]} onChange={(v) => put(j, (x) => ({ ...x, treatment: v }))} />
+          <button className="ghost danger" onClick={() => onChange(ds.filter((_, k) => k !== j))}>Remove</button>
+        </div>
+      ))}
+      <div className="chips">
+        {DEDUCTION_PRESETS.map(([name, treatment]) => (
+          <button key={name} className="ghost" onClick={() => onChange([...ds, { name, amount: 0, per: 'paycheck', treatment }])}>+ {name}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const DEDUCTION_PRESETS: [string, PayDeduction['treatment']][] = [
+  ['Health insurance', 'all'], ['Dental', 'all'], ['Vision', 'all'], ['FSA: health care', 'all'], ['FSA: dependent care', 'all'],
+  ['Commuter benefits', 'all'], ['Life or disability insurance', 'none'], ['Union dues', 'none'], ['Other', 'none'],
+];
 
 export function PeoplePage() {
   const plan = useActivePlan();
@@ -154,6 +230,14 @@ export function PeoplePage() {
         </div>
         <p className="muted">{plan.followsMain ? 'Edits to the main plan\'s people and accounts carry over to this plan.' : 'This plan has custom starting conditions: its own first year, people, and balances, which can describe a hypothetical start (a later year, other balances).'}</p>
       </Card>
+      <Card title="Defaults for everyone">
+        <div className="grid">
+          <Select label="Plan everyone to" value={plan.assumptions.planTo?.mode ?? 'person'} options={[['person', "Each person's own age"], ['age', 'One age'], ['year', 'A year']]} onChange={(v) => update((p) => { p.assumptions.planTo = v === 'person' ? undefined : { mode: v, age: p.assumptions.planTo?.age ?? 95, year: p.assumptions.planTo?.year ?? p.startYear + 60 }; })} />
+          {plan.assumptions.planTo?.mode === 'age' && <Num label="Plan to age (everyone)" value={plan.assumptions.planTo.age ?? 95} onChange={(v) => update((p) => { p.assumptions.planTo = { ...p.assumptions.planTo!, age: v }; })} />}
+          {plan.assumptions.planTo?.mode === 'year' && <Num label="Plan to year" value={plan.assumptions.planTo.year ?? plan.startYear + 60} onChange={(v) => update((p) => { p.assumptions.planTo = { ...p.assumptions.planTo!, year: v }; })} />}
+          <Num label="Retirement age (everyone; 0: each person's own)" value={plan.assumptions.retirementAgeAll ?? 0} onChange={(v) => update((p) => { p.assumptions.retirementAgeAll = v || undefined; })} />
+        </div>
+      </Card>
       <Card title="People">
         <ListEditor
           items={plan.people}
@@ -165,8 +249,10 @@ export function PeoplePage() {
             <>
               <Text label="Name" value={person.name} onChange={(v) => update((p) => { p.people[i].name = v; })} />
               <Num label="Birth year" value={person.birthYear} onChange={(v) => update((p) => { p.people[i].birthYear = v; })} />
-              <Num label="Plan to age" value={person.lifeExpectancy} onChange={(v) => update((p) => { p.people[i].lifeExpectancy = v; })} />
-              <Num label="Retirement age" value={plan.strategy.retirementAge[person.id]} onChange={(v) => update((p) => { p.strategy.retirementAge[person.id] = v; })} />
+              {plan.assumptions.planTo && plan.assumptions.planTo.mode !== 'person' && <Check label="Own plan-to age" value={!!person.ownPlanTo} onChange={(v) => update((p) => { p.people[i].ownPlanTo = v || undefined; })} />}
+              {(!plan.assumptions.planTo || plan.assumptions.planTo.mode === 'person' || person.ownPlanTo) && <Num label="Plan to age" value={person.lifeExpectancy} onChange={(v) => update((p) => { p.people[i].lifeExpectancy = v; })} />}
+              {!!plan.assumptions.retirementAgeAll && <Check label="Own retirement age" value={!!person.ownRetirementAge} onChange={(v) => update((p) => { p.people[i].ownRetirementAge = v || undefined; })} />}
+              {(!plan.assumptions.retirementAgeAll || person.ownRetirementAge) && <Num label="Retirement age" value={plan.strategy.retirementAge[person.id]} onChange={(v) => update((p) => { p.strategy.retirementAge[person.id] = v; })} />}
             </>
           )}
         />
@@ -219,6 +305,11 @@ export function AccountsPage() {
                   <Num label="Bonds" percent value={a.allocation.bonds} onChange={(v) => set((x) => { x.allocation.bonds = v; })} />
                   <Num label="Cash" percent value={a.allocation.cash} onChange={(v) => set((x) => { x.allocation.cash = v; })} />
                   <Num label="Yearly fee" percent step={0.01} value={a.fee ?? 0} onChange={(v) => set((x) => { x.fee = v; })} />
+                  <Select label="Withdrawals allowed" value={a.withdrawRule ?? 'always'} options={[['always', 'Any time'], ['qualifiedAge', 'From a qualified age'], ['year', 'From a year'], ['never', 'Never (kept whole)']]} onChange={(v) => set((x) => { x.withdrawRule = v === 'always' ? undefined : v; })} />
+                  {(a.withdrawRule === 'qualifiedAge' || a.kind === 'traditional' || a.liquidFrom === 'qualifiedAge') && <Num label="Qualified age" value={a.qualifiedAge ?? 59.5} step={0.5} onChange={(v) => set((x) => { x.qualifiedAge = v === 59.5 ? undefined : v; })} />}
+                  {a.withdrawRule === 'year' && <Num label="Withdrawals from year" value={a.withdrawYear ?? plan.startYear} onChange={(v) => set((x) => { x.withdrawYear = v; })} />}
+                  <Select label="Counts as liquid" value={a.liquidFrom ?? 'now'} options={[['now', 'Now'], ['qualifiedAge', 'From the qualified age'], ['year', 'From a year'], ['never', 'Never']]} onChange={(v) => set((x) => { x.liquidFrom = v === 'now' ? undefined : v; })} />
+                  {a.liquidFrom === 'year' && <Num label="Liquid from year" value={a.liquidYear ?? plan.startYear} onChange={(v) => set((x) => { x.liquidYear = v; })} />}
                 </>}
                 {(invested || a.kind === 'cash') && <>
                   <Check label="Its own yearly return, not the market mix" value={typeof a.customReturn === 'number'} onChange={(v) => set((x) => { x.customReturn = v ? 0.05 : undefined; })} />
@@ -266,6 +357,17 @@ export function AccountsPage() {
 export function IncomePage() {
   const plan = useActivePlan();
   const update = useUpdate();
+  // Social Security and SSDI chosen as an income's type: the income becomes the person's benefit (Social Security page),
+  // its yearly amount the monthly benefit, so every benefit runs through one set of claiming and disability rules
+  const toSocialSecurity = (i: number, ssdi: boolean) => update((p) => {
+    const inc = p.incomes[i];
+    let ss = p.socialSecurity.find((x) => x.ownerId === inc.ownerId);
+    if (!ss) { ss = { ownerId: inc.ownerId, pia: Math.round(inc.amount / 12) || 2000, claimAge: 67 }; p.socialSecurity.push(ss); }
+    else if (inc.amount) ss.pia = Math.round(inc.amount / 12);
+    ss.ssdi = ssdi || undefined;
+    if (ssdi) ss.ssdiOnset ??= inc.startYear + '-01-01';
+    p.incomes.splice(i, 1);
+  });
   const owner = plan.people.map((p) => [p.id, p.name] as [string, string]);
   return (
     <>
@@ -285,7 +387,7 @@ export function IncomePage() {
                 <Num label="Foreign income tax paid on it" percent value={x.foreignTaxRate ?? 0} hint="Income tax a foreign country takes from this income, as a share of it. A US taxpayer gets the foreign tax credit for it." onChange={(v) => set((y) => { y.foreignTaxRate = v || undefined; })} />
                 {(x.kind === 'salary' || x.kind === 'selfEmployment') && <Check label="Earned while living abroad (a US person)" value={!!x.abroad} onChange={(v) => set((y) => { y.abroad = v || undefined; })} />}
                 {x.kind === 'salary' && x.abroad && <Check label="US Social Security and Medicare tax still applies (a US employer)" value={!!x.usPayroll} onChange={(v) => set((y) => { y.usPayroll = v || undefined; })} />}
-                <Select label="Type" value={x.kind} options={INCOME_KINDS} onChange={(v) => set((y) => { y.kind = v; if (v === 'accountBonus') { y.bonusSource ??= 'bank'; y.taxable = true; } if (v === 'settlement') y.taxable = true; })} />
+                <Select label="Type" value={x.kind} options={INCOME_KINDS} onChange={(v) => { if (v === 'socialSecurity' || v === 'ssdi') { toSocialSecurity(i, v === 'ssdi'); return; } set((y) => { y.kind = v; if (v === 'accountBonus') { y.bonusSource ??= 'bank'; y.taxable = true; } if (v === 'settlement') y.taxable = true; }); }} />
                 {x.kind === 'accountBonus' && <>
                   <Select label="Bonus from" value={x.bonusSource ?? 'bank'} options={BONUS_SOURCES} onChange={(v) => set((y) => { y.bonusSource = v; y.taxable = v !== 'card'; })} />
                   <Text label="Requirement" value={x.requirement ?? ''} onChange={(v) => set((y) => { y.requirement = v || undefined; })} />
@@ -293,22 +395,33 @@ export function IncomePage() {
                 <Select label="Owner" value={x.ownerId} options={owner} onChange={(v) => set((y) => { y.ownerId = v; })} />
                 <Num label={x.nominal ? 'Yearly amount (start year\'s $)' : "Yearly amount (today's $)"} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
                 <Num label="Real growth a year" percent value={x.growth} onChange={(v) => set((y) => { y.growth = v; })} />
-                <Num label="Start year" value={x.startYear} onChange={(v) => set((y) => { y.startYear = v; })} />
-                <Num label="End year (0: at retirement or death)" value={x.endYear ?? 0} onChange={(v) => set((y) => { y.endYear = v || undefined; })} />
+                <WhenField label="Starts" value={x.start} year={x.startYear} onChange={(r) => set((y) => { y.start = r; })} onYear={(v) => set((y) => { y.startYear = v ?? y.startYear; })} />
+                <WhenField label="Ends" value={x.end} year={x.endYear} defaultLabel={x.kind === 'salary' || x.kind === 'selfEmployment' ? 'At retirement' : 'For life'} onChange={(r) => set((y) => { y.end = r; })} onYear={(v) => set((y) => { y.endYear = v; })} />
+                {x.kind === 'salary' && <>
+                  <Num label="Keeps pace with inflation from year (0: from the start)" value={x.indexFrom ?? 0} onChange={(v) => set((y) => { y.indexFrom = v || undefined; })} />
+                  <Num label="Paychecks a year" value={x.paychecks ?? 26} onChange={(v) => set((y) => { y.paychecks = Math.max(1, Math.round(v)); })} />
+                  <DeductionsEditor list={x.deductions} onChange={(d) => set((y) => { y.deductions = d.length ? d : undefined; })} />
+                </>}
                 <Check label="Keeps pace with inflation" value={x.inflationAdjusted} onChange={(v) => set((y) => { y.inflationAdjusted = v; })} />
                 <Check label="Taxable" value={x.taxable} onChange={(v) => set((y) => { y.taxable = v; })} />
                 <Check label="Amounts in future dollars of their year" value={!!x.nominal} onChange={(v) => set((y) => { y.nominal = v; })} />
                 {x.kind === 'selfEmployment' && <Check label="A specified service business (law, health, consulting...)" value={!!x.serviceBusiness} onChange={(v) => set((y) => { y.serviceBusiness = v; })} />}
                 {x.kind === 'selfEmployment' && <>
                   <Num label="Health insurance premium a year (today's $)" step={500} value={x.healthPremium ?? 0} hint="The self-employed health insurance deduction, up to the business's profit." onChange={(v) => set((y) => { y.healthPremium = v || undefined; })} />
-                  <Num label="Solo 401(k) deferral (share of profit)" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />
+                  <Select label="Defer as" value={x.contributionAmount !== undefined ? 'amount' : 'share'} options={[['share', 'Share of profit'], ['amount', 'Amount a year']]} onChange={(v) => set((y) => { if (v === 'amount') y.contributionAmount = Math.round((y.contributionRate ?? 0.1) * y.amount); else y.contributionAmount = undefined; })} />
+                  {x.contributionAmount !== undefined
+                    ? <Num label="Solo 401(k) deferral a year (today's $)" value={x.contributionAmount} onChange={(v) => set((y) => { y.contributionAmount = Math.max(0, v); })} />
+                    : <Num label="Solo 401(k) deferral (share of profit)" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />}
                   <Num label="Employer contribution: SEP IRA or solo 401(k)" percent value={x.employerContributionRate ?? 0} hint="A share of net earnings, at most 20% for a sole owner." onChange={(v) => set((y) => { y.employerContributionRate = Math.min(0.2, v) || undefined; })} />
                 </>}
                 {x.kind !== 'windfall' && <StepsEditor steps={x.steps} nominal={x.nominal} onChange={(st) => set((y) => { y.steps = st; })} />}
                 {x.kind === 'rsu' && <Num label="Vests over (years)" value={x.vestYears ?? 4} onChange={(v) => set((y) => { y.vestYears = v; })} />}
                 {x.kind === 'rsu' && <Num label="Cliff (years before the first vesting)" value={x.vestCliffYears ?? 0} hint="With a one-year cliff, nothing vests in the first year and two parts vest in the second." onChange={(v) => set((y) => { y.vestCliffYears = v || undefined; })} />}
                 {x.kind === 'salary' && <>
-                  <Num label="401(k) contribution" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />
+                  <Select label="Contribute as" value={x.contributionAmount !== undefined ? 'amount' : 'share'} options={[['share', 'Share of pay'], ['amount', 'Amount a year']]} onChange={(v) => set((y) => { if (v === 'amount') y.contributionAmount = Math.round((y.contributionRate ?? 0.06) * y.amount); else y.contributionAmount = undefined; })} />
+                  {x.contributionAmount !== undefined
+                    ? <Num label="401(k) contribution a year (today's $)" value={x.contributionAmount} onChange={(v) => set((y) => { y.contributionAmount = Math.max(0, v); })} />
+                    : <Num label="401(k) contribution" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />}
                   <Num label="Share of the contribution going to Roth" percent value={x.contributionRothShare ?? (x.contributionRoth ? 1 : 0)} onChange={(v) => set((y) => { y.contributionRothShare = Math.max(0, Math.min(1, v)); y.contributionRoth = v >= 1; })} />
                   <Num label="Yearly bonus (share of salary)" percent value={x.bonusRate ?? 0} onChange={(v) => set((y) => { y.bonusRate = v || undefined; })} />
                   <Num label="Employer match rate" percent value={x.employerMatch ?? 0} onChange={(v) => set((y) => { y.employerMatch = v; })} />
@@ -331,7 +444,10 @@ export function IncomePage() {
             <div key={person.id} className="grid">
               <strong className="span">{person.name}</strong>
               <Num label="Benefit at 67, monthly" value={ss.pia} onChange={(v) => update((p) => { p.socialSecurity[i].pia = v; })} />
-              <Num label="Claim age (62 to 70)" value={ss.claimAge} step={1} onChange={(v) => update((p) => { p.socialSecurity[i].claimAge = Math.min(70, Math.max(62, v)); })} />
+              <Select label="Benefit" value={ss.ssdi ? 'ssdi' : 'retirement'} options={[['retirement', 'Retirement'], ['ssdi', 'Disability (SSDI)']]} onChange={(v) => update((p) => { p.socialSecurity[i].ssdi = v === 'ssdi' || undefined; if (v === 'ssdi') p.socialSecurity[i].ssdiOnset ??= p.startYear + '-01-01'; })} />
+              {ss.ssdi
+                ? <label className="field"><span>Disability onset date</span><div className="input"><input type="date" value={ss.ssdiOnset ?? ''} onChange={(e) => update((p) => { p.socialSecurity[i].ssdiOnset = e.target.value || undefined; })} /></div></label>
+                : <Num label="Claim age (62 to 70)" value={ss.claimAge} step={1} onChange={(v) => update((p) => { p.socialSecurity[i].claimAge = Math.min(70, Math.max(62, v)); })} />}
               <div className="field"><span>Monthly at that age</span><div className="readout">{money(benefitAtClaim(ss.pia, ss.claimAge))}</div></div>
               <div className="field"><span>No statement at hand?</span>
                 <button className="ghost" onClick={() => update((p) => {
@@ -374,8 +490,8 @@ export function ExpensesPage() {
               {(x.kind === 'healthcare' || x.kind === 'childcare') && <Check label="Paid through a workplace FSA" value={!!x.fsa} onChange={(v) => set((y) => { y.fsa = v || undefined; })} />}
               <Select label="Type" value={x.kind} options={EXPENSE_KINDS} onChange={(v) => set((y) => { y.kind = v; })} />
               <Num label={(x.kind === 'oneTime' ? 'Amount' : 'Yearly amount') + (x.nominal ? " (that year's $)" : " (today's $)")} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
-              <Num label={x.kind === 'oneTime' ? 'Year' : 'Start year'} value={x.startYear} onChange={(v) => set((y) => { y.startYear = v; })} />
-              {x.kind !== 'oneTime' && <Num label="End year (0: for life)" value={x.endYear ?? 0} onChange={(v) => set((y) => { y.endYear = v || undefined; })} />}
+              <WhenField label={x.kind === 'oneTime' ? 'When' : 'Starts'} value={x.start} year={x.startYear} onChange={(r) => set((y) => { y.start = r; })} onYear={(v) => set((y) => { y.startYear = v ?? y.startYear; })} />
+              {x.kind !== 'oneTime' && <WhenField label="Ends" value={x.end} year={x.endYear} defaultLabel="For life" onChange={(r) => set((y) => { y.end = r; })} onYear={(v) => set((y) => { y.endYear = v; })} />}
               <Num label="Growth above inflation" percent value={x.growth} onChange={(v) => set((y) => { y.growth = v; })} />
               <Check label="Amounts in future dollars of their year" value={!!x.nominal} onChange={(v) => set((y) => { y.nominal = v; })} />
               {x.kind !== 'oneTime' && <StepsEditor steps={x.steps} nominal={x.nominal} onChange={(st) => set((y) => { y.steps = st; })} />}
@@ -424,6 +540,8 @@ export function EventsPage() {
               <Select label="Event" value={e.kind} options={EVENT_KINDS} onChange={(v) => update((p) => { p.events![i] = { ...newEvent(v, e.year, p.people[0].id), id: e.id }; })} />
               <Text label="Name" value={e.name} onChange={(v) => set((x) => { x.name = v; })} />
               <Num label="Year" value={e.year} onChange={(v) => set((x) => { x.year = v; })} />
+              <label className="field"><span>Exact date (optional)</span><div className="input"><input type="date" value={e.date ?? ''} onChange={(ev) => set((x) => { x.date = ev.target.value || undefined; if (ev.target.value) x.year = Number(ev.target.value.slice(0, 4)); })} /></div></label>
+              {'endYear' in e && <label className="field"><span>Exact end date (optional)</span><div className="input"><input type="date" value={e.endDate ?? ''} onChange={(ev) => set((x) => { x.endDate = ev.target.value || undefined; if (ev.target.value && 'endYear' in x) (x as { endYear: number }).endYear = Number(ev.target.value.slice(0, 4)); })} /></div></label>}
               {e.kind === 'homePurchase' && <>
                 <Num label="Price (today's $)" value={e.price} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.price = v; })} />
                 <Num label="Down payment" percent value={e.downPayment} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.downPayment = v; })} />
@@ -631,6 +749,7 @@ export function StrategyPage() {
             onChange={(v) => update((p) => { p.strategy.rothConversionBracket = Number(v); })} />
           <Num label="From year" value={s.rothConversionStart ?? plan.startYear} onChange={(v) => update((p) => { p.strategy.rothConversionStart = v; })} />
           <Num label="To year" value={s.rothConversionEnd ?? plan.startYear + 30} onChange={(v) => update((p) => { p.strategy.rothConversionEnd = v; })} />
+          <Num label="Conversion cap a year (today's $; 0: none)" value={s.rothConversionCap ?? 0} onChange={(v) => update((p) => { p.strategy.rothConversionCap = v || undefined; })} />
         </div>
         <div className="grid" style={{ marginTop: 10 }}>
           {(s.manualConversions ?? []).map((m, i) => (

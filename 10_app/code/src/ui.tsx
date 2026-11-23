@@ -3,7 +3,7 @@ import { HELP } from './help';
 // Small building blocks shared by every page: money and percent formatting, labeled inputs, cards, and a chart.
 import ReactECharts from 'echarts-for-react';
 import type { ReactNode } from 'react';
-import { useDark } from './store';
+import { useDark, useStore } from './store';
 import { Icon } from './icons';
 import { formatMoney } from './engine/currency';
 
@@ -57,13 +57,33 @@ const help = (label: string, hint?: string) => hint ?? HELP[label];
 
 type NumProps = { label: string; value: number | undefined; onChange: (v: number) => void; percent?: boolean; step?: number; hint?: string };
 
+/** A field's own period, read from its label: "Yearly ..." or "... a year" is yearly, "Monthly ..." or "... a month" monthly. */
+function periodOf(label: string): 'year' | 'month' | null {
+  if (/\bmonthly\b|\ba month\b/i.test(label)) return 'month';
+  if (/\byearly\b|\ba year\b|\bper year\b/i.test(label)) return 'year';
+  return null;
+}
+
+/** A label with its period swapped to the unit shown: "Yearly rent" as "Monthly rent", "Benefit a month" as "Benefit a year". */
+function swapPeriod(label: string, to: 'year' | 'month'): string {
+  return to === 'month'
+    ? label.replace(/\bYearly\b/g, 'Monthly').replace(/\byearly\b/g, 'monthly').replace(/\ba year\b/g, 'a month').replace(/\bper year\b/g, 'per month')
+    : label.replace(/\bMonthly\b/g, 'Yearly').replace(/\bmonthly\b/g, 'yearly').replace(/\ba month\b/g, 'a year');
+}
+
 export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
-  const shown = value === undefined ? '' : String(percent ? +(value * 100).toFixed(4) : value);
+  // amounts with a period are shown in the unit chosen for the whole app (a year or a month), stored in their own
+  const unit = useStore((st) => st.settings.amountUnit);
+  const setSettings = useStore((st) => st.setSettings);
+  const own = percent ? null : periodOf(label);
+  const shownUnit = own ? unit ?? own : null;
+  const k = own && shownUnit !== own ? (own === 'year' ? 1 / 12 : 12) : 1;
+  const shown = value === undefined ? '' : String(percent ? +(value * 100).toFixed(4) : +(value * k).toFixed(2));
   // the text being typed: an emptied box stays empty while focused (it used to snap back to 0), and becomes 0 on leaving
   const [draft, setDraft] = useState<string | null>(null);
   return (
     <label className="field">
-      <span>{label}<InfoTip text={help(label, hint)} /></span>
+      <span>{k === 1 ? label : swapPeriod(label, shownUnit!)}<InfoTip text={help(label, hint)} /></span>
       <div className="input">
         <input
           type="number"
@@ -74,7 +94,7 @@ export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
             setDraft(t);
             if (t === '' || t === '-' || Number.isNaN(Number(t))) return;
             const v = Number(t);
-            onChange(percent ? v / 100 : v);
+            onChange(percent ? v / 100 : v / k);
           }}
           onBlur={() => {
             if (draft === '' || draft === '-') onChange(0);
@@ -82,6 +102,7 @@ export function Num({ label, value, onChange, percent, step, hint }: NumProps) {
           }}
         />
         {percent && <em>%</em>}
+        {shownUnit && <button type="button" className="unit" title="Show amounts a year or a month" onClick={(e) => { e.preventDefault(); setSettings({ amountUnit: shownUnit === 'year' ? 'month' : 'year' }); setDraft(null); }}>{shownUnit === 'year' ? '/yr' : '/mo'}</button>}
       </div>
     </label>
   );
