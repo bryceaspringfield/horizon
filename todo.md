@@ -19,7 +19,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Churn planner from bankrewards.io's listings: bonuses with their requirements, deadlines, eligibility by state, and early-closure fees; a schedule which meets each requirement with planned spending and deposits.
 - Credit scores: a projection from utilization, account age, inquiries, new accounts, and payment history; authorized users (the user on a parent's cards, a partner on the user's), and how each card plan changes the score.
 - Spending savings: paying in another currency, retention offers when cancelling, browser coupons, cash-back portals which stack with card rewards (cashbackmonitor.com's offers).
-- Purchase goals: a thing to buy (a laptop), saving up for it by a date, and the best deal under the user's filters, counting price errors, coupons, portal cash back, and card cash back.
 
 ## Statements, flows, and savings (Bryce, 2026-11-23)
 - Flows: confirm automatic transfers on a schedule cover every case (provider IRA matches with clawback are in, committed with shared memberships).

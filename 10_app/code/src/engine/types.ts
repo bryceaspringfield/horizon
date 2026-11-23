@@ -564,6 +564,8 @@ export interface Plan {
   healthcare: Healthcare;
   events?: LifeEvent[];
   estate?: Estate;
+  /** Things to buy by a date, with offers found for them (engine/goals.ts). */
+  purchaseGoals?: import('./goals').PurchaseGoal[];
   /** Free notes printed with the plan report. */
   notes?: string;
   /** The plan starts from the current year with today's balances, as ProjectionLab's default plans do; unset, it keeps its

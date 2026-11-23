@@ -8,6 +8,7 @@ import type { ExpenseKind } from '../engine/types';
 import { useStore } from '../store';
 import { useProjection } from '../useProjection';
 import { Card, Num, Stat, money, PALETTE } from '../ui';
+import { effectivePrice, goalPlan, type PurchaseGoal } from '../engine/goals';
 
 const KIND: Record<ExpenseKind, string> = {
   living: 'Living', housing: 'Housing', healthcare: 'Healthcare', education: 'Education', travel: 'Travel', other: 'Other',
@@ -74,6 +75,7 @@ export function BudgetPage() {
           })}</tbody>
         </table></div>
       </Card>}
+      <GoalsCard />
       <Card title="Essentials">
         <ul className="essentials">
           {ESSENTIALS.map((x) => {
@@ -121,6 +123,45 @@ function TimeValue({ takeHomeYear }: { takeHomeYear: number }) {
         <Num label="Hours a chore takes you" value={choreHours} onChange={(v) => setChoreHours(Math.max(0, v))} />
         <Num label="Price to pay someone for it" value={choreCost} onChange={(v) => setChoreCost(Math.max(0, v))} />
       </div>
+    </Card>
+  );
+}
+
+/** Purchase goals: the monthly saving each takes, and its offers ranked by their price after every discount stacks. */
+function GoalsCard() {
+  const { plan } = useProjection();
+  const update = useStore((s) => s.update);
+  const goals = plan.purchaseGoals ?? [];
+  const put = (j: number, f: (g: PurchaseGoal) => void) => update((p) => { f(p.purchaseGoals![j]); });
+  return (
+    <Card title="Purchase goals" actions={<button className="ghost" onClick={() => update((p) => { (p.purchaseGoals ??= []).push({ id: 'g' + Date.now(), name: 'New goal', price: 1000, by: `${new Date().getFullYear() + 1}-01-01`, saved: 0 }); })}>+ Goal</button>}>
+      {goals.map((g, j) => {
+        const r = goalPlan(g);
+        return <div key={g.id} className="goal">
+          <div className="grid">
+            <label className="field"><span>Goal</span><div className="input"><input value={g.name} onChange={(e) => put(j, (x) => { x.name = e.target.value; })} /></div></label>
+            <Num label="Price" value={g.price} onChange={(v) => put(j, (x) => { x.price = v; })} />
+            <label className="field"><span>Buy by</span><div className="input"><input type="date" value={g.by} onChange={(e) => e.target.value && put(j, (x) => { x.by = e.target.value; })} /></div></label>
+            <Num label="Saved so far" value={g.saved} onChange={(v) => put(j, (x) => { x.saved = v; })} />
+          </div>
+          <div className="stats"><Stat label="Save a month" value={money(r.monthly)} sub={`${r.months} months to go, for ${money(r.target)}`} /></div>
+          {(g.offers ?? []).map((o, k) => (
+            <div key={k} className="row">
+              <label className="field"><span>Store</span><div className="input"><input value={o.store} onChange={(e) => put(j, (x) => { x.offers![k].store = e.target.value; })} /></div></label>
+              <Num label="Offer price" value={o.price} onChange={(v) => put(j, (x) => { x.offers![k].price = v; })} />
+              <Num label="Coupon" value={o.coupon ?? 0} onChange={(v) => put(j, (x) => { x.offers![k].coupon = v || undefined; })} />
+              <Num label="Portal cash back" percent value={o.portal ?? 0} onChange={(v) => put(j, (x) => { x.offers![k].portal = v || undefined; })} />
+              <Num label="Card cash back" percent value={o.card ?? 0} onChange={(v) => put(j, (x) => { x.offers![k].card = v || undefined; })} />
+              <span>{money(effectivePrice(o))}{r.ranked[0] === o ? ' (best)' : ''}</span>
+              <button className="ghost danger" onClick={() => put(j, (x) => { x.offers!.splice(k, 1); })}>Remove</button>
+            </div>
+          ))}
+          <div className="row">
+            <button className="ghost" onClick={() => put(j, (x) => { (x.offers ??= []).push({ store: 'Store', price: g.price }); })}>+ Offer</button>
+            <button className="ghost danger" onClick={() => update((p) => { p.purchaseGoals!.splice(j, 1); })}>Remove goal</button>
+          </div>
+        </div>;
+      })}
     </Card>
   );
 }

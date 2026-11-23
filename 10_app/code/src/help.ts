@@ -361,4 +361,12 @@ export const HELP: Record<string, string> = {
   "Broker match on contributions": "Some brokers add a match to IRA contributions (Robinhood 1%, or 3% with Gold); the match is clawed back if money leaves the account too soon.",
   "Match rate": "The share of each year's contributions the broker adds.",
   "Years to keep each match": "How long each match must stay in the account; a withdrawal sooner forfeits the matches younger than this (Robinhood: 5 years).",
+  "Goal": "What you want to buy.",
+  "Buy by": "The date you want to buy it.",
+  "Saved so far": "Money already set aside for this goal.",
+  "Store": "Where the offer is.",
+  "Offer price": "The price before coupons and cash back.",
+  "Coupon": "Dollars off at checkout.",
+  "Portal cash back": "Cash back from a shopping portal (Rakuten, a card's portal) on the price paid.",
+  "Card cash back": "The card's cash back on this purchase.",
 };
