@@ -90,6 +90,15 @@ def tasks():
         'first. For each: the feature, the changelog version that added it, what Horizon has today, and a concrete design '
         'for Horizon (types, engine steps, and UI). Leave out account linking to banks (Horizon is local-only), mobile apps, '
         'and non-US taxes.\n\n' + readme + '\n\n' + types + '\n\n=== ProjectionLab changelog ===\n' + changelog)
+    # The same comparison as one table: the long answer above spends its budget on designs and reaches four features.
+    out['missing_table'] = (
+        'Below are Horizon\'s README (what it models) and its types, then ProjectionLab\'s full changelog. Go through the '
+        'changelog version by version and list EVERY ProjectionLab feature, setting, chart, or option which Horizon lacks or '
+        'covers only partly. Answer with one markdown table and nothing else: columns Feature | Changelog version | Horizon '
+        'today (missing, or partial with the type field you saw) | Effort (S, M, L). One line a feature, no designs, no code. '
+        'Aim for completeness: 60 rows or more if they exist. Check the types before calling something missing. Leave out '
+        'bank linking, mobile apps, non-US taxes, billing, advisors, and employers.\n\n'
+        + readme + '\n\n' + types + '\n\n=== ProjectionLab changelog ===\n' + changelog)
     reqs = board()
     listing = '\n'.join(f'[{l}, {v} votes, {c} comments] {t}' for l, v, c, t in reqs)
     out['user_requests'] = (
@@ -118,6 +127,18 @@ def tasks():
                 '(missing or partial, and why you think so), and a one-line design. Skip billing, advisors, employers, '
                 'sign-in, non-US countries, and bank linking. End with the 15 most valuable gaps of this part, ranked.\n\n'
                 + readme + '\n\n' + types + '\n\n=== ProjectionLab help center, part ' + str(i + 1) + ' ===' + part)
+    # Every request with 5 or more votes (Bryce, 2026-11-23: implement all of them), sorted for the build queue, in parts of 75.
+    five = [r for r in reqs if r[1] >= 5]
+    for i in range(0, len(five), 75):
+        part = '\n'.join(f'{i + j + 1}. [{v} votes] {t}' for j, (l, v, c, t) in enumerate(five[i:i + 75]))
+        out[f'votes5_{i // 75 + 1}'] = (
+            'Below are Horizon\'s README and types, then requests ProjectionLab\'s users posted on its request board, each with '
+            '5 or more votes. For EVERY request, in the order given, write one table row and nothing else: columns # | Request | '
+            'Votes | Horizon today (have, partial, missing, or out of scope) | Evidence (the type field or README phrase, or why '
+            'out of scope) | What to build (one line, or a dash) | Effort (S, M, L). Out of scope means only: linking to banks or '
+            'brokers, ProjectionLab\'s own billing, advisor, or employer tools, native mobile apps, or tax systems outside the US. '
+            'Check the types carefully before writing missing. No text outside the table.\n\n'
+            + readme + '\n\n' + types + '\n\n=== Requests ===\n' + part)
     return out
 
 

@@ -1,3 +1,14 @@
 # Horizon: open tasks
 
-- [ ] (Low priority) Non-US tax systems: Canada, the United Kingdom, Australia, Germany, the Netherlands, and Spain, with their account types (RRSP and TFSA, ISA and SIPP, superannuation, and the rest).
+Asked by Bryce on 2026-11-23, in the order to build.
+
+- [ ] Where plans are saved: at sign-up (browser and installed app), a choice between this device and Horizon's server, changeable later in Settings (device to account uploads the plans; account to device downloads them and offers to delete the server copy).
+- [ ] Installable app: a web app manifest and service worker (an Install button, offline use) for Windows, Mac, Linux, and Android; then native installers built by GitHub Actions (.exe, .dmg, AppImage, .apk).
+- [ ] Import from ProjectionLab: read its exported JSON (Account Settings, Export Data) into Horizon plans (people, accounts, incomes, expenses, milestones, assumptions), with a report of what came across and what did not. Needs a real export file to test.
+- [ ] Currencies: a plan currency (symbol and format), a currency on each account, income, and expense, and exchange-rate assumptions (a rate today and a yearly drift).
+- [ ] Non-US tax systems, each from its tax authority's published rates, with its account types: Canada (federal and provinces; RRSP, TFSA, FHSA, CPP and OAS), the United Kingdom (income tax, National Insurance, dividend and capital gains allowances; ISA, SIPP, State Pension), Australia (income tax, Medicare levy; superannuation, Age Pension), Germany, the Netherlands (box 1, 2, 3), and Spain; then a custom bracket model for any other country.
+- [ ] Foreign earnings of US persons: the foreign earned income exclusion (section 911) with the housing exclusion, the foreign tax credit (section 901, general and passive baskets, carryover), and income taxed abroad in a foreign currency.
+- [ ] ProjectionLab's request board: every request with 5 or more votes (225 of 674; sorted in `99_overall/output/qwen_review/votes5_*.md`), verified in the code, then built in vote order.
+- [ ] ProjectionLab's help center (179 pages, `99_overall/input/projectionlab/layout/`) and changelog: every feature Horizon lacks (`99_overall/output/qwen_review/layout_*.md`, `missing_table.md`), verified, then built.
+- [ ] Qwen's code review (`99_overall/output/qwen_review/engine_*.md`, `ui_*.md`): verify each finding in the code and fix the real ones; rerun the five long files (simulate, tax, estate, stateDeath, Editors) in pieces.
+- [ ] Terms of Use: name a governing state and a contact address (Bryce's choice).
