@@ -817,6 +817,11 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
         childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry, province: a.province, scotland: a.scotland, ukLumpSum: a.ukLumpSum, over60: alive.filter((p) => ages[p.id] >= 60).length,
+        ...(a.taxCountry === 'ES' ? {
+          wealthCash: accounts.filter((x) => x.kind === 'cash' || x.kind === 'taxable' || (x.kind === 'asset' && !x.realEstate)).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0),
+          wealthOther: accounts.filter((x) => x.kind === 'asset' && x.realEstate).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0) + accounts.filter((x) => x.kind === 'debt').reduce((s2, x) => s2 + Math.min(0, state.balance[x.id]), 0),
+          wealthHome: accounts.filter((x) => x.kind === 'asset' && x.realEstate).reduce((m2, x) => Math.max(m2, state.balance[x.id]), 0),
+        } : {}),
         ...(a.taxCountry === 'NL' ? { wealthCash: accounts.filter((x) => x.kind === 'cash').reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0), wealthOther: accounts.filter((x) => x.kind === 'taxable').reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0) } : {}),
         saverContributions: alive.map((p) => (deferredBy[p.id] ?? 0) + (p.id === firstWorker?.id ? iraIn + rothIn : 0)) });
     }
