@@ -17,7 +17,8 @@ H = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DIST = os.path.join(H, '10_app', 'code', 'dist')
 OUT = os.path.join(H, '99_overall', 'output', 'pages')
 PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions', 'networth',
-         'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'progress', 'table', 'report', 'settings', 'terms']
+         'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'progress', 'table', 'report', 'settings', 'terms',
+         'history', 'budget', 'cards', 'spending', 'timeline', 'rentown', 'taxstrategy', 'flexspend', 'rothconv', 'drawdown', 'harvest']
 
 
 def main():
