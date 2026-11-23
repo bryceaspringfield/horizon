@@ -337,6 +337,11 @@ export interface Strategy {
   /** Shield 'aca': the multiple of the poverty line to keep income under (4 where unset; 1.38 for Medicaid, 2.5 for
    * cost-sharing reductions). */
   fplMultiple?: number;
+  /** Withdrawal shielding only in these years (the whole plan where unset). */
+  shieldFrom?: number;
+  shieldTo?: number;
+  /** Roth conversions from this traditional account only (every one where unset). */
+  rothConversionSource?: string;
   shield?: 'none' | 'bracket12' | 'bracket22' | 'bracket24' | 'irmaa' | 'aca';
   /** Conversions of a set amount (today's dollars) in a set year, on top of the bracket-filling ones. */
   manualConversions?: { year: number; amount: number }[];

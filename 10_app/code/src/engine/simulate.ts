@@ -839,7 +839,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     if (s.rothConversionBracket > 0 && y >= (s.rothConversionStart ?? 0) && y <= (s.rothConversionEnd ?? 9999)) {
       const base = computeTaxNow(0, 0, 0, 0);
       const room = bracketTop(s.rothConversionBracket, status, y, ri) - base.ordinaryTaxable;
-      const trad = accounts.filter((x) => x.kind === 'traditional' && isAlive(x.ownerId));
+      const trad = accounts.filter((x) => x.kind === 'traditional' && isAlive(x.ownerId) && (!s.rothConversionSource || x.id === s.rothConversionSource));
       const avail = trad.reduce((t, x) => t + Math.max(0, state.balance[x.id]), 0);
       conversion = Math.max(0, Math.min(room, avail, s.rothConversionCap ? s.rothConversionCap * index : Infinity));
       let left = conversion;
@@ -998,7 +998,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
           if (left <= 0) break;
           let avail = state.balance[x.id];
           if (step === 'cash') avail = Math.max(0, avail);
-          if (step === 'traditional' && s.shield && s.shield !== 'none') avail = Math.min(avail, shieldRoom(traditional));
+          if (step === 'traditional' && s.shield && s.shield !== 'none' && y >= (s.shieldFrom ?? -Infinity) && y <= (s.shieldTo ?? Infinity)) avail = Math.min(avail, shieldRoom(traditional));
           const take = Math.min(left, avail);
           if (take <= 0) continue;
           state.balance[x.id] -= take;

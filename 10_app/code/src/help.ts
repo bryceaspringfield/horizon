@@ -325,4 +325,7 @@ export const HELP: Record<string, string> = {
   "Flex applies to": "Cut only the discretionary share of each expense, or all spending.",
   "Flex from year (0 for the start)": "The first year the rules apply.",
   "Flex until year (0 for the end)": "The last year the rules apply.",
+  "Shield from year (0 for the start)": "The first year withdrawal shielding caps traditional withdrawals.",
+  "Shield until year (0 for the end)": "The last year withdrawal shielding applies.",
+  "Convert from": "The traditional account conversions draw from, or every one in turn.",
 };

@@ -884,6 +884,8 @@ export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
             onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />}
           {show('tax', 'drawdown') && <Select label="Shield withdrawals under" value={s.shield ?? 'none'} options={[['none', 'No limit'], ['bracket12', 'The 12% bracket'], ['bracket22', 'The 22% bracket'], ['bracket24', 'The 24% bracket'], ['irmaa', 'The first IRMAA tier'], ['aca', 'The ACA credit limit (400% FPL)']]}
             onChange={(v) => update((p) => { p.strategy.shield = v; })} />}
+          {show('tax', 'drawdown') && s.shield && s.shield !== 'none' && <Num label="Shield from year (0 for the start)" value={s.shieldFrom ?? 0} onChange={(v) => update((p) => { p.strategy.shieldFrom = v || undefined; })} />}
+          {show('tax', 'drawdown') && s.shield && s.shield !== 'none' && <Num label="Shield until year (0 for the end)" value={s.shieldTo ?? 0} onChange={(v) => update((p) => { p.strategy.shieldTo = v || undefined; })} />}
           {show('tax', 'drawdown') && s.shield === 'aca' && <Num label="Keep income under this multiple of the poverty line" value={s.fplMultiple ?? 4} onChange={(v) => update((p) => { p.strategy.fplMultiple = v > 0 ? v : undefined; })} />}
           {show('harvest', 'tax') && <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />}
           {show('drawdown', 'flex') && <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)'], ['textbook', 'Textbook rule (a share of the first year, then with inflation)'], ['cape', 'CAPE-based (more when stocks are cheap)']]}
@@ -933,6 +935,7 @@ export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
         <div className="grid">
           <Select label="Fill up to the bracket" value={String(s.rothConversionBracket)} options={[['0', 'No conversions'], ['0.1', '10%'], ['0.12', '12%'], ['0.22', '22%'], ['0.24', '24%'], ['0.32', '32%']]}
             onChange={(v) => update((p) => { p.strategy.rothConversionBracket = Number(v); })} />
+          {s.rothConversionBracket > 0 && <Select label="Convert from" value={s.rothConversionSource ?? ''} options={[['', 'Every traditional account'], ...plan.accounts.filter((x) => x.kind === 'traditional').map((x) => [x.id, x.name] as [string, string])]} onChange={(v) => update((p) => { p.strategy.rothConversionSource = v || undefined; })} />}
           <Num label="From year" value={s.rothConversionStart ?? plan.startYear} onChange={(v) => update((p) => { p.strategy.rothConversionStart = v; })} />
           <Num label="To year" value={s.rothConversionEnd ?? plan.startYear + 30} onChange={(v) => update((p) => { p.strategy.rothConversionEnd = v; })} />
           <Num label="Conversion cap a year (today's $; 0: none)" value={s.rothConversionCap ?? 0} onChange={(v) => update((p) => { p.strategy.rothConversionCap = v || undefined; })} />
