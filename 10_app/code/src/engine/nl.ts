@@ -2,8 +2,8 @@
 // heffingskorting 2026; tabel arbeidskorting 2026; box 3: uitleg en tarieven). Box 1, below the state pension age: 35.75% to
 // €38,883 (national insurance premiums included), 37.56% to €78,426, 49.50% above, less the general tax credit (€3,115,
 // less 6.398% of income over €29,736) and the work credit on earnings. Box 3 taxes a deemed return on savings and investments
-// above the tax-free allowance at 36%. The allowance (€59,357 a person) and the deemed returns (1.28% on bank balances,
-// 6.00% on other assets) come from secondary sources that agree, not yet the Belastingdienst's own page. Each person is
+// above the tax-free allowance at 36%: the allowance €59,357 a person (box 3, heffingsvrij vermogen), the deemed returns
+// 1.28% on bank balances (provisional until early 2027) and 6.00% on other assets (box 3, berekening 2026). Each person is
 // taxed alone: a couple's income is split evenly. Not modeled: the rates after the state pension age, box 2, and the
 // mortgage interest deduction.
 import { bracketTax, type TaxInput, type TaxResult } from './tax';
