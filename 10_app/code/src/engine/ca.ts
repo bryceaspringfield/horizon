@@ -7,8 +7,8 @@
 // (revenuquebec.ca income tax rates and Finance Quebec's 2026 parameters): its own brackets and $18,952 basic amount, the
 // 16.5% federal abatement, QPP (5.3% base) in place of CPP, QPIP (0.43% to $103,000), and EI at 1.30%. Capital gains are half
 // included. The OAS recovery tax takes back 15% of net income over $95,323 (2026 income; canada.ca/en/services/benefits/
-// publicpensions/old-age-security/recovery-tax.html), at most the public pension received. Not modeled: Ontario's
-// low-income tax reduction.
+// publicpensions/old-age-security/recovery-tax.html), at most the public pension received. Ontario's low-income tax
+// reduction is twice its $300 basic amount less provincial tax (the $575 a child is not modeled).
 import { bracketTax, type TaxInput, type TaxResult } from './tax';
 
 export const CA = {
@@ -62,7 +62,9 @@ export function caPerson(p: { employment: number; other: number; oas?: number },
   const bcReduction = province === 'BC' ? Math.max(0, 575 - 0.0356 * Math.max(0, taxable - 25570)) : 0;
   const onBasic = Math.max(0, bracketTax(taxable, pr.brackets) - low * (pr.bpa + (qc ? 0 : cppBase + ei)) - bcReduction);
   const surtax = province === 'ON' ? 0.2 * Math.max(0, onBasic - 5818) + 0.36 * Math.max(0, onBasic - 7446) : 0;
-  const ontario = onBasic + surtax + (province === 'ON' ? healthPremium(taxable) : 0);
+  // Ontario's tax reduction (T4032-ON 2026): twice the $300 basic reduction amount less the provincial tax, at most that tax
+  const pre = onBasic + surtax, onReduction = province === 'ON' ? Math.min(pre, Math.max(0, 2 * 300 - pre)) : 0;
+  const ontario = pre - onReduction + (province === 'ON' ? healthPremium(taxable) : 0);
   const fedRate = [...CA.federal].reverse().find(([lo]) => taxable > lo)?.[1] ?? 0.14;
   const onRate = [...pr.brackets].reverse().find(([lo]) => taxable > lo)?.[1] ?? low;
   const oasRecovery = Math.min(p.oas ?? 0, 0.15 * Math.max(0, taxable - 95323));

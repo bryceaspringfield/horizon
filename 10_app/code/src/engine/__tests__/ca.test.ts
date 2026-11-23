@@ -43,3 +43,11 @@ describe('Quebec', () => {
     expect(r.federal).toBeCloseTo(0.14 * (40000 - 16452) * 0.835, 2);
   });
 });
+
+describe("Ontario's tax reduction", () => {
+  it('cancels a small provincial tax', () => {
+    // a low income whose Ontario tax before reduction is under $600 pays none of it
+    const r = caPerson({ employment: 0, other: 18000 }, 'ON');
+    expect(r.ontario).toBe(0);
+  });
+});
