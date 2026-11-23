@@ -3,20 +3,18 @@ import { useState } from 'react';
 import { RANGES, history, snapshotNow, type Range } from '../engine/history';
 import { useStore } from '../store';
 import { useProjection } from '../useProjection';
-import { Card, Chart, Num, Stat, money, moneyAxis, moneyTooltip } from '../ui';
+import { uid } from '../engine/defaults';
+import { Card, Chart, Stat, money, moneyAxis, moneyTooltip } from '../ui';
 
 export function HistoryPage() {
   const { plan } = useProjection();
-  const update = useStore((s) => s.update);
+  const snaps = useStore((s) => s.snapshots);
+  const addSnapshot = useStore((s) => s.addSnapshot);
   const [range, setRange] = useState<Range>('All');
-  const snaps = plan.snapshots ?? [];
   const h = history(snaps, plan.accounts, range);
   const last = h.points[h.points.length - 1];
   const today = new Date().toISOString().slice(0, 10);
-  const record = () => update((p) => {
-    const s = snapshotNow(p, today);
-    p.snapshots = [...(p.snapshots ?? []).filter((x) => x.date !== today), s];
-  });
+  const record = () => addSnapshot({ id: uid(), ...snapshotNow(plan, today) });
   return (
     <>
       <Card title="Net worth history" actions={<button onClick={record}>+ Record today's balances</button>}>
@@ -45,17 +43,6 @@ export function HistoryPage() {
           }} />
         </>}
       </Card>
-      {!!snaps.length && <Card title="Recorded balances">
-        {[...snaps].sort((a, b) => b.date.localeCompare(a.date)).map((s) => (
-          <div key={s.date} className="row">
-            <label className="field"><span>Date</span><div className="input"><input type="date" value={s.date} onChange={(e) => e.target.value && update((p) => { const t = p.snapshots!.find((x) => x.date === s.date)!; t.date = e.target.value; })} /></div></label>
-            {plan.accounts.map((a) => (
-              <Num key={a.id} label={a.name} value={s.balances[a.id] ?? 0} onChange={(v) => update((p) => { p.snapshots!.find((x) => x.date === s.date)!.balances[a.id] = v; })} />
-            ))}
-            <button className="ghost danger" onClick={() => update((p) => { p.snapshots = p.snapshots!.filter((x) => x.date !== s.date); })}>Remove</button>
-          </div>
-        ))}
-      </Card>}
     </>
   );
 }

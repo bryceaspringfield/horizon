@@ -480,8 +480,6 @@ export interface Plan {
   healthcare: Healthcare;
   events?: LifeEvent[];
   estate?: Estate;
-  /** Balances recorded on dates, for net worth history (engine/history.ts). */
-  snapshots?: import('./history').Snapshot[];
   /** Free notes printed with the plan report. */
   notes?: string;
   /** The plan's people, first year, and accounts are copied from the main plan and kept in step with it. */

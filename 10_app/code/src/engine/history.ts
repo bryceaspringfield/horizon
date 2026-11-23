@@ -3,6 +3,8 @@
 import type { Account, Plan } from './types';
 
 export interface Snapshot { date: string; balances: Record<string, number> }
+// Snapshots are the app's progress records (store.ts), shared with the Progress page; a debt counts as minus its size
+// whichever sign it was recorded with.
 export type Range = '1M' | '3M' | 'YTD' | '1Y' | '5Y' | '10Y' | 'All';
 export const RANGES: Range[] = ['1M', '3M', 'YTD', '1Y', '5Y', '10Y', 'All'];
 
@@ -10,7 +12,7 @@ const INVESTABLE: Account['kind'][] = ['taxable', 'traditional', 'roth', 'hsa', 
 
 /** A snapshot of every account's balance today. */
 export function snapshotNow(plan: Plan, date: string): Snapshot {
-  return { date, balances: Object.fromEntries(plan.accounts.map((a) => [a.id, a.balance])) };
+  return { date, balances: Object.fromEntries(plan.accounts.map((a) => [a.id, a.kind === 'debt' ? Math.abs(a.balance) : a.balance])) };
 }
 
 /** The first date a range covers, counted back from the latest date. */
@@ -29,8 +31,8 @@ export function totals(s: Snapshot, accounts: Account[]) {
   let netWorth = 0, investable = 0, liquid = 0, debts = 0;
   for (const [id, v] of Object.entries(s.balances)) {
     const k = kind.get(id);
-    netWorth += k === 'debt' ? Math.min(0, v) : v;
-    if (k === 'debt') debts += Math.min(0, v);
+    netWorth += k === 'debt' ? -Math.abs(v) : v;
+    if (k === 'debt') debts -= Math.abs(v);
     if (k && INVESTABLE.includes(k)) investable += v;
     if (k === 'cash' || (k && INVESTABLE.includes(k))) liquid += v;
   }

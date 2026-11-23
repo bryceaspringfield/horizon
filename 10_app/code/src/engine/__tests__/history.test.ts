@@ -12,8 +12,8 @@ describe('net worth history', () => {
   });
   it('sums net worth, liquid net worth, and the change over a range', () => {
     const snaps = [
-      { date: '2025-01-01', balances: { c: 10, r: 100, h: 300, m: -200 } },
-      { date: '2026-03-01', balances: { c: 20, r: 130, h: 300, m: -190 } },
+      { date: '2025-01-01', balances: { c: 10, r: 100, h: 300, m: 200 } },
+      { date: '2026-03-01', balances: { c: 20, r: 130, h: 300, m: 190 } },
     ];
     const all = history(snaps, accounts, 'All');
     expect(all.points[1].netWorth).toBe(260);
