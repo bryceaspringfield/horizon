@@ -3,6 +3,7 @@
 // dollar amounts indexed by the plan's inflation after that rules year.
 import { ukTax } from './uk';
 import { auTax } from './au';
+import { caTax } from './ca';
 import federalYears from '../data/federal.json';
 import states from '../data/states.json';
 import health from '../data/healthcare.json';
@@ -24,7 +25,7 @@ export const rules = rulesFor(YEARS[0]).rules;
 
 export interface TaxInput {
   /** The country whose taxes apply: the United States where unset, or the UK (engine/uk.ts). */
-  country?: 'US' | 'UK' | 'AU';
+  country?: 'US' | 'UK' | 'AU' | 'CA';
   /** The spread of incentive stock options exercised and held this year: an AMT preference item (section 56(b)(3)). */
   isoSpread?: number;
   /** A US person's income from abroad: the exclusion and the foreign tax credit. */
@@ -231,6 +232,7 @@ export function stateTax(state: string, agi: number, ssTaxable: number, status: 
 export function computeTax(t: TaxInput): TaxResult {
   if (t.country === 'UK') return ukTax(t);
   if (t.country === 'AU') return auTax(t);
+  if (t.country === 'CA') return caTax(t);
   if (t.flatRate !== undefined) return flatTax(t, t.flatRate);
   const r = rulesFor(t.year).rules;
   const k = t.index;

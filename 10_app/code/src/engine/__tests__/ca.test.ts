@@ -1,0 +1,17 @@
+import { describe, expect, it } from 'vitest';
+import { caPerson } from '../ca';
+
+describe('Canadian tax, Ontario, 2026', () => {
+  it('charges CPP and EI at their 2026 maxima on a high salary', () => {
+    const r = caPerson({ employment: 200000, other: 0 });
+    expect(r.cpp).toBeCloseTo(4230.45 + 416, 2);
+    expect(r.ei).toBeCloseTo(1123.07, 2);
+  });
+  it('taxes a $50,000 salary at the lowest rates less the credits', () => {
+    const r = caPerson({ employment: 50000, other: 0 });
+    const cppBase = 46500 * 0.0495, cppFirst = 465, ei = 815;
+    const taxable = 50000 - cppFirst;
+    expect(r.federal).toBeCloseTo(0.14 * taxable - 0.14 * (16452 + 1501 + cppBase + ei), 1);
+    expect(r.ontario).toBeCloseTo(0.0505 * taxable - 0.0505 * (12989 + cppBase + ei) + Math.min(600, 450 + 0.25 * (taxable - 48000)), 1);
+  });
+});

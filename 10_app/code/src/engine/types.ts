@@ -443,7 +443,7 @@ export interface Assumptions {
   /** Social Security follows SSA's announced COLAs for the years they are known (on unless set false). */
   announcedCola?: boolean;
   /** The country whose taxes apply (engine/uk.ts): the United States where unset. */
-  taxCountry?: 'US' | 'UK' | 'AU';
+  taxCountry?: 'US' | 'UK' | 'AU' | 'CA';
   /** The share of taxable accounts' dividends which are qualified (taxed at capital gains rates); the rest is ordinary. 1 where unset. */
   qualifiedDividendShare?: number;
   /** Exchange-rate assumptions by foreign currency: units of the plan's currency for one unit today, and the rate's
