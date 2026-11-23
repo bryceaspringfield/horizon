@@ -1,14 +1,14 @@
-// Canadian income tax, 2026: federal and each province and territory but Quebec, from the CRA's T4032 payroll deductions
-// tables for January 2026 (canada.ca/content/dam/cra-arc/migration/cra-arc/tx/bsnss/tpcs/pyrll/t4032/2026/t4032-XX-1-26e.pdf;
-// Prince Edward Island's July table, -7-26e). Provincial credits are at the province's lowest rate; Ontario adds its surtax
-// and health premium.
-// Each person is taxed alone: a couple's income is split evenly. Credits at the lowest rate: the basic personal amount
-// (federal $16,452, falling to $14,829 between $181,440 and $258,482; Ontario $12,989), the Canada employment amount
-// ($1,501), base CPP contributions, and EI premiums; the enhanced CPP contributions are deducted. Ontario adds its surtax
-// Capital gains are half included. The OAS recovery tax takes back 15% of net income over $95,323 (2026 income;
-// canada.ca/en/services/benefits/publicpensions/old-age-security/recovery-tax.html), at most the public pension received.
-// Not modeled: Quebec, provincial phase-outs of the basic amount
-// (Nova Scotia, Manitoba, British Columbia), and Ontario's low-income tax reduction.
+// Canadian income tax, 2026: federal and every province and territory, from the CRA's T4032 payroll deductions tables for
+// January 2026 (canada.ca/content/dam/cra-arc/migration/cra-arc/tx/bsnss/tpcs/pyrll/t4032/2026/t4032-XX-1-26e.pdf; Prince
+// Edward Island's July table, -7-26e). Each person is taxed alone: a couple's income is split evenly. Credits at the lowest
+// rate: the basic personal amount (federal $16,452, falling to $14,829 between $181,440 and $258,482), the Canada employment
+// amount ($1,501), base CPP contributions, and EI premiums; the enhanced CPP contributions are deducted. Ontario adds its
+// surtax and health premium; British Columbia its tax reduction (up to $575, less 3.56% of income over $25,570). Quebec
+// (revenuquebec.ca income tax rates and Finance Quebec's 2026 parameters): its own brackets and $18,952 basic amount, the
+// 16.5% federal abatement, QPP (5.3% base) in place of CPP, QPIP (0.43% to $103,000), and EI at 1.30%. Capital gains are half
+// included. The OAS recovery tax takes back 15% of net income over $95,323 (2026 income; canada.ca/en/services/benefits/
+// publicpensions/old-age-security/recovery-tax.html), at most the public pension received. Not modeled: Ontario's
+// low-income tax reduction.
 import { bracketTax, type TaxInput, type TaxResult } from './tax';
 
 export const CA = {
@@ -31,6 +31,7 @@ export const PROVINCES: Record<string, { name: string; brackets: number[][]; bpa
   BC: { name: 'British Columbia', brackets: [[0, 0.0506], [50363, 0.077], [100728, 0.105], [115648, 0.1229], [140430, 0.147], [190405, 0.168], [265545, 0.205]], bpa: 13216 },
   YT: { name: 'Yukon', brackets: [[0, 0.064], [58523, 0.09], [117045, 0.109], [181440, 0.128], [500000, 0.15]], bpa: 16452 },
   NT: { name: 'Northwest Territories', brackets: [[0, 0.059], [53003, 0.086], [106009, 0.122], [172346, 0.1405]], bpa: 18198 },
+  QC: { name: 'Quebec', brackets: [[0, 0.14], [54345, 0.19], [108680, 0.24], [132245, 0.2575]], bpa: 18952 },
   NU: { name: 'Nunavut', brackets: [[0, 0.04], [55801, 0.07], [111602, 0.09], [181439, 0.115]], bpa: 19659 },
 };
 
@@ -49,19 +50,23 @@ export function caPerson(p: { employment: number; other: number; oas?: number },
   const pr = PROVINCES[province] ?? PROVINCES.ON, low = pr.brackets[0][1];
   const c = CA.cpp, e = Math.max(0, p.employment);
   const pensionable = Math.max(0, Math.min(e, c.ympe) - c.exemption);
-  const cppBase = pensionable * c.base, cppFirst = pensionable * c.first, cpp2 = Math.max(0, Math.min(e, c.yampe) - c.ympe) * c.second;
-  const ei = Math.min(CA.ei.maxPremium, e * CA.ei.rate);
+  const qc = province === 'QC';
+  const cppBase = pensionable * (qc ? 0.053 : c.base), cppFirst = pensionable * c.first, cpp2 = Math.max(0, Math.min(e, c.yampe) - c.ympe) * c.second;
+  const ei = qc ? Math.min(895.7, e * 0.013) : Math.min(CA.ei.maxPremium, e * CA.ei.rate);
+  const qpip = qc ? Math.min(e, 103000) * 0.0043 : 0;
   const taxable = Math.max(0, e + p.other - cppFirst - cpp2);
   const b = CA.bpa, bpa = taxable <= b.from ? b.max : taxable >= b.to ? b.min : b.max - (b.max - b.min) * (taxable - b.from) / (b.to - b.from);
   const fedCredits = 0.14 * (bpa + (e > 0 ? Math.min(CA.employmentAmount, e) : 0) + cppBase + ei);
-  const federal = Math.max(0, bracketTax(taxable, CA.federal) - fedCredits);
-  const onBasic = Math.max(0, bracketTax(taxable, pr.brackets) - low * (pr.bpa + cppBase + ei));
+  const fedBasic = Math.max(0, bracketTax(taxable, CA.federal) - fedCredits - 0.14 * qpip);
+  const federal = qc ? fedBasic * (1 - 0.165) : fedBasic;
+  const bcReduction = province === 'BC' ? Math.max(0, 575 - 0.0356 * Math.max(0, taxable - 25570)) : 0;
+  const onBasic = Math.max(0, bracketTax(taxable, pr.brackets) - low * (pr.bpa + (qc ? 0 : cppBase + ei)) - bcReduction);
   const surtax = province === 'ON' ? 0.2 * Math.max(0, onBasic - 5818) + 0.36 * Math.max(0, onBasic - 7446) : 0;
   const ontario = onBasic + surtax + (province === 'ON' ? healthPremium(taxable) : 0);
   const fedRate = [...CA.federal].reverse().find(([lo]) => taxable > lo)?.[1] ?? 0.14;
   const onRate = [...pr.brackets].reverse().find(([lo]) => taxable > lo)?.[1] ?? low;
   const oasRecovery = Math.min(p.oas ?? 0, 0.15 * Math.max(0, taxable - 95323));
-  return { federal: federal + oasRecovery, oasRecovery, ontario, cpp: cppBase + cppFirst + cpp2, ei, taxable, marginal: fedRate + onRate * (surtax > 0 ? 1.56 : 1) };
+  return { federal: federal + oasRecovery, oasRecovery, ontario, cpp: cppBase + cppFirst + cpp2, ei: ei + qpip, taxable, marginal: fedRate + onRate * (surtax > 0 ? 1.56 : 1) };
 }
 
 /** Canada (Ontario) in the shape of the engine's tax result: federal tax, Ontario tax in state, CPP and EI in fica. */

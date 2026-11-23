@@ -30,3 +30,16 @@ describe('OAS recovery tax', () => {
     expect(caPerson({ employment: 0, other: 300000, oas: 9000 }).oasRecovery).toBe(9000);
   });
 });
+
+describe('Quebec', () => {
+  it('charges QPP, EI at 1.30%, and QPIP at their 2026 maxima', () => {
+    const r = caPerson({ employment: 200000, other: 0 }, 'QC');
+    expect(r.cpp).toBeCloseTo(71100 * 0.063 + 416, 2);
+    expect(r.ei).toBeCloseTo(895.7 + 442.9, 2);
+  });
+  it('taxes $40,000 at 14% less the $18,952 credit, and abates federal tax by 16.5%', () => {
+    const r = caPerson({ employment: 0, other: 40000 }, 'QC');
+    expect(r.ontario).toBeCloseTo(0.14 * (40000 - 18952), 2);
+    expect(r.federal).toBeCloseTo(0.14 * (40000 - 16452) * 0.835, 2);
+  });
+});
