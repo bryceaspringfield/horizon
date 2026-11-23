@@ -12,10 +12,10 @@ import time
 rows = list(csv.DictReader(open('/home/baspring/projects/independent/horizon/20_tax_rules/output/country_order.csv')))
 ok = rows
 by_users = {r['iso2']: i + 1 for i, r in enumerate(sorted([r for r in ok if r['internet_users'] != ''], key=lambda r: -int(r['internet_users'])))}
-# a flag for a two-letter code from flagcdn.com; Artsakh's and Transnistria's from Wikimedia Commons (Flag_of_Artsakh.svg,
+# a flat flag for a two-letter code from flagcdn.com (its w40 and w80 files; the 20x15 files are the waving style), cropped to 20 by 15; Artsakh's and Transnistria's from Wikimedia Commons (Flag_of_Artsakh.svg,
 # Flag_of_Transnistria_(state).svg), as PNG files kept in the page's own folder
 LOCAL_FLAG = {'X-ART': 'artsakh', 'X-TRN': 'transnistria'}
-flag = lambda c: (f"<img class=f loading=lazy alt='' width=20 height=15 src='https://flagcdn.com/20x15/{c.lower()}.png' srcset='https://flagcdn.com/40x30/{c.lower()}.png 2x'>"
+flag = lambda c: (f"<img class=f loading=lazy alt='' width=20 height=15 src='https://flagcdn.com/w40/{c.lower()}.png' srcset='https://flagcdn.com/w80/{c.lower()}.png 2x'>"
                   if len(c) == 2 else f"<img class=f loading=lazy alt='' width=20 height=15 style='object-fit:cover' src='{LOCAL_FLAG[c]}_40.png' srcset='{LOCAL_FLAG[c]}_80.png 2x'>")
 nth = lambda v: '' if v == '' else v + ('th' if v[-2:] in ('11', '12', '13') else {'1': 'st', '2': 'nd', '3': 'rd'}.get(v[-1], 'th'))
 import re, unicodedata
@@ -54,7 +54,7 @@ main{max-width:1500px;margin:0 auto;padding:20px 16px 40px}h1{font-size:21px;mar
 input{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);width:min(340px,100%)}
 .wrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px}
 table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;color:var(--muted)}th:hover{color:var(--accent)}.r{text-align:right}.f{vertical-align:-2px;margin-right:8px;border-radius:2px;box-shadow:0 0 0 1px var(--line)}.w{white-space:normal;min-width:220px;color:var(--muted);font-size:13px}tr:last-child td{border-bottom:0}
+th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;color:var(--muted)}th:hover{color:var(--accent)}.r{text-align:right}.f{vertical-align:-3px;margin-right:8px;border-radius:3px;box-shadow:0 0 0 1px var(--line);object-fit:cover}.w{white-space:normal;min-width:220px;color:var(--muted);font-size:13px}tr:last-child td{border-bottom:0}
 </style></head><body><main>
 <h1>Horizon: the order in which each country's tax system is added</h1>
 <p>A dependency is counted in its host country, where it becomes a choice among the country's states, provinces, and territories.</p>
