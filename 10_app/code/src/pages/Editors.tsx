@@ -304,7 +304,7 @@ export function PeoplePage() {
           <Select label="Plan everyone to" value={plan.assumptions.planTo?.mode ?? 'person'} options={[['person', "Each person's own age"], ['age', 'One age'], ['year', 'A year']]} onChange={(v) => update((p) => { p.assumptions.planTo = v === 'person' ? undefined : { mode: v, age: p.assumptions.planTo?.age ?? 95, year: p.assumptions.planTo?.year ?? p.startYear + 60 }; })} />
           {plan.assumptions.planTo?.mode === 'age' && <Num label="Plan to age (everyone)" value={plan.assumptions.planTo.age ?? 95} onChange={(v) => update((p) => { p.assumptions.planTo = { ...p.assumptions.planTo!, age: v }; })} />}
           {plan.assumptions.planTo?.mode === 'year' && <Num label="Plan to year" value={plan.assumptions.planTo.year ?? plan.startYear + 60} onChange={(v) => update((p) => { p.assumptions.planTo = { ...p.assumptions.planTo!, year: v }; })} />}
-          <Num label="Retirement age (everyone; 0: each person's own)" value={plan.assumptions.retirementAgeAll ?? 0} onChange={(v) => update((p) => { p.assumptions.retirementAgeAll = v || undefined; })} />
+          <Num label="Retirement age for everyone (0: set each person's)" value={plan.assumptions.retirementAgeAll ?? 0} onChange={(v) => update((p) => { p.assumptions.retirementAgeAll = v || undefined; })} />
         </div>
       </Card>
       <Card title="People">
@@ -328,15 +328,23 @@ export function PeoplePage() {
               </div></div>
               <Select label="Food spending" value={person.foodPlan ?? 'moderate'} options={FOOD_PLANS} onChange={(v) => update((p) => { p.people[i].foodPlan = v; })} />
               <Select label="Diet" value={person.diet ?? 'omnivore'} options={DIETS} onChange={(v) => update((p) => { p.people[i].diet = v; })} />
-              <Check label="Food paid by someone else" value={!!person.foodPaidByOthers} onChange={(v) => update((p) => { p.people[i].foodPaidByOthers = v || undefined; })} />
               <label className="field"><span>Joins the household</span><div className="input"><input type="date" value={person.joins ?? ''} onChange={(e) => update((p) => { p.people[i].joins = e.target.value || undefined; })} /></div></label>
               <label className="field"><span>Leaves the household</span><div className="input"><input type="date" value={person.leaves ?? ''} onChange={(e) => update((p) => { p.people[i].leaves = e.target.value || undefined; })} /></div></label>
-              <Check label="Set my own plan-to age" value={!!person.ownLife} onChange={(v) => update((p) => { p.people[i].ownLife = v || undefined; lifeFill(p.people[i]); })} />
-              {!person.ownLife && <div className="field"><span>Expected death</span><div className="muted">{lifeOf(person).date} (age {lifeOf(person).age.toFixed(1)})</div></div>}
-              {plan.assumptions.planTo && plan.assumptions.planTo.mode !== 'person' && <Check label="Own plan-to age" value={!!person.ownPlanTo} onChange={(v) => update((p) => { p.people[i].ownPlanTo = v || undefined; })} />}
-              {person.ownLife && (!plan.assumptions.planTo || plan.assumptions.planTo.mode === 'person' || person.ownPlanTo) && <Num label="Plan to age" value={person.lifeExpectancy} onChange={(v) => update((p) => { p.people[i].lifeExpectancy = v; })} />}
-              {!!plan.assumptions.retirementAgeAll && <Check label="Own retirement age" value={!!person.ownRetirementAge} onChange={(v) => update((p) => { p.people[i].ownRetirementAge = v || undefined; })} />}
-              {(!plan.assumptions.retirementAgeAll || person.ownRetirementAge) && <Num label="Retirement age" value={plan.strategy.retirementAge[person.id]} onChange={(v) => update((p) => { p.strategy.retirementAge[person.id] = v; })} />}
+              {<div className="field"><span>Expected death</span><div className="muted">{lifeOf(person).date} (age {lifeOf(person).age.toFixed(1)})</div></div>}
+              {(() => {
+                // one field each, filled from the plan's setting for everyone; typing a different value makes it this person's own
+                const allPlan = plan.assumptions.planTo?.mode === 'age' ? plan.assumptions.planTo.age ?? 95 : undefined;
+                const ownPlan = allPlan === undefined || !!person.ownPlanTo;
+                const allRet = plan.assumptions.retirementAgeAll;
+                const ownRet = !allRet || !!person.ownRetirementAge;
+                return <>
+                  {plan.assumptions.planTo?.mode !== 'year' && <Num label="Plan to age" value={ownPlan ? person.lifeExpectancy : allPlan!} onChange={(v) => update((p) => { p.people[i].lifeExpectancy = v; p.people[i].ownLife = true; if (allPlan !== undefined) p.people[i].ownPlanTo = v !== allPlan || undefined; })} />}
+                  {allPlan === undefined && person.ownLife && <button className="ghost" onClick={() => update((p) => { p.people[i].ownLife = undefined; lifeFill(p.people[i]); })}>Use the life tables ({lifeOf(person).age.toFixed(0)})</button>}
+    {allPlan !== undefined && person.ownPlanTo && <button className="ghost" onClick={() => update((p) => { p.people[i].ownPlanTo = undefined; })}>Use the plan's ({allPlan})</button>}
+                  <Num label="Retirement age" value={ownRet ? plan.strategy.retirementAge[person.id] : allRet!} onChange={(v) => update((p) => { p.strategy.retirementAge[person.id] = v; if (allRet) p.people[i].ownRetirementAge = v !== allRet || undefined; })} />
+                  {!!allRet && person.ownRetirementAge && <button className="ghost" onClick={() => update((p) => { p.people[i].ownRetirementAge = undefined; })}>Use the plan's ({allRet})</button>}
+                </>;
+              })()}
             </>
           )}
         />
@@ -1081,7 +1089,6 @@ export function AssumptionsPage() {
         {a.taxCountry === 'AU' && <Check label="No private hospital cover (Medicare levy surcharge)" value={!!a.auNoCover} onChange={(v) => update((p) => { p.assumptions.auNoCover = v || undefined; })} />}
         {a.taxCountry === 'ES' && <Select label="Region" value={a.esRegion ?? ''} options={[['', 'Reference scale'], ...Object.keys(ES_REGIONS).sort().map((k) => [k, k] as [string, string])]} onChange={(v) => update((p) => { p.assumptions.esRegion = v || undefined; })} />}
         {a.taxCountry === 'DE' && <Select label="Church tax" value={String(a.deChurch ?? 0)} options={[['0', 'Not a member'], ['0.08', '8% (Bavaria, Baden-Wuerttemberg)'], ['0.09', '9% (other states)']]} onChange={(v) => update((p) => { p.assumptions.deChurch = Number(v) || undefined; })} />}
-        {a.taxCountry === 'DE' && <Check label="No children (care insurance surcharge)" value={!!a.deChildless} onChange={(v) => update((p) => { p.assumptions.deChildless = v || undefined; })} />}
         {a.taxCountry === 'UK' && <Check label="Scottish taxpayer" value={!!a.scotland} onChange={(v) => update((p) => { p.assumptions.scotland = v || undefined; })} />}
         {a.taxCountry === 'UK' && <Check label="Take a quarter of each pension withdrawal tax-free" value={!!a.ukLumpSum} onChange={(v) => update((p) => { p.assumptions.ukLumpSum = v || undefined; })} />}
         {a.taxCountry === 'CA' && <Select label="Province or territory" value={a.province ?? 'ON'} options={Object.entries(PROVINCES).map(([k, v]) => [k, v.name] as [string, string])} onChange={(v) => update((p) => { p.assumptions.province = v === 'ON' ? undefined : v; })} />}

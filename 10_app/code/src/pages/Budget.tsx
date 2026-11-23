@@ -33,7 +33,7 @@ export function BudgetPage() {
   const takeHome = (gross - taxes) / 12;
   const kinds = [...byKind.entries()].sort((a, b) => b[1] - a[1]);
   const missing = missingEssentials(plan);
-  const groceries = groceriesYearly(plan.people.map((q) => ({ age: plan.startYear - q.birthYear, sex: q.sex, plan: q.foodPlan, paidByOthers: q.foodPaidByOthers })));
+  const groceries = groceriesYearly(plan.people.map((q) => ({ age: plan.startYear - q.birthYear, sex: q.sex, plan: q.foodPlan })));
   const add = (key: string) => {
     const x = ESSENTIALS.find((k) => k.key === key)!;
     // groceries from each person's USDA food plan (engine/food.ts); the rest at their starting estimate

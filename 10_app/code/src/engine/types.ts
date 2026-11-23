@@ -21,6 +21,7 @@ export interface Person {
   /** Food (engine/food.ts): the USDA food plan level, the diet, and whether someone outside the plan pays for the food. */
   foodPlan?: import('./food').FoodPlan;
   diet?: import('./food').Diet;
+  /** No longer shown (2026-11-23): an expense's dated "Paid by someone else" covers food others pay for. */
   foodPaidByOthers?: boolean;
   /** Dates this person joins and leaves the household (a partner moving in, a parent moving out); outside them the
    * person's income, benefits, and costs are not the plan's. */
