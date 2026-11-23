@@ -13,7 +13,7 @@ import { cardRewards, cardable, categoryOf, type SpendCategory } from './cards';
 import { convertCurrencies } from './currency';
 import { acaLimit, acaNetPremium, bracketTop, computeTax, estateTax, medicarePremium, rules, rulesFor, rulesTiers, zeroGainsTop } from './tax';
 import { benefitAtClaim, rmdStartAge, spousalAtClaim } from './retirement';
-import type { Step, Account, Income, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
+import type { Person, Step, Account, Income, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
 
 const ONE_TIME = new Set(['windfall', 'accountBonus', 'settlement']);
 /** SSA's announced cost-of-living adjustments, by the year they take effect (ssa.gov, Oct 2025 and Oct 14, 2026). */
@@ -247,6 +247,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
   const separations = (plan.events ?? []).flatMap((e) => (e.kind === 'separation' ? [e] : []));
   /** People who left the household in a separation: their incomes and benefits leave the plan. */
   const departed = new Set<string>();
+  let householdStart: number | null = null;
   let expenseFactor = 1;
   /** Cumulative inflation at a year's start: from the path inside the plan, at the assumed rate before it. */
   const indexOf = (yr: number) => indexAt[yr] ?? Math.pow(1 + a.inflation, yr - plan.startYear);
@@ -315,7 +316,9 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     const healthIndex = index * Math.pow(1.015, y - plan.startYear);
     const ages: Record<string, number> = {};
     for (const p of plan.people) ages[p.id] = y - p.birthYear;
-    const alive = plan.people.filter((p) => ages[p.id] <= p.lifeExpectancy && !departed.has(p.id));
+    const home = (p: Person) => (!p.joins || y >= Math.floor(yearOf(p.joins))) && (!p.leaves || y < Math.floor(yearOf(p.leaves)));
+    const alive = plan.people.filter((p) => ages[p.id] <= p.lifeExpectancy && !departed.has(p.id) && home(p));
+    if (householdStart === null) householdStart = Math.max(1, alive.length);
     if (alive.length === 0) break;
     // The first two people are the couple (joint filing, spousal and survivor benefits); each later person is another
     // household member (a parent, an adult child) whose own benefits add to the household's.
@@ -572,8 +575,10 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         else { eShare = shareOfYear(y, ts, te); if (eShare <= 0) continue; }
       } else if (y < e.startYear || y > stop) continue;
       if (e.everyYears && e.everyYears > 1 && (y - e.startYear) % Math.round(e.everyYears) !== 0) continue;
+      const hhScale = e.scalesWithHousehold ? Math.sqrt(Math.max(1, alive.length) / (householdStart ?? 1)) : 1;
       let amt = eShare * (e.incomeShare ? e.incomeShare * ((e.incomeBasis === 'all' ? Object.values(income).reduce((t, v) => t + v, 0) + ssTotal : wages + selfEmp)) : amountIn(y, index, e));
       if (!e.id.startsWith('ev_sup_')) amt *= expenseFactor;
+      amt *= hhScale;
       if (e.fundedBy && state.balance[e.fundedBy] > 0) {
         const take = Math.min(amt, state.balance[e.fundedBy]);
         state.balance[e.fundedBy] -= take;

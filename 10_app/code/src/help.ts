@@ -297,4 +297,7 @@ export const HELP: Record<string, string> = {
   "MIT pay group": "Staff, faculty, and postdocs are paid semimonthly (24 paychecks); support and service staff weekly (52), with lower premiums.",
   "MIT medical plan": "The PPO has a low deductible and higher premiums; the high-deductible plan has lower premiums, a higher deductible, and MIT money in an HSA.",
   "Covered": "Who the medical plan covers, which sets the premium, the deductible, and MIT's HSA deposit.",
+  "Joins the household": "The date this person moves in, such as a partner or a parent; leave blank if already in the household.",
+  "Leaves the household": "The date this person moves out; leave blank if staying.",
+  "Shared cost: grows with the household": "Rent, utilities, and other shared costs rise with the square root of the household's size, as the OECD's equivalence scale does: two people cost about 1.41 times one.",
 };

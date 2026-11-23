@@ -307,6 +307,8 @@ export function PeoplePage() {
               <Select label="Food spending" value={person.foodPlan ?? 'moderate'} options={FOOD_PLANS} onChange={(v) => update((p) => { p.people[i].foodPlan = v; })} />
               <Select label="Diet" value={person.diet ?? 'omnivore'} options={DIETS} onChange={(v) => update((p) => { p.people[i].diet = v; })} />
               <Check label="Food paid by someone else" value={!!person.foodPaidByOthers} onChange={(v) => update((p) => { p.people[i].foodPaidByOthers = v || undefined; })} />
+              <label className="field"><span>Joins the household</span><div className="input"><input type="date" value={person.joins ?? ''} onChange={(e) => update((p) => { p.people[i].joins = e.target.value || undefined; })} /></div></label>
+              <label className="field"><span>Leaves the household</span><div className="input"><input type="date" value={person.leaves ?? ''} onChange={(e) => update((p) => { p.people[i].leaves = e.target.value || undefined; })} /></div></label>
               <Check label="Set my own plan-to age" value={!!person.ownLife} onChange={(v) => update((p) => { p.people[i].ownLife = v || undefined; lifeFill(p.people[i]); })} />
               {!person.ownLife && <div className="field"><span>Expected death</span><div className="muted">{lifeOf(person).date} (age {lifeOf(person).age.toFixed(1)})</div></div>}
               {plan.assumptions.planTo && plan.assumptions.planTo.mode !== 'person' && <Check label="Own plan-to age" value={!!person.ownPlanTo} onChange={(v) => update((p) => { p.people[i].ownPlanTo = v || undefined; })} />}
@@ -586,6 +588,7 @@ export function ExpensesPage() {
             <>
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
               <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
+              <Check label="Shared cost: grows with the household" value={!!x.scalesWithHousehold} onChange={(v) => set((y) => { y.scalesWithHousehold = v || undefined; })} />
               <Select label="Spender" value={x.spender ?? ''} options={[['', 'Household'], ...plan.people.map((q) => [q.id, q.name] as [string, string])]} onChange={(v) => set((y) => { y.spender = v || undefined; })} />
               {x.kind !== 'oneTime' && <Num label="Repeats every (years)" value={x.everyYears ?? 1} onChange={(v) => set((y) => { y.everyYears = Math.round(v) > 1 ? Math.round(v) : undefined; })} />}
               <Num label="Discretionary share" percent value={x.discretionary ?? 0} hint="The part which could be cut in a bad stretch. Flexible spending (Strategy) uses it." onChange={(v) => set((y) => { y.discretionary = Math.max(0, Math.min(1, v)) || undefined; })} />

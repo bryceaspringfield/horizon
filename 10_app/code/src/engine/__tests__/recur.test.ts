@@ -72,3 +72,16 @@ describe('ISO and the AMT', () => {
     expect(simulate(plan).years.find((x) => x.year === y0 + 1)!.taxes.total).toBeGreaterThan(base + 100000);
   });
 });
+
+describe('household changes', () => {
+  it('scales a shared cost when a partner moves in', () => {
+    const plan = examplePlan();
+    const y0 = plan.startYear;
+    plan.people = plan.people.slice(0, 1);
+    plan.people.push({ id: 'gf', name: 'Partner', birthYear: y0 - 30, lifeExpectancy: 90, ownLife: true, joins: `${y0 + 2}-01-01` });
+    plan.expenses.push({ id: 'rent', name: 'Rent', kind: 'housing', amount: 24000, startYear: y0, growth: 0, nominal: true, scalesWithHousehold: true });
+    const r = simulate(plan);
+    const rent = (y: number) => r.years.find((x) => x.year === y)!.expenses.rent;
+    expect((rent(y0 + 2) / rent(y0 + 1)) / (rent(y0 + 1) / rent(y0))).toBeCloseTo(Math.SQRT2, 2);
+  });
+});

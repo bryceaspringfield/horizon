@@ -22,6 +22,10 @@ export interface Person {
   foodPlan?: import('./food').FoodPlan;
   diet?: import('./food').Diet;
   foodPaidByOthers?: boolean;
+  /** Dates this person joins and leaves the household (a partner moving in, a parent moving out); outside them the
+   * person's income, benefits, and costs are not the plan's. */
+  joins?: string;
+  leaves?: string;
 }
 
 export type AccountKind =
@@ -274,6 +278,9 @@ export interface Expense {
   spender?: string;
   /** Recurs every this many years from its start (a car every 8 years); every year where unset. */
   everyYears?: number;
+  /** Shared household cost: scaled by the square root of the household's size against the first year's (the OECD's
+   * square-root equivalence scale: two people cost about 1.41 times one). */
+  scalesWithHousehold?: boolean;
 }
 
 export interface Milestone {
