@@ -1047,6 +1047,10 @@ export function AssumptionsPage() {
     <CurrencyCard />
     <Card title="Tax country">
       <div className="grid">
+        <Num label="Extra tax on income" percent value={a.extraIncomeRate ?? 0} onChange={(v) => update((p) => { p.assumptions.extraIncomeRate = v || undefined; })} />
+        <Num label="Extra tax on capital gains" percent value={a.extraGainsRate ?? 0} onChange={(v) => update((p) => { p.assumptions.extraGainsRate = v || undefined; })} />
+        <Num label="Withheld from tax-deferred withdrawals" percent value={a.withholdTraditional ?? 0} onChange={(v) => update((p) => { p.assumptions.withholdTraditional = v || undefined; })} />
+        <Num label="Withheld from taxable withdrawals" percent value={a.withholdTaxable ?? 0} onChange={(v) => update((p) => { p.assumptions.withholdTaxable = v || undefined; })} />
         <Select label="Taxes follow" value={a.taxCountry ?? 'US'} options={[['US', 'United States (federal and state)'], ['UK', 'United Kingdom (England, Wales, Northern Ireland)'], ['AU', 'Australia (residents)'], ['CA', 'Canada'], ['DE', 'Germany'], ['NL', 'Netherlands'], ['ES', 'Spain']]} onChange={(v) => update((p) => { p.assumptions.taxCountry = v === 'US' ? undefined : v; })} />
         {a.taxCountry === 'DE' && <Select label="Church tax" value={String(a.deChurch ?? 0)} options={[['0', 'Not a member'], ['0.08', '8% (Bavaria, Baden-Wuerttemberg)'], ['0.09', '9% (other states)']]} onChange={(v) => update((p) => { p.assumptions.deChurch = Number(v) || undefined; })} />}
         {a.taxCountry === 'DE' && <Check label="No children (care insurance surcharge)" value={!!a.deChildless} onChange={(v) => update((p) => { p.assumptions.deChildless = v || undefined; })} />}
@@ -1064,6 +1068,12 @@ export function AssumptionsPage() {
           <Check label="Count taxes as spending" value={!!a.metrics?.spendingWithTaxes} onChange={(v) => update((p) => { p.assumptions.metrics = { ...p.assumptions.metrics, spendingWithTaxes: v || undefined }; })} />
         </div>
       </Card>
+    <Card title="Rates">
+      <div className="grid">
+        <Select label="Rates follow" value={a.historicalStart ? 'history' : 'fixed'} options={[['fixed', 'The assumptions below (fixed)'], ['history', 'History from a start year']]} onChange={(v) => update((p) => { p.assumptions.historicalStart = v === 'history' ? 1966 : undefined; })} />
+        {!!a.historicalStart && <Num label="History from the year" value={a.historicalStart} onChange={(v) => update((p) => { p.assumptions.historicalStart = Math.max(1928, Math.min(2025, Math.round(v))); })} />}
+      </div>
+    </Card>
     <Card title="By horizon">
         {(() => {
           const born = plan.people[0]?.birthYear ?? plan.startYear;

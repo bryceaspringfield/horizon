@@ -6,6 +6,7 @@
 // raises the tax, which needs more withdrawal) in a few passes. A surplus fills the cash target and the rest goes to
 // the first taxable account. Balances then earn the year's returns, a taxable account's dividends are taxed in the
 // same year, assets appreciate and are sold in their sale year, and debts accrue interest.
+import history from '../data/returns.json';
 import { adoptionCost, birthCost, weddingCost } from './lifeCosts';
 import { assumptionAt } from './assumptions';
 import { resolve, shareOfYear, yearOf } from './dates';
@@ -34,6 +35,14 @@ export function lastYear(plan: Plan): number {
 export function meanPath(plan: Plan): ReturnPath {
   const n = lastYear(plan) - plan.startYear + 1;
   const a = plan.assumptions;
+  // Rates from history (ProjectionLab's Historical rates): the years from the chosen start, in sequence, wrapping at the end
+  if (a.historicalStart) {
+    const hs = history as { year: number; stocks: number; bonds: number; cash: number; inflation: number }[];
+    const k = Math.max(0, hs.findIndex((h) => h.year === a.historicalStart));
+    const at = (j: number) => hs[(k + j) % hs.length];
+    return { stocks: Array.from({ length: n }, (_, j) => at(j).stocks), bonds: Array.from({ length: n }, (_, j) => at(j).bonds),
+      cash: Array.from({ length: n }, (_, j) => at(j).cash), inflation: Array.from({ length: n }, (_, j) => at(j).inflation) };
+  }
   return {
     stocks: Array.from({ length: n }, (_, i) => assumptionAt(a, 'stocks', i)),
     bonds: Array.from({ length: n }, (_, i) => assumptionAt(a, 'bonds', i)),
@@ -825,7 +834,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
-        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry, province: a.province, deChurch: a.deChurch, deChildless: a.deChildless, scotland: a.scotland, ukLumpSum: a.ukLumpSum, over60: alive.filter((p) => ages[p.id] >= 60).length,
+        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry, province: a.province, extraIncomeRate: a.extraIncomeRate, extraGainsRate: a.extraGainsRate, deChurch: a.deChurch, deChildless: a.deChildless, scotland: a.scotland, ukLumpSum: a.ukLumpSum, over60: alive.filter((p) => ages[p.id] >= 60).length,
         ...(a.taxCountry === 'ES' ? {
           wealthCash: accounts.filter((x) => x.kind === 'cash' || x.kind === 'taxable' || (x.kind === 'asset' && !x.realEstate)).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0),
           wealthOther: accounts.filter((x) => x.kind === 'asset' && x.realEstate).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0) + accounts.filter((x) => x.kind === 'debt').reduce((s2, x) => s2 + Math.min(0, state.balance[x.id]), 0),
@@ -1175,6 +1184,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         taxableIncome: tax.taxableIncome,
         ordinaryTaxable: tax.ordinaryTaxable,
         marginalRate: tax.marginalRate,
+        withheld: (() => { let w = 0; for (const x of accounts) { const d = withdrawals[x.id] ?? 0; if (x.kind === 'traditional') w += d * (a.withholdTraditional ?? 0); else if (x.kind === 'taxable') w += d * (a.withholdTaxable ?? 0); } return w || undefined; })(),
         effectiveRate: ((b) => (b > 0 ? tax.total / b : 0))(a.metrics?.taxRateBase === 'agi' ? tax.agi : a.metrics?.taxRateBase === 'taxable' ? tax.taxableIncome : gross),
       },
       investmentReturn,

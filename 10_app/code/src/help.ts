@@ -328,4 +328,10 @@ export const HELP: Record<string, string> = {
   "Shield from year (0 for the start)": "The first year withdrawal shielding caps traditional withdrawals.",
   "Shield until year (0 for the end)": "The last year withdrawal shielding applies.",
   "Convert from": "The traditional account conversions draw from, or every one in turn.",
+  "Extra tax on income": "A flat rate added on ordinary income for taxes the model leaves out, such as a local or a foreign tax.",
+  "Extra tax on capital gains": "A flat rate added on capital gains and qualified dividends.",
+  "Withheld from tax-deferred withdrawals": "The share of each traditional account withdrawal the custodian withholds for tax; the Taxes page compares it with the tax owed.",
+  "Withheld from taxable withdrawals": "The share of each taxable account sale withheld for tax.",
+  "Rates follow": "Fixed uses the return and inflation assumptions on this page; history replays each year's actual stock, bond, and cash returns and inflation from a start year, in order.",
+  "History from the year": "The first historical year the plan replays: 1966, for instance, starts with the high inflation of the 1970s; 1929 with the Depression.",
 };

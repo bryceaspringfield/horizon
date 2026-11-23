@@ -459,6 +459,13 @@ export interface Assumptions {
   taxCountry?: 'US' | 'UK' | 'AU' | 'CA' | 'DE' | 'NL' | 'ES';
   /** UK: a Scottish taxpayer, and a quarter of each pension withdrawal taken tax-free (engine/uk.ts). */
   scotland?: boolean;
+  /** Rates from history: the projection uses each year's actual returns and inflation from this year on (1928 to 2025). */
+  historicalStart?: number;
+  /** Extra flat tax rates on income and on capital gains, and the shares withheld from traditional and taxable withdrawals. */
+  extraIncomeRate?: number;
+  extraGainsRate?: number;
+  withholdTraditional?: number;
+  withholdTaxable?: number;
   /** Germany: church tax rate for members (0.08 in Bavaria and Baden-Wuerttemberg, 0.09 elsewhere), and no children. */
   deChurch?: number;
   deChildless?: boolean;
@@ -594,6 +601,8 @@ export interface YearResult {
     taxableIncome: number;
     ordinaryTaxable?: number;
     marginalRate: number;
+    /** Withheld from withdrawals this year (tax settings); the difference from the year's tax is a refund or a balance due. */
+    withheld?: number;
     effectiveRate: number;
   };
   investmentReturn: number;

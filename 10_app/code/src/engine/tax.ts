@@ -29,6 +29,9 @@ export const rules = rulesFor(YEARS[0]).rules;
 export interface TaxInput {
   /** The country whose taxes apply: the United States where unset, or the UK (engine/uk.ts). */
   country?: 'US' | 'UK' | 'AU' | 'CA' | 'DE' | 'NL' | 'ES';
+  /** Extra flat rates on ordinary income and on capital gains and qualified dividends (other taxes the model leaves out). */
+  extraIncomeRate?: number;
+  extraGainsRate?: number;
   /** The Netherlands' box 3: bank balances and other taxable investments at the start of the year. */
   wealthCash?: number;
   wealthOther?: number;
@@ -246,7 +249,16 @@ export function stateTax(state: string, agi: number, ssTaxable: number, status: 
   return bracketTax(Math.max(0, base - deduction), scale(brackets, index));
 }
 
+/** Taxes with the plan's extra flat rates on ordinary income and on capital gains added (ProjectionLab's tax settings). */
 export function computeTax(t: TaxInput): TaxResult {
+  const r = computeTaxBase(t);
+  if (!t.extraIncomeRate && !t.extraGainsRate) return r;
+  const ordinary = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.socialSecurity - t.preTaxDeductions;
+  const extra = Math.max(0, ordinary) * (t.extraIncomeRate ?? 0) + Math.max(0, t.qualifiedDividends + t.longTermGains) * (t.extraGainsRate ?? 0);
+  return { ...r, local: r.local + extra, total: r.total + extra, marginalRate: r.marginalRate + (t.extraIncomeRate ?? 0) };
+}
+
+function computeTaxBase(t: TaxInput): TaxResult {
   if (t.country === 'UK') return ukTax(t);
   if (t.country === 'AU') return auTax(t);
   if (t.country === 'CA') return caTax(t);

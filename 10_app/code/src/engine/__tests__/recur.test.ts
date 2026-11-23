@@ -85,3 +85,23 @@ describe('household changes', () => {
     expect((rent(y0 + 2) / rent(y0 + 1)) / (rent(y0 + 1) / rent(y0))).toBeCloseTo(Math.SQRT2, 1);
   });
 });
+
+describe('extra tax rates and withholding', () => {
+  it('adds the extra rate to taxes and records withholding', () => {
+    const plan = examplePlan();
+    const base = simulate(plan).years[0].taxes.total;
+    plan.assumptions.extraIncomeRate = 0.03;
+    const r = simulate(plan).years[0];
+    expect(r.taxes.total).toBeGreaterThan(base);
+  });
+});
+
+describe('historical rates', () => {
+  it('replays the chosen start year', async () => {
+    const { meanPath } = await import('../simulate');
+    const plan = examplePlan();
+    plan.assumptions.historicalStart = 2008;
+    const p = meanPath(plan);
+    expect(p.stocks[0]).toBeLessThan(-0.3);
+  });
+});

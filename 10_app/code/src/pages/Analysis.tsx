@@ -211,6 +211,15 @@ export function TaxesPage() {
         }} />
       </Card>
       <TaxYear />
+      {proj.years.some((y) => y.taxes.withheld) && <Card title="Tax withheld and tax owed" wide>
+        <Chart height={260} option={{
+          tooltip: moneyTooltip, legend: {}, grid: { left: 70, right: 16, top: 40, bottom: 30 }, xAxis: { type: 'category', data: proj.years.map((y) => String(y.year)) }, yAxis: moneyAxis,
+          series: [
+            { name: 'Withheld', type: 'bar', data: proj.years.map((y, i) => Math.round(adj(y.taxes.withheld ?? 0, i))) },
+            { name: 'Refund (+) or balance due (-)', type: 'line', data: proj.years.map((y, i) => Math.round(adj((y.taxes.withheld ?? 0) - y.taxes.total, i))) },
+          ],
+        }} />
+      </Card>}
       <Card title="Tax rates" wide>
         <Chart height={300} option={{
           tooltip: { trigger: 'axis', valueFormatter: (v: number) => pct(v) }, legend: { top: 0 }, grid: { left: 60, right: 20, top: 40, bottom: 30 },
