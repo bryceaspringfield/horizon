@@ -58,6 +58,19 @@ export function SpendingPage() {
         </Card>
       )}
       {!!log.length && (
+        {(() => {
+          // where to cut: the categories over plan, largest first, with the yearly saving and the merchants spent at most
+          const over = Object.keys(avg).map((c) => ({ c, gap: (avg[c] ?? 0) - (planned[c] ?? 0) })).filter((r) => r.gap > 1).sort((p, q) => q.gap - p.gap);
+          if (!over.length) return null;
+          const top = (c: string) => {
+            const m: Record<string, number> = {};
+            for (const t of log) if (t.category === c && t.amount < 0) m[t.description] = (m[t.description] ?? 0) - t.amount;
+            return Object.entries(m).sort((p, q) => q[1] - p[1]).slice(0, 3).map(([d, v]) => `${d} (${money(v)})`).join(', ');
+          };
+          return <Card title="Where to cut">
+            <ul className="lifelist">{over.slice(0, 6).map((r) => <li key={r.c}><b>{label(r.c)}: {money(r.gap)} a month over plan</b><small>{money(r.gap * 12)} a year back at plan; most spent at {top(r.c)}</small></li>)}</ul>
+          </Card>;
+        })()}
         <Card title="Transactions">
           <ul className="txns">
             {log.slice(0, 300).map((t) => (

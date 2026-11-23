@@ -22,7 +22,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Purchase goals: a thing to buy (a laptop), saving up for it by a date, and the best deal under the user's filters, counting price errors, coupons, portal cash back, and card cash back.
 
 ## Statements, flows, and savings (Bryce, 2026-11-23)
-- Statement spending: how each category compares to the plan and where it can be cut.
 - Flows: confirm automatic transfers on a schedule cover every case (provider IRA matches with clawback are in, committed with shared memberships).
 
 ## Pay and benefits follow-ups (Bryce, 2026-11-23)
