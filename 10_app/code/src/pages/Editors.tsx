@@ -403,6 +403,7 @@ export function AccountsPage() {
                   <Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
                   <Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
                   <Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
+                  {!!a.forgiveYear && <Check label="Forgiveness is tax-free (PSLF)" value={!!a.forgivenTaxFree} onChange={(v) => set((x) => { x.forgivenTaxFree = v || undefined; })} />}
                   </>}
                   <Num label="Annual fee" value={a.annualFee ?? 0} onChange={(v) => set((x) => { x.annualFee = v || undefined; })} />
                   <RatesEditor rates={a.rewards} onChange={(r) => set((x) => { x.rewards = r.length ? r : undefined; })} />

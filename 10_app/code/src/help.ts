@@ -308,4 +308,6 @@ export const HELP: Record<string, string> = {
   "Province or territory": "Where you file in Canada: its brackets and basic personal amount from the CRA 2026 tables. Quebec uses its own tax, pension plan, and parental insurance.",
   "Scottish taxpayer": "Earned and pension income is taxed at Scotland's 2026 to 2027 rates (19% to 48%); savings and dividends keep the UK rates.",
   "Take a quarter of each pension withdrawal tax-free": "Each pension withdrawal is a lump sum a quarter of which is tax-free, the rest taxed as income (an uncrystallised funds pension lump sum).",
+  "Forgiveness is tax-free (PSLF)": "Public Service Loan Forgiveness is not income. Forgiveness under an income-driven repayment plan is taxed as income from 2026.",
+  "Enable plugins (window.horizonPluginAPI)": "Lets a script in this browser read your accounts and update balances with getAccounts, updateAccountValues, and exportData, passing the key shown here. Keep the key private.",
 };

@@ -558,8 +558,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         const forgiven = -state.balance[d.id];
         state.balance[d.id] = 0;
         income['forgiven_' + d.id] = forgiven;
-        otherOrdinary += forgiven;
-        untaxedIncome -= forgiven;
+        if (!d.forgivenTaxFree) { otherOrdinary += forgiven; untaxedIncome -= forgiven; }
       }
     }
 

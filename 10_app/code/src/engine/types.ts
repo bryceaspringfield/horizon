@@ -101,6 +101,9 @@ export interface Account {
   inheritedYear?: number;
   /** Debts: the balance left is forgiven in this year (student loan forgiveness). */
   forgiveYear?: number;
+  /** Debts: the forgiven balance is not income (Public Service Loan Forgiveness); otherwise it is taxed, as income-driven
+   * repayment forgiveness is from 2026. */
+  forgivenTaxFree?: boolean;
   /** Assets: yearly rent (today's dollars), the share lost to vacancy, and yearly costs as a share of the rent. */
   rent?: number;
   vacancy?: number;

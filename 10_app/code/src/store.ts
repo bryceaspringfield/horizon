@@ -40,6 +40,9 @@ export interface Settings {
   chartRealAssets?: boolean;
   /** Show every amount as dots (for a screen someone else can see). */
   hideAmounts?: boolean;
+  /** The plugin API (plugins.ts): on, and the key a script must pass. */
+  pluginsEnabled?: boolean;
+  pluginKey?: string;
 }
 
 interface AppState {

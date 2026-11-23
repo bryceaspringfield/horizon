@@ -9,6 +9,8 @@ import { CardsPage } from './pages/Cards';
 import { SpendingPage } from './pages/Spending';
 import { TimelinePage } from './pages/Timeline';
 import { RentOwnPage } from './pages/RentOwn';
+import { installPlugins } from './plugins';
+installPlugins();
 import { HistoryPage } from './pages/History';
 import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
@@ -393,6 +395,8 @@ function SettingsPage() {
         <div className="grid">
           <Check label="Show amounts in today's dollars" value={settings.realDollars} onChange={(v) => setSettings({ realDollars: v })} />
           <Check label="Hide amounts (dots in place of every figure)" value={!!settings.hideAmounts} onChange={(v) => setSettings({ hideAmounts: v })} />
+          <Check label="Enable plugins (window.horizonPluginAPI)" value={!!settings.pluginsEnabled} onChange={(v) => setSettings({ pluginsEnabled: v, pluginKey: v ? settings.pluginKey ?? crypto.randomUUID() : settings.pluginKey })} />
+          {settings.pluginsEnabled && <div className="row"><span>Plugin key: <code>{settings.pluginKey}</code></span><button className="ghost" onClick={() => setSettings({ pluginKey: crypto.randomUUID() })}>New key</button></div>}
           <Select label="Theme" value={settings.theme} options={[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />
         </div>
       </Card>
