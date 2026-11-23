@@ -16,6 +16,7 @@ const paths: Record<string, string> = {
   compare: 'M18 20V10M12 20V4M6 20v-6',
   progress: 'M22 12h-4l-3 9L9 3l-3 9H2',
   table: 'M3 3h18v18H3zM3 9h18M3 15h18M9 3v18',
+  report: 'M6 2h9l5 5v15H6zM15 2v5h5M9 12h8M9 16h8M9 8h3',
   settings: 'M12 1v4M12 19v4M4.2 4.2l2.9 2.9M16.9 16.9l2.9 2.9M1 12h4M19 12h4M4.2 19.8l2.9-2.9M16.9 7.1l2.9-2.9',
   events: 'M3 4h18v18H3zM16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01',
   fire: 'M12 2c1 3 4 5 4 9a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8M8.5 14.5A3.5 3.5 0 0 0 12 22a3.5 3.5 0 0 0 3.5-3.5',

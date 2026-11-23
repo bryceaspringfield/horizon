@@ -17,7 +17,7 @@ H = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DIST = os.path.join(H, '10_app', 'code', 'dist')
 OUT = os.path.join(H, '99_overall', 'output', 'pages')
 PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions', 'networth',
-         'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'progress', 'table', 'settings']
+         'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'progress', 'table', 'report', 'settings']
 
 
 def main():
@@ -70,6 +70,27 @@ def main():
                 print('   ERROR', e[:300])
             bad += len(errors)
             pg.screenshot(path=os.path.join(OUT, f'{name}.png'), full_page=True)
+        # The features of 0.7: the main plan flag, a scheduled transfer, the flat tax model, and the report.
+        errors.clear()
+        pg.goto(f'{url}people'); pg.wait_for_timeout(1500)
+        pg.click('button:has-text("☆ Main")'); pg.wait_for_timeout(300)
+        main_ok = pg.locator('button:has-text("★ Main")').count() == 1
+        pg.goto(f'{url}strategy'); pg.wait_for_timeout(1500)
+        card = pg.locator('section.card:has(h3:has-text("Scheduled transfers"))')
+        card.locator('button:has-text("+ Add")').click(); pg.wait_for_timeout(500)
+        transfer_ok = card.locator('details.item').count() == 1
+        pg.goto(f'{url}assumptions'); pg.wait_for_timeout(1500)
+        pg.locator('label.field:has-text("Tax model") select').first.select_option('flat'); pg.wait_for_timeout(500)
+        flat_ok = pg.locator('text=Flat rate').count() >= 1
+        pg.goto(f'{url}report'); pg.wait_for_timeout(2500)
+        report_ok = pg.locator('button:has-text("Print or save as PDF")').count() == 1 and pg.locator('text=Lifetime taxes').count() >= 1
+        pg.emulate_media(media='print'); pg.screenshot(path=os.path.join(OUT, 'report_print.png'), full_page=True)
+        nav_hidden = not pg.locator('nav').is_visible()
+        pg.emulate_media(media='screen')
+        print(f'features: main plan {main_ok}, transfer {transfer_ok}, flat tax {flat_ok}, report {report_ok}, print hides nav {nav_hidden}, errors {len(errors)}')
+        for e in errors[:5]:
+            print('   ERROR', e[:300])
+        bad += len(errors) + sum(not x for x in (main_ok, transfer_ok, flat_ok, report_ok, nav_hidden))
         # Tab links are plain paths, and the lock button shows on every page.
         pg.goto(url); pg.wait_for_timeout(1500)
         hrefs = pg.eval_on_selector_all('nav a', 'as => as.map(a => a.getAttribute("href"))')

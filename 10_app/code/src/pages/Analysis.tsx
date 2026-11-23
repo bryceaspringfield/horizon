@@ -90,6 +90,10 @@ export function Dashboard() {
 
 export function NetWorthChart({ hero }: { hero?: boolean }) {
   const { plan, proj, adj, real } = useProjection();
+  const withReal = useStore((s) => s.settings.chartRealAssets !== false);
+  const setSettings = useStore((s) => s.setSettings);
+  // Without real assets: no home or other asset, and no debt secured by one.
+  const counts = (a: (typeof plan.accounts)[0]) => withReal || !(a.kind === 'asset' || (a.kind === 'debt' && a.securedBy));
   const kinds: AccountKind[] = ['cash', 'taxable', 'traditional', 'roth', 'hsa', 'college529', 'asset', 'debt'];
   const area = (color: string) => ({ color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: color + 'cc' }, { offset: 1, color: color + '33' }] } });
   const colors: Record<string, string> = { cash: '#94a3b8', taxable: '#5b5bf0', traditional: '#f59e0b', roth: '#a855f7', hsa: '#14b8a6', college529: '#0ea5e9', asset: '#84cc16', debt: '#f43f5e' };
@@ -97,15 +101,15 @@ export function NetWorthChart({ hero }: { hero?: boolean }) {
     .map((k) => ({
       name: KIND_LABEL[k], type: 'line', stack: k === 'debt' ? 'debt' : 'nw', smooth: true, symbol: 'none', lineStyle: { width: 0 },
       areaStyle: area(colors[k]), itemStyle: { color: colors[k] }, emphasis: { focus: 'series' },
-      data: proj.years.map((y, i) => Math.round(adj(plan.accounts.filter((a) => a.kind === k).reduce((t, a) => t + (y.balances[a.id] ?? 0), 0), i))),
+      data: proj.years.map((y, i) => Math.round(adj(plan.accounts.filter((a) => a.kind === k && counts(a)).reduce((t, a) => t + (y.balances[a.id] ?? 0), 0), i))),
     }))
     .filter((s) => (s.data as number[]).some((v) => v !== 0));
   series.push({ name: 'Net worth', type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2.5, color: '#1b2033' }, itemStyle: { color: '#1b2033' },
-    data: proj.years.map((y, i) => Math.round(adj(y.netWorth, i))),
+    data: proj.years.map((y, i) => Math.round(adj(withReal ? y.netWorth : y.financialNetWorth ?? y.netWorth, i))),
     markLine: { symbol: 'none', lineStyle: { type: 'dashed', color: '#8b8fa8' }, label: { show: !hero, color: '#6b7185' }, data: milestoneMarks(plan, proj.years) } });
   return (
     <section className={'card' + (hero ? ' hero' : '')}>
-      <header><h3>Net worth by account type</h3><span className="muted">{dollarsNote(real)}</span></header>
+      <header><h3>Net worth by account type</h3><span className="muted">{dollarsNote(real)} · <label className="inline"><input type="checkbox" checked={withReal} onChange={(e) => setSettings({ chartRealAssets: e.target.checked })} /> real assets</label></span></header>
       <Chart height={hero ? 400 : 460} option={{
         tooltip: moneyTooltip, legend: { top: 0 }, grid: { left: 70, right: 16, top: 44, bottom: hero ? 30 : 56 },
         xAxis: { type: 'category', boundaryGap: false, data: proj.years.map((y) => String(y.year)) }, yAxis: moneyAxis,
@@ -285,7 +289,11 @@ export function MonteCarloPage() {
 
 export function ComparePage() {
   const plans = useStore((s) => s.plans);
-  const compareIds = useStore((s) => s.compareIds);
+  const chosenIds = useStore((s) => s.compareIds);
+  const mainId = useStore((s) => s.settings.mainPlanId);
+  const activeId = useStore((s) => s.activeId);
+  // Nothing chosen yet: the main plan beside the open one.
+  const compareIds = useMemo(() => (chosenIds.length ? chosenIds : [...new Set([mainId, activeId].filter((x): x is string => !!x))]), [chosenIds, mainId, activeId]);
   const setCompare = useStore((s) => s.setCompare);
   const real = useStore((s) => s.settings.realDollars);
   const chosen = plans.filter((p) => compareIds.includes(p.id));
@@ -297,7 +305,7 @@ export function ComparePage() {
         {plans.map((p) => (
           <label key={p.id} className="check">
             <input type="checkbox" checked={compareIds.includes(p.id)} onChange={(e) => setCompare(e.target.checked ? [...compareIds, p.id] : compareIds.filter((x) => x !== p.id))} />
-            {p.name}
+            {p.id === mainId ? '★ ' : ''}{p.name}
           </label>
         ))}
         <p className="muted">Make a copy of a plan in the plan menu, change one thing (retirement age, spending, a Roth conversion bracket), and compare.</p>

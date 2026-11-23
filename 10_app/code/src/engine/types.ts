@@ -61,6 +61,16 @@ export interface Account {
   rent?: number;
   vacancy?: number;
   rentalCosts?: number;
+  /** A yearly return of its own (nominal, after fees), in place of the allocation's mix of market returns. */
+  customReturn?: number;
+  /** Taxable accounts: dividends and interest paid out to cash each year in place of being reinvested. */
+  dividendsPaidOut?: boolean;
+}
+
+/** An amount which changes from a year on: the new yearly amount, in the item's own dollars. */
+export interface Step {
+  year: number;
+  amount: number;
 }
 
 export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu';
@@ -90,6 +100,13 @@ export interface Income {
   /** RSUs: the grant vests in equal parts over these years from startYear; vested shares are taxed as wages and kept
    * in the taxable account (their value is the basis). */
   vestYears?: number;
+  /** Changes of the yearly amount from a year on (a promotion, a part-time stretch). */
+  steps?: Step[];
+  /** The amounts are in future (nominal) dollars of their own year, in place of today's dollars. */
+  nominal?: boolean;
+  /** Self-employment: a specified service business (law, health, consulting...), whose QBI deduction ends above the
+   * phase-in range; other businesses here phase out too, since a sole owner has no W-2 wages or property to count. */
+  serviceBusiness?: boolean;
 }
 
 export interface SocialSecurity {
@@ -113,6 +130,8 @@ export interface Expense {
   growth: number;
   /** Paid from this 529 account first, where set. */
   fundedBy?: string;
+  steps?: Step[];
+  nominal?: boolean;
 }
 
 export interface Milestone {
@@ -175,6 +194,24 @@ export interface Strategy {
   /** Glide path: every invested account's stock share moves in a straight line from its own mix at startAge to
    * endStocks at endAge (by its owner's age), the rest in bonds; off when disabled. */
   glidePath?: { enabled: boolean; startAge: number; endAge: number; endStocks: number };
+  /** Money moved between accounts on a schedule (today's dollars a year), with the tax the move causes: a
+   * traditional-to-Roth move is a conversion, a traditional withdrawal is income, a taxable sale realizes gains. */
+  transfers?: Transfer[];
+  /** Qualified charitable distributions: from 70½ (counted from 71), the plan's charity paid from traditional IRAs, up
+   * to the yearly limit; it counts toward the RMD and is not income. */
+  qcd?: boolean;
+  /** Count real assets (a home, net of its mortgage) in the financial independence test and the net worth milestones. */
+  fiCountsRealAssets?: boolean;
+}
+
+export interface Transfer {
+  id: string;
+  name: string;
+  from: string;
+  to: string;
+  amount: number;
+  startYear: number;
+  endYear?: number;
 }
 
 export interface Deductions {
@@ -218,6 +255,8 @@ export interface Assumptions {
   local?: LocalTax;
   /** Stress test: stocks fall by this share in this year, in every projection and simulation path. */
   crash?: { enabled: boolean; year: number; drop: number };
+  /** The tax model: United States rules, or one flat rate on all income in place of every income and payroll tax. */
+  taxModel?: { kind: 'us' | 'flat'; rate: number };
 }
 
 /** Life events which change the plan from their year: buying a home, a child, a career break, or a pay change. */
@@ -229,6 +268,7 @@ export type LifeEvent =
   | { id: string; kind: 'move'; name: string; year: number; state: string; local?: LocalTax }
   | { id: string; kind: 'inheritance'; name: string; year: number; amount: number; asIra: boolean }
   | { id: string; kind: 'recurring'; name: string; year: number; amount: number; everyYears: number; endYear: number }
+  | { id: string; kind: 'separation'; name: string; year: number; personId: string; keepShare: number; expenseFactor: number; support: number; supportYears: number }
   | { id: string; kind: 'rentalProperty'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; rent: number; vacancy: number; costs: number; appreciation: number };
 
 export interface Estate {
@@ -258,6 +298,10 @@ export interface Plan {
   healthcare: Healthcare;
   events?: LifeEvent[];
   estate?: Estate;
+  /** Free notes printed with the plan report. */
+  notes?: string;
+  /** The plan's people, first year, and accounts are copied from the main plan and kept in step with it. */
+  followsMain?: boolean;
 }
 
 /** One year of a plan's projection. */
@@ -276,6 +320,11 @@ export interface YearResult {
   withdrawals: Record<string, number>;
   rmd: number;
   rothConversion: number;
+  /** Qualified charitable distributions and scheduled transfers this year. */
+  qcd?: number;
+  transfers?: number;
+  /** Net worth without real assets and the debts they secure. */
+  financialNetWorth?: number;
   taxes: {
     federal: number;
     state: number;
@@ -283,6 +332,8 @@ export interface YearResult {
     capitalGains: number;
     niit: number;
     penalty: number;
+    /** The qualified business income deduction taken. */
+    qbi?: number;
     /** Medicare premiums with surcharges, and ACA premiums net of the credit, paid this year. */
     medicare: number;
     aca: number;

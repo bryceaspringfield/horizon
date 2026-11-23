@@ -54,6 +54,12 @@ export interface TaxInput {
   saverContributions?: number[];
   /** Local income tax: New York City's brackets, or a flat rate on wages or on taxable income. */
   local?: { kind: 'none' | 'nyc' | 'wages' | 'income'; rate?: number };
+  /** HSA money spent on other than medical care: ordinary income (in otherOrdinary), and 20% more before 65. */
+  hsaPenaltyBase?: number;
+  /** Self-employment income from a specified service business (the QBI deduction phases out the same way here). */
+  serviceBusiness?: boolean;
+  /** A flat tax on all income in place of every income and payroll tax. */
+  flatRate?: number;
 }
 
 export interface TaxResult {
@@ -77,6 +83,8 @@ export interface TaxResult {
   amt: number;
   local: number;
   seniorDeduction: number;
+  /** The qualified business income deduction. */
+  qbi: number;
 }
 
 const scale = (brackets: number[][], k: number): Bracket[] => brackets.map(([t, r]) => [t * k, r]);
@@ -168,6 +176,7 @@ export function stateTax(state: string, agi: number, ssTaxable: number, status: 
 }
 
 export function computeTax(t: TaxInput): TaxResult {
+  if (t.flatRate !== undefined) return flatTax(t, t.flatRate);
   const r = rulesFor(t.year).rules;
   const k = t.index;
   const ordinaryBrackets = scale(r.brackets[t.status], k);
@@ -194,7 +203,22 @@ export function computeTax(t: TaxInput): TaxResult {
   const sd = r.credits.seniorDeduction;
   const senior = t.year >= sd.years[0] && t.year <= sd.years[1]
     ? Math.max(0, sd.amount * t.over65 - sd.rate * Math.max(0, agi - sd.phaseStart[t.status])) : 0;
-  const taxableIncome = Math.max(0, agi - deduction - senior);
+  // The qualified business income deduction (section 199A): 20% of self-employment income less the deductible half of
+  // its tax, at most 20% of taxable income less net capital gains. A sole owner has no W-2 wages or property to count,
+  // so above the threshold the deduction phases out over the phase-in range (a service business's too). From 2026 an
+  // owner with at least the minimum income gets at least the minimum deduction.
+  const q = r.qbi;
+  const beforeQbi = Math.max(0, agi - deduction - senior);
+  let qbiDed = 0;
+  const qbiIncome = Math.max(0, t.selfEmployment - seDeduction);
+  if (q && qbiIncome > 0) {
+    const over = Math.max(0, beforeQbi - q.threshold[t.status] * k);
+    const keep = Math.max(0, 1 - over / (q.phaseIn[t.status] * k));
+    qbiDed = q.rate * qbiIncome * keep;
+    if (qbiIncome >= q.minimumIncome * k) qbiDed = Math.max(qbiDed, q.minimumDeduction * k);
+    qbiDed = Math.min(qbiDed, q.rate * Math.max(0, beforeQbi - preferential));
+  }
+  const taxableIncome = Math.max(0, beforeQbi - qbiDed);
   const ordinaryTaxable = Math.max(0, taxableIncome - preferential);
   const ordinaryTax = bracketTax(ordinaryTaxable, ordinaryBrackets);
   // Gains stack on top of ordinary income: each slice is taxed at the rate of the band it lands in.
@@ -204,13 +228,13 @@ export function computeTax(t: TaxInput): TaxResult {
   const investmentIncome = preferential + t.interest;
   const niit = Math.max(0, Math.min(investmentIncome, agi - r.niit.threshold[t.status])) * r.niit.rate;
   const ficaTax = fica(t.wages, t.selfEmployment, t.status, t.year, k);
-  const penalty = t.earlyWithdrawals * r.earlyWithdrawalPenalty;
+  const penalty = t.earlyWithdrawals * r.earlyWithdrawalPenalty + (t.hsaPenaltyBase ?? 0) * 0.2;
 
   // Alternative minimum tax: income with the standard deduction (or state and local taxes) added back, less the
   // exemption (phased out at 50% above its threshold), at 26% and 28% on ordinary income and the capital gains rates
   // on gains; owed where the tentative tax exceeds the regular tax.
   const am = r.amt;
-  const amti = agi - (itemized ? deduction - Math.min(state + (t.propertyTax ?? 0), saltCap(t.year, agi)) : 0);
+  const amti = agi - qbiDed - (itemized ? deduction - Math.min(state + (t.propertyTax ?? 0), saltCap(t.year, agi)) : 0);
   const exemption = Math.max(0, am.exemption[t.status] * k - am.phaseRate * Math.max(0, amti - am.phaseStart[t.status] * k));
   const amtBase = Math.max(0, amti - exemption);
   const amtPref = Math.min(preferential, amtBase);
@@ -290,7 +314,22 @@ export function computeTax(t: TaxInput): TaxResult {
     amt,
     local,
     seniorDeduction: senior,
+    qbi: qbiDed,
   };
+}
+
+/** One rate on every dollar of income (wages, business, withdrawals, gains, dividends, interest, and 85% of Social
+ * Security, less pre-tax contributions), in place of the US rules; early-withdrawal penalties still apply. */
+function flatTax(t: TaxInput, rate: number): TaxResult {
+  const r = rulesFor(t.year).rules;
+  const base = Math.max(0, t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.qualifiedDividends
+    + Math.max(0, t.longTermGains) + 0.85 * t.socialSecurity - t.preTaxDeductions);
+  const penalty = t.earlyWithdrawals * r.earlyWithdrawalPenalty + (t.hsaPenaltyBase ?? 0) * 0.2;
+  const income = base * rate;
+  const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains) + t.socialSecurity;
+  return { federal: income, capitalGains: 0, niit: 0, fica: 0, state: 0, penalty, total: income + penalty, taxableIncome: base,
+    ordinaryTaxable: base, taxableSocialSecurity: 0.85 * t.socialSecurity, marginalRate: rate, effectiveRate: gross > 0 ? (income + penalty) / gross : 0,
+    agi: base, deduction: 0, itemized: false, credits: 0, amt: 0, local: 0, seniorDeduction: 0, qbi: 0 };
 }
 
 type MedicareYear = (typeof health.medicare)['2026'];

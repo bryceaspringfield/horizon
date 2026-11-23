@@ -34,6 +34,7 @@ export function meanPath(plan: Plan): ReturnPath {
 }
 
 function portfolioReturn(acc: Account, path: ReturnPath, i: number, w: Account['allocation'] = acc.allocation): number {
+  if (typeof acc.customReturn === 'number') return acc.customReturn;
   const total = w.stocks + w.bonds + w.cash || 1;
   const r = (w.stocks * path.stocks[i] + w.bonds * path.bonds[i] + w.cash * path.cash[i]) / total;
   return r - (acc.fee ?? 0);
@@ -88,6 +89,9 @@ export function expandEvents(plan: Plan): Plan {
         plan.incomes.push({ id: 'ev_inh_' + e.id, name: e.name, kind: 'windfall', ownerId: plan.people[0].id, amount: e.amount, growth: 0,
           startYear: e.year, inflationAdjusted: true, taxable: false });
       }
+    } else if (e.kind === 'separation') {
+      if (e.support > 0 && e.supportYears > 0) plan.expenses.push({ id: 'ev_sup_' + e.id, name: e.name + ': support paid', kind: 'other',
+        amount: e.support, startYear: e.year, endYear: e.year + e.supportYears - 1, growth: 0 });
     } else if (e.kind === 'recurring') {
       for (let y = e.year, n = 0; y <= e.endYear; y += Math.max(1, e.everyYears), n++) {
         plan.expenses.push({ id: `ev_rec${n}_` + e.id, name: e.name, kind: 'oneTime', amount: e.amount, startYear: y, growth: 0 });
@@ -165,6 +169,20 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     return lt;
   };
   const childEvents = (plan.events ?? []).filter((e) => e.kind === 'child');
+  const separations = (plan.events ?? []).flatMap((e) => (e.kind === 'separation' ? [e] : []));
+  /** People who left the household in a separation: their incomes and benefits leave the plan. */
+  const departed = new Set<string>();
+  let expenseFactor = 1;
+  /** Cumulative inflation at a year's start: from the path inside the plan, at the assumed rate before it. */
+  const indexOf = (yr: number) => indexAt[yr] ?? Math.pow(1 + a.inflation, yr - plan.startYear);
+  /** A yearly amount in a year: the item's base amount or its last step, in today's dollars (grown with inflation)
+   * or in the future dollars of the year it starts, with its real growth. */
+  const amountIn = (y: number, index: number, it: { amount: number; growth: number; startYear: number; steps?: { year: number; amount: number }[]; nominal?: boolean }, inflationAdjusted = true) => {
+    let amount = it.amount, from = it.startYear, stepped = false;
+    for (const st of it.steps ?? []) if (st.year <= y && (!stepped || st.year >= from)) { amount = st.amount; from = st.year; stepped = true; }
+    if (it.nominal) return amount * (inflationAdjusted ? index / indexOf(from) : 1) * Math.pow(1 + it.growth, y - from);
+    return amount * (inflationAdjusted ? index : 1) * Math.pow(1 + it.growth, y - (stepped ? from : plan.startYear));
+  };
   /** People retired by a milestone reached in an earlier year. */
   const retiredBy = new Set<string>();
   let seppAmount = 0;
@@ -181,14 +199,28 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   for (let y = plan.startYear, i = 0; y <= end; y++, i++) {
     indexAt[y] = index;
     for (const [id, bal] of Object.entries(opening)) if (byId.get(id)!.startYear === y) state.balance[id] = bal;
+    // A separation: the leaving person's accounts pass to the one staying, who keeps a share of every account.
+    for (const e of separations) {
+      if (e.year !== y || departed.has(e.personId)) continue;
+      const stayer = plan.people.find((p) => p.id !== e.personId);
+      if (!stayer) continue;
+      departed.add(e.personId);
+      expenseFactor *= e.expenseFactor;
+      for (const x of accounts) {
+        if (x.ownerId === e.personId) x.ownerId = stayer.id;
+        state.balance[x.id] *= e.keepShare;
+        state.basis[x.id] *= e.keepShare;
+        if (opening[x.id] !== undefined) opening[x.id] *= e.keepShare;
+      }
+    }
     const ri = sinceRules(y, index);
     const lim = rulesFor(y).rules.limits;
     const healthIndex = index * Math.pow(1.015, y - plan.startYear);
     const ages: Record<string, number> = {};
     for (const p of plan.people) ages[p.id] = y - p.birthYear;
-    const alive = plan.people.filter((p) => ages[p.id] <= p.lifeExpectancy);
+    const alive = plan.people.filter((p) => ages[p.id] <= p.lifeExpectancy && !departed.has(p.id));
     if (alive.length === 0) break;
-    const status = alive.length === 2 && a.filingStatus === 'mfj' ? 'mfj' : a.filingStatus === 'hoh' ? 'hoh' : 'single';
+    let status: 'mfj' | 'hoh' | 'single' = alive.length === 2 && a.filingStatus === 'mfj' ? 'mfj' : a.filingStatus === 'hoh' ? 'hoh' : 'single';
     const isAlive = (id: string) => alive.some((p) => p.id === id);
     const working = (id: string) => isAlive(id) && ages[id] < (s.retirementAge[id] ?? 200) && !retiredBy.has(id);
     const residence = stateIn(y);
@@ -202,8 +234,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       else if (age >= 17 && age < 18) otherDeps++;
       else if (age >= 18 && age < 18 + c.collegeYears && c.collegeYearly > 0) { otherDeps++; if (age < 22) students++; }
     }
-    const grow = (amount: number, growth: number, inflationAdjusted = true) =>
-      amount * (inflationAdjusted ? index : 1) * Math.pow(1 + growth, y - plan.startYear);
+    if (departed.size > 0 && status === 'single' && kids + otherDeps > 0) status = 'hoh';
 
     const income: Record<string, number> = {};
     const contributions: Record<string, number> = {};
@@ -230,7 +261,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       if (inc.kind === 'windfall' && y !== inc.startYear) continue;
       const evs = (plan.events ?? []).filter((e) => (e.kind === 'careerBreak' || e.kind === 'payChange') && e.personId === inc.ownerId);
       if ((inc.kind === 'salary' || inc.kind === 'selfEmployment') && evs.some((e) => e.kind === 'careerBreak' && y >= e.year && y <= e.endYear)) continue;
-      let amt = grow(inc.amount, inc.growth, inc.inflationAdjusted);
+      let amt = amountIn(y, index, inc, inc.inflationAdjusted);
       if (inc.kind === 'salary' || inc.kind === 'selfEmployment') for (const e of evs) if (e.kind === 'payChange' && y >= e.year) amt *= e.factor;
       income[inc.id] = amt;
       if (inc.kind === 'salary') {
@@ -276,7 +307,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     const ssByPerson: Record<string, number> = {};
     for (const ss of plan.socialSecurity) {
       const p = plan.people.find((q) => q.id === ss.ownerId);
-      if (!p) continue;
+      if (!p || departed.has(ss.ownerId)) continue;
       const claimYear = p.birthYear + ss.claimAge;
       if (y >= claimYear) ssByPerson[ss.ownerId] = benefitAtClaim(ss.pia, ss.claimAge) * 12 * index;
     }
@@ -359,7 +390,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     for (const e of plan.expenses) {
       const stop = e.endYear ?? (e.kind === 'oneTime' ? e.startYear : end);
       if (y < e.startYear || y > stop) continue;
-      let amt = grow(e.amount, e.growth);
+      let amt = amountIn(y, index, e);
+      if (!e.id.startsWith('ev_sup_')) amt *= expenseFactor;
       if (e.fundedBy && state.balance[e.fundedBy] > 0) {
         const take = Math.min(amt, state.balance[e.fundedBy]);
         state.balance[e.fundedBy] -= take;
@@ -390,8 +422,30 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     }
     if (medicare > 0) { expenses['__medicare'] = medicare; totalExpenses += medicare; }
     if (aca > 0) { expenses['__aca'] = aca; totalExpenses += aca; }
-    const charity = (dd.charity ?? 0) * index;
+    const charityAll = (dd.charity ?? 0) * index;
+    // Qualified charitable distributions: the gift paid from the IRAs of owners 71 or older, first from the RMD they
+    // took, up to the yearly limit a person; it leaves income and the itemized deduction.
+    let qcd = 0;
+    const rmdAll = rmd;
+    if (s.qcd && charityAll > 0) {
+      const eligible = accounts.filter((x) => x.kind === 'traditional' && !x.inheritedYear && isAlive(x.ownerId) && ages[x.ownerId] >= 71);
+      const owners = new Set(eligible.map((x) => x.ownerId)).size;
+      const cap = Math.min(charityAll, ((rulesFor(y).rules as { qcdLimit?: number }).qcdLimit ?? 111000) * ri * owners);
+      const fromRmd = Math.min(cap, eligible.reduce((t, x) => t + (withdrawals[x.id] ?? 0), 0));
+      rmd -= fromRmd;
+      qcd = fromRmd;
+      for (const x of eligible) {
+        const take = Math.min(cap - qcd, Math.max(0, state.balance[x.id]));
+        if (take <= 0) break;
+        state.balance[x.id] -= take; withdrawals[x.id] = (withdrawals[x.id] ?? 0) + take; qcd += take;
+      }
+    }
+    const charity = charityAll - qcd;
     if (charity > 0) { expenses['__charity'] = charity; totalExpenses += charity; }
+    // Spending an HSA may cover tax-free: the year's healthcare expenses and premiums.
+    const medicalSpend = plan.expenses.filter((e) => e.kind === 'healthcare').reduce((t, e) => t + (expenses[e.id] ?? 0), 0) + medicare + aca;
+    const hsaOwner = accounts.find((x) => x.kind === 'hsa')?.ownerId;
+    let hsaDrawn = 0;
     // Itemized deductions: interest on home-secured debt, property tax on real estate.
     let mortgageInterest = 0, propertyTax = 0;
     for (const d of accounts) {
@@ -467,21 +521,32 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     }
 
     // Dividends and interest of taxable accounts, taxed this year and reinvested.
-    let qualified = 0, interest = 0;
+    let qualified = 0, interest = 0, paidOut = 0;
+    const paidOutBy: Record<string, number> = {};
     for (const x of accounts) {
       if (x.kind !== 'taxable' || state.balance[x.id] <= 0) continue;
       const w = x.allocation, tot = w.stocks + w.bonds + w.cash || 1;
       const bal = state.balance[x.id];
-      qualified += bal * (w.stocks / tot) * a.dividendYield;
-      interest += bal * ((w.bonds + w.cash) / tot) * (path.bonds[i] * 0.8);
+      const div = bal * (w.stocks / tot) * a.dividendYield, int = bal * ((w.bonds + w.cash) / tot) * (path.bonds[i] * 0.8);
+      qualified += div;
+      interest += int;
+      // Paid out: the income reaches cash this year and leaves the account's growth.
+      if (x.dividendsPaidOut) { paidOutBy[x.id] = div + int; paidOut += div + int; income['div_' + x.id] = div + int; }
     }
     interest += Math.max(0, state.balance[cashAcc.id]) * Math.max(0, path.cash[i]);
 
     let conversion = 0;
+    // Scheduled transfers' taxable parts: traditional money leaving tax deferral, gains realized, early withdrawals.
+    let xTrad = 0, xGains = 0, xEarly = 0, transferred = 0;
+    const flatRate = a.taxModel?.kind === 'flat' ? a.taxModel.rate : undefined;
+    const serviceBusiness = plan.incomes.some((q) => q.kind === 'selfEmployment' && q.serviceBusiness);
     function computeTaxNow(tr: number, g: number, e: number, conv = conversion) {
-      return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr,
-        interest, qualifiedDividends: qualified, longTermGains: g + harvested, socialSecurity: ssTotal, preTaxDeductions: preTax,
-        earlyWithdrawals: e, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
+      // HSA money beyond the year's medical spending is income, with 20% more before 65.
+      const hsaOver = Math.max(0, hsaDrawn - medicalSpend);
+      return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr + xTrad + hsaOver,
+        interest, qualifiedDividends: qualified, longTermGains: g + harvested + xGains, socialSecurity: ssTotal, preTaxDeductions: preTax,
+        hsaPenaltyBase: hsaOwner && ages[hsaOwner] < 65 ? hsaOver : 0, flatRate, serviceBusiness,
+        earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
         saverContributions: alive.map((p) => (deferredBy[p.id] ?? 0) + (p.id === firstWorker?.id ? iraIn + rothIn : 0)) });
@@ -517,8 +582,32 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       }
     }
 
+    // Scheduled transfers between accounts, with the tax each move causes.
+    for (const tf of s.transfers ?? []) {
+      if (y < tf.startYear || y > (tf.endYear ?? tf.startYear)) continue;
+      const from = byId.get(tf.from), to = byId.get(tf.to);
+      if (!from || !to || from.id === to.id || from.kind === 'debt' || from.kind === 'asset' || to.kind === 'asset') continue;
+      let take = Math.min(tf.amount * index, Math.max(0, state.balance[from.id]));
+      if (to.kind === 'debt') take = Math.min(take, Math.max(0, -state.balance[to.id]));
+      if (take <= 0) continue;
+      const bal = state.balance[from.id];
+      state.balance[from.id] -= take;
+      withdrawals[from.id] = (withdrawals[from.id] ?? 0) + take;
+      if (from.kind === 'taxable') {
+        const frac = bal > 0 ? Math.min(1, state.basis[from.id] / bal) : 1;
+        xGains += take * (1 - frac); state.basis[from.id] -= take * frac;
+      } else if (from.kind === 'traditional') {
+        if (to.kind === 'roth') conversion += take;
+        else { xTrad += take; if (ages[from.ownerId] < 59.5) xEarly += take; }
+      } else if (from.kind === 'hsa') hsaDrawn += take;
+      state.balance[to.id] += take;
+      if (to.kind === 'taxable') state.basis[to.id] += take;
+      if (to.kind !== 'debt') contributions[to.id] = (contributions[to.id] ?? 0) + take;
+      transferred += take;
+    }
+
     // Taxes and withdrawals, solved together.
-    const inflows = wages - deferredPreTax + selfEmp + otherOrdinary + untaxedIncome + ssTotal + rmd;
+    const inflows = wages - deferredPreTax + selfEmp + otherOrdinary + untaxedIncome + ssTotal + rmd + paidOut;
     // Harvest gains in the 0% band: sell and rebuy taxable holdings, raising the basis, up to the band's top.
     if (s.harvestZeroGains) {
       const t0 = computeTaxNow(0, 0, 0);
@@ -585,6 +674,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
               g += take * (1 - frac); state.basis[x.id] -= take * frac;
             }
             if (x.kind === 'traditional') { traditional += take; if (ages[x.ownerId] < 59.5) e += take; }
+            if (x.kind === 'hsa') hsaDrawn += take;
             amount += take;
           }
           left -= want;
@@ -612,6 +702,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
             traditional += take;
             if (ages[x.ownerId] < 59.5) e += take;
           }
+          if (step === 'hsa') hsaDrawn += take;
           left -= take;
           amount += take;
         }
@@ -652,7 +743,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         const gain = Math.max(0, state.balance[x.id]) * r;
         state.balance[x.id] += gain;
         investmentReturn += gain;
-        if (x.kind === 'taxable') {
+        if (paidOutBy[x.id]) state.balance[x.id] -= paidOutBy[x.id];
+        else if (x.kind === 'taxable') {
           const w = x.allocation, tot = w.stocks + w.bonds + w.cash || 1;
           state.basis[x.id] += Math.max(0, state.balance[x.id] - gain) * (w.stocks / tot) * a.dividendYield;
         }
@@ -679,7 +771,15 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     const netWorth = Object.values(balances).reduce((t, v) => t + v, 0);
     const liquidNW = liquid(state, accounts);
     const realExpenses = totalExpenses / index;
-    if (fiYear === null && liquidNW / index * s.safeWithdrawalRate >= realExpenses && realExpenses > 0) fiYear = y;
+    // Real assets and the debts they secure.
+    let realNet = 0;
+    for (const x of accounts) {
+      if (x.kind === 'asset') realNet += balances[x.id];
+      else if (x.kind === 'debt' && x.securedBy && byId.get(x.securedBy)?.kind === 'asset') realNet += balances[x.id];
+    }
+    const fiBase = s.fiCountsRealAssets ? liquidNW + realNet : liquidNW;
+    if (fiYear === null && fiBase / index * s.safeWithdrawalRate >= realExpenses && realExpenses > 0) fiYear = y;
+    const nwMilestone = s.fiCountsRealAssets === false ? netWorth - realNet : netWorth;
     const milestonesReached: string[] = [];
     for (const m of plan.milestones) {
       if (reached.has(m.id)) continue;
@@ -687,17 +787,17 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         (c.kind === 'year' && c.year !== undefined && y >= c.year) ||
         (c.kind === 'age' && c.personId !== undefined && c.age !== undefined && ages[c.personId] >= c.age) ||
         (c.kind === 'financialIndependence' && fiYear !== null) ||
-        (c.kind === 'netWorth' && c.netWorth !== undefined && netWorth / index >= c.netWorth);
+        (c.kind === 'netWorth' && c.netWorth !== undefined && nwMilestone / index >= c.netWorth);
       const hit =
         (m.kind === 'all' && (m.conditions ?? []).length > 0 && (m.conditions ?? []).every(holds)) ||
         (m.kind === 'year' && y === m.year) ||
         (m.kind === 'age' && m.personId !== undefined && ages[m.personId] === m.age) ||
         (m.kind === 'financialIndependence' && fiYear === y) ||
-        (m.kind === 'netWorth' && m.netWorth !== undefined && netWorth / index >= m.netWorth);
+        (m.kind === 'netWorth' && m.netWorth !== undefined && nwMilestone / index >= m.netWorth);
       if (hit) { reached.add(m.id); milestonesReached.push(m.id); for (const pid of m.retires ?? []) retiredBy.add(pid); }
     }
 
-    const gross = wages + selfEmp + otherOrdinary + untaxedIncome + ssTotal;
+    const gross = wages + selfEmp + otherOrdinary + untaxedIncome + ssTotal + paidOut;
     years.push({
       year: y,
       ages,
@@ -711,8 +811,11 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       contributions,
       employerMatch: match,
       withdrawals,
-      rmd,
+      rmd: rmdAll,
       rothConversion: conversion,
+      qcd,
+      transfers: transferred,
+      financialNetWorth: netWorth - realNet,
       taxes: {
         federal: tax.federal,
         state: tax.state,
@@ -720,6 +823,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         capitalGains: tax.capitalGains,
         niit: tax.niit,
         penalty: tax.penalty,
+        qbi: tax.qbi,
         medicare,
         aca,
         credits: tax.credits,

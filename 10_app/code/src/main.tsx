@@ -15,6 +15,7 @@ function Gate() {
   const [busy, setBusy] = useState(false);
   const enter = async () => {
     await useStore.persist.rehydrate();
+    useStore.getState().openMain();
     setState('open');
   };
   useEffect(() => {

@@ -179,3 +179,15 @@ button.icon { padding: 6px; }
 .pill svg { flex: none; }
 .card.tip { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: linear-gradient(135deg, var(--accent-soft), var(--panel)); }
 .card.tip > div:nth-child(2) { flex: 1; min-width: 220px; }
+
+/* The plan report prints alone: no sidebar, top bar, or buttons. */
+.report h1 { margin: 0 0 4px; font-size: 26px; }
+.report table.kv th { text-align: left; font-weight: 600; width: 40%; }
+.printonly { display: none; }
+@media print {
+  nav, .topbar, .noprint, .tip { display: none !important; }
+  .printonly { display: block; }
+  .app, main { display: block !important; padding: 0 !important; margin: 0 !important; }
+  body { background: #fff !important; }
+  .card { box-shadow: none !important; border: 1px solid #ddd; break-inside: avoid; }
+}

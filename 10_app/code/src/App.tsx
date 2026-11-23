@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage, TaxHealthPage, EventsPage } from './pages/Editors';
 import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
+import { ReportPage } from './pages/Report';
 import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
 import { useActivePlan, useStore } from './store';
 import { Card, Check, Select } from './ui';
@@ -64,6 +65,7 @@ const PAGES = {
   compare: ['Compare plans', ComparePage],
   progress: ['Progress', ProgressPage],
   table: ['Year table', TablePage],
+  report: ['Plan report', ReportPage],
   settings: ['Settings and data', SettingsPage],
 } as const;
 type PageKey = keyof typeof PAGES;
@@ -88,7 +90,7 @@ function pageFromUrl(): PageKey {
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
   ['Your plan', ['people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
-  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table']],
+  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table', 'report']],
   ['Tracking', ['progress', 'settings']],
 ];
 
@@ -172,13 +174,16 @@ export default function App() {
 function PlanMenu() {
   const plans = useStore((s) => s.plans);
   const plan = useActivePlan();
-  const { setActive, addPlan, duplicatePlan, deletePlan } = useStore.getState();
+  const mainId = useStore((s) => s.settings.mainPlanId);
+  const { setActive, addPlan, duplicatePlan, deletePlan, setMain } = useStore.getState();
   return (
     <div className="planmenu">
       <select value={plan.id} onChange={(e) => setActive(e.target.value)}>
-        {plans.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        {plans.map((p) => <option key={p.id} value={p.id}>{p.id === mainId ? '★ ' : ''}{p.name}</option>)}
       </select>
       <div className="row">
+        <button className="ghost" disabled={plan.id === mainId} title="The plan Horizon opens on and compares others against"
+          onClick={() => setMain(plan.id)}>{plan.id === mainId ? '★ Main' : '☆ Main'}</button>
         <button className="ghost" onClick={() => addPlan()}>New</button>
         <button className="ghost" onClick={() => duplicatePlan(plan.id)}>Copy</button>
         <button className="ghost danger" onClick={() => { if (confirm(`Delete "${plan.name}"?`)) deletePlan(plan.id); }}>Delete</button>

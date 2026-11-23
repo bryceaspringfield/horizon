@@ -20,6 +20,10 @@ export interface Settings {
   mcTrials: number;
   mcMethod: 'normal' | 'historicalBlocks' | 'backtest';
   dismissedLockTip?: boolean;
+  /** The plan the app opens on and other plans compare against. */
+  mainPlanId?: string;
+  /** Net worth charts count real assets (a home net of its mortgage). */
+  chartRealAssets?: boolean;
 }
 
 interface AppState {
@@ -37,6 +41,8 @@ interface AppState {
   addSnapshot: (s: Snapshot) => void;
   deleteSnapshot: (id: string) => void;
   setSettings: (s: Partial<Settings>) => void;
+  setMain: (id: string) => void;
+  openMain: () => void;
   importAll: (data: Pick<AppState, 'plans' | 'snapshots' | 'settings'>) => void;
 }
 
@@ -51,14 +57,21 @@ export const useStore = create<AppState>()(
       snapshots: [],
       settings: { realDollars: true, theme: 'light', mcTrials: 1000, mcMethod: 'normal' },
       update: (fn) =>
-        set((st) => ({
-          plans: st.plans.map((p) => {
+        set((st) => {
+          let plans = st.plans.map((p) => {
             if (p.id !== st.activeId) return p;
             const next = structuredClone(p);
             fn(next);
             return next;
-          }),
-        })),
+          });
+          // Plans following the main plan take its people, first year, and accounts after each edit of it.
+          const main = plans.find((p) => p.id === st.settings.mainPlanId);
+          if (main && main.id === st.activeId) {
+            plans = plans.map((p) => (p.followsMain && p.id !== main.id
+              ? { ...p, people: structuredClone(main.people), startYear: main.startYear, accounts: structuredClone(main.accounts) } : p));
+          }
+          return { plans };
+        }),
       setActive: (id) => set({ activeId: id }),
       addPlan: (p) => {
         const plan = p ?? { ...examplePlan(), name: 'New plan' };
@@ -80,6 +93,8 @@ export const useStore = create<AppState>()(
       addSnapshot: (s) => set((st) => ({ snapshots: [...st.snapshots, s].sort((a, b) => a.date.localeCompare(b.date)) })),
       deleteSnapshot: (id) => set((st) => ({ snapshots: st.snapshots.filter((s) => s.id !== id) })),
       setSettings: (s) => set((st) => ({ settings: { ...st.settings, ...s } })),
+      setMain: (id) => set((st) => ({ settings: { ...st.settings, mainPlanId: id } })),
+      openMain: () => set((st) => (st.plans.some((p) => p.id === st.settings.mainPlanId) ? { activeId: st.settings.mainPlanId! } : {})),
       importAll: (data) => set({ plans: data.plans.map(upgradePlan), snapshots: data.snapshots ?? [], settings: data.settings ?? get().settings, activeId: data.plans[0].id }),
     }),
     // The state is read only after the login screen (main.tsx) unlocks a vault, or at once when there is none.
