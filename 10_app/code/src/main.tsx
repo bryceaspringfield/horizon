@@ -20,6 +20,8 @@ function Gate() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [agree, setAgree] = useState(false);
+  // a new account starts empty unless its owner chooses to bring the plans saved on this device
+  const [bring, setBring] = useState(false);
   const [terms, setTerms] = useState(false);
   // Where a new user's plans are saved: Horizon's server (an account) or this device alone.
   const [where, setWhere] = useState<'server' | 'device'>('server');
@@ -70,7 +72,7 @@ function Gate() {
     if (mode === 'signup' && pw.length < 10) return setError('Use a password of at least 10 characters.');
     if (mode === 'signup' && pw !== pw2) return setError('The passwords differ.');
     setBusy(true);
-    const err = mode === 'signin' ? await signIn(user, pw, remember) : await signUp(user, pw, remember, localStorage.getItem(PLAIN_KEY));
+    const err = mode === 'signin' ? await signIn(user, pw, remember) : await signUp(user, pw, remember, bring ? localStorage.getItem(PLAIN_KEY) : null);
     setBusy(false);
     if (err) return setError(err);
     if (mode === 'signup') localStorage.setItem(TERMS_KEY, TERMS_DATE);
@@ -107,6 +109,7 @@ function Gate() {
         <label className="field"><span>{onDevice ? 'Password (optional)' : 'Password'}</span><div className="input"><input name="password" type="password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} value={pw} onChange={(e) => setPw(e.target.value)} /></div></label>
         {mode === 'signup' && <label className="field"><span>Password again</span><div className="input"><input name="password2" type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></div></label>}
         {!onDevice && <label className="check"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />Stay signed in on this device</label>}
+        {mode === 'signup' && !onDevice && !!localStorage.getItem(PLAIN_KEY) && <label className="check"><input type="checkbox" name="bring" checked={bring} onChange={(e) => setBring(e.target.checked)} /><span>Bring the plans saved on this device (otherwise the account starts empty)</span></label>}
         {mode === 'signup' && <label className="check"><input type="checkbox" name="agree" checked={agree} onChange={(e) => setAgree(e.target.checked)} /><span>I have read and accept the {termsLink}. Horizon gives no financial, investment, tax, or legal advice.</span></label>}
         {error && <p className="error">{error}</p>}
         <button type="submit" disabled={busy || (onDevice ? !agree : !user || !pw || (mode === 'signup' && !agree))}>{busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : onDevice ? 'Start on this device' : 'Create account'}</button>

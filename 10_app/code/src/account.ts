@@ -85,7 +85,7 @@ async function begin(username: string, token: string, version: number, enc: Uint
 
 const clean = (u: string) => u.trim().toLowerCase();
 
-/** Creates an account; the plans on this device become its first copy. */
+/** Creates an account; it starts empty, or with the plans on this device when its owner chooses to bring them. */
 export async function signUp(username: string, password: string, remember: boolean, initial: string | null): Promise<string | null> {
   const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
   const k = await keys(password, salt);
