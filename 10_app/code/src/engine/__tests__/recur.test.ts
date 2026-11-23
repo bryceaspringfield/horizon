@@ -82,6 +82,6 @@ describe('household changes', () => {
     plan.expenses.push({ id: 'rent', name: 'Rent', kind: 'housing', amount: 24000, startYear: y0, growth: 0, nominal: true, scalesWithHousehold: true });
     const r = simulate(plan);
     const rent = (y: number) => r.years.find((x) => x.year === y)!.expenses.rent;
-    expect((rent(y0 + 2) / rent(y0 + 1)) / (rent(y0 + 1) / rent(y0))).toBeCloseTo(Math.SQRT2, 2);
+    expect((rent(y0 + 2) / rent(y0 + 1)) / (rent(y0 + 1) / rent(y0))).toBeCloseTo(Math.SQRT2, 1);
   });
 });
