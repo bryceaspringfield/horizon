@@ -42,6 +42,8 @@ export interface Allocation {
 
 export interface Account {
   id: string;
+  /** Taxable accounts: the share of bond income from in-state municipal bonds, free of income tax. */
+  municipalShare?: number;
   name: string;
   kind: AccountKind;
   ownerId: string;

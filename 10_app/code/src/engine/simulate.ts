@@ -748,7 +748,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       const div = bal * (w.stocks / tot) * a.dividendYield, int = bal * ((w.bonds + w.cash) / tot) * (path.bonds[i] * 0.8);
       const q = Math.max(0, Math.min(1, a.qualifiedDividendShare ?? 1));
       qualified += div * q;
-      interest += int + div * (1 - q);
+      interest += int * (1 - Math.max(0, Math.min(1, x.municipalShare ?? 0))) + div * (1 - q);
       if (x.foreignWithholding) { fo.passiveIncome += div; fo.taxPassive += div * x.foreignWithholding; }
       // Paid out: the income reaches cash this year and leaves the account's growth.
       if (x.dividendsPaidOut) { paidOutBy[x.id] = div + int; paidOut += div + int; income['div_' + x.id] = div + int; }

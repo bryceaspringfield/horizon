@@ -13,3 +13,13 @@ describe('expense recurrence', () => {
     expect(at(plan.startYear + 9)).toBeGreaterThan(0);
   });
 });
+
+describe('municipal bonds', () => {
+  it('lowers the tax on a taxable account of bonds', () => {
+    const plan = examplePlan();
+    plan.accounts.push({ id: 'muni', name: 'Bonds', kind: 'taxable', ownerId: plan.people[0].id, balance: 2000000, costBasis: 2000000, allocation: { stocks: 0, bonds: 1, cash: 0 } } as any);
+    const base = simulate(plan).years[0].taxes.total;
+    plan.accounts.find((x) => x.id === 'muni')!.municipalShare = 1;
+    expect(simulate(plan).years[0].taxes.total).toBeLessThan(base);
+  });
+});

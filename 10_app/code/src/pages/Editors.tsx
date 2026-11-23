@@ -360,6 +360,7 @@ export function AccountsPage() {
                   <Check label="Return tied to inflation (Series I bonds, TIPS)" value={typeof a.inflationLinked === 'number'} onChange={(v) => set((x) => { x.inflationLinked = v ? 0.01 : undefined; })} />
                   {typeof a.inflationLinked === 'number' && <Num label="Fixed rate above inflation" percent value={a.inflationLinked} onChange={(v) => set((x) => { x.inflationLinked = v; })} />}
                 </>}
+                {a.kind === 'taxable' && <Num label="Municipal share of bond income" percent value={a.municipalShare ?? 0} onChange={(v) => set((x) => { x.municipalShare = Math.max(0, Math.min(1, v)) || undefined; })} />}
                 {a.kind === 'taxable' && <Check label="Pay dividends and interest out to cash (not reinvested)" value={!!a.dividendsPaidOut} onChange={(v) => set((x) => { x.dividendsPaidOut = v; })} />}
                 {a.kind === 'taxable' && <Num label="Foreign tax withheld on dividends" percent value={a.foreignWithholding ?? 0} hint="The share of this account's dividends a foreign country withholds; it counts toward the US foreign tax credit." onChange={(v) => set((x) => { x.foreignWithholding = v || undefined; })} />}
                 {a.kind === 'asset' && <>

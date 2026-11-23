@@ -275,4 +275,5 @@ export const HELP: Record<string, string> = {
   "Count taxes as spending": "Adds income, payroll, and property taxes to spending in the spending charts and totals.",
   "Spender": "Who spends this money: one person, or the household as a whole.",
   "Repeats every (years)": "How often the expense comes back, counted from its start: 1 for every year, 8 for a car bought every 8 years.",
+  "Municipal share of bond income": "The share of this account's bond interest from in-state municipal bonds, which is free of federal and state income tax.",
 };
