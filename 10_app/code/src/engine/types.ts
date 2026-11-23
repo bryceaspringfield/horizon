@@ -44,6 +44,8 @@ export interface Account {
   id: string;
   /** Taxable accounts: the share of bond income from in-state municipal bonds, free of income tax. */
   municipalShare?: number;
+  /** Debts: a line of credit (a HELOC) with this limit, drawn on when the other accounts run dry. */
+  creditLimit?: number;
   name: string;
   kind: AccountKind;
   ownerId: string;

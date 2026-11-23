@@ -287,4 +287,5 @@ export const HELP: Record<string, string> = {
   "CAPE ratio today": "The S&P 500's cyclically adjusted price-to-earnings ratio now (Shiller's CAPE); the plan moves it with real stock returns.",
   "Base withdrawal rate": "The part of the CAPE rule's withdrawal rate paid whatever stocks cost: 1.75% in Early Retirement Now's version.",
   "Weight on the earnings yield": "How much of the earnings yield (1 over CAPE) adds to the withdrawal rate: 0.5 in Early Retirement Now's version.",
+  "Credit limit (a HELOC or credit line)": "The most this line of credit lends, in today's dollars. When the other accounts run dry, the plan borrows here before falling short; the loan then accrues interest and is paid down by the payment.",
 };

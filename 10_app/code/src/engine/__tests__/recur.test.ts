@@ -36,3 +36,15 @@ describe('annuity purchase', () => {
     expect(paid(y0 + 3)).toBeCloseTo(7000, -1);
   });
 });
+
+describe('line of credit', () => {
+  it('covers a shortfall up to its limit', () => {
+    const plan = examplePlan();
+    const y0 = plan.startYear;
+    plan.expenses.push({ id: 'big', name: 'Big bill', kind: 'oneTime', amount: 1e8, startYear: y0 + 1, growth: 0 });
+    const without = simulate(plan).years.find((x) => x.year === y0 + 1)!.shortfall;
+    plan.accounts.push({ id: 'heloc', name: 'HELOC', kind: 'debt', ownerId: plan.people[0].id, balance: 0, allocation: { stocks: 0, bonds: 0, cash: 0 }, interestRate: 0.08, payment: 0, creditLimit: 100000 } as any);
+    const r = simulate(plan).years.find((x) => x.year === y0 + 1)!;
+    expect(without - r.shortfall).toBeGreaterThan(90000);
+  });
+});

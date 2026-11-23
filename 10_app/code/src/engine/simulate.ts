@@ -885,6 +885,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     }
     let fromTrad = 0, gains = 0, early = 0, withdrawn = 0, tax = computeTaxNow(0, 0, 0);
     let shortfall = 0;
+    const credit: Record<string, number> = {};
     const outflows = totalExpenses + (voluntary - (preTax - deferredPreTax)) + (voluntary > 0 ? 0 : 0);
     // Voluntary pre-tax contributions (IRA, HSA) and Roth IRA come out of cash flow like an expense.
     const cashOut = totalExpenses + voluntary;
@@ -892,7 +893,18 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       const deficit = cashOut + tax.total - inflows - withdrawn;
       if (deficit <= 0.5) break;
       const got = withdraw(deficit);
-      if (got.amount <= 0.01) { shortfall = deficit; break; }
+      if (got.amount <= 0.01) {
+        // A line of credit (HELOC) covers what the accounts cannot, up to its limit; the loan grows and is repaid like a debt.
+        let left = deficit;
+        for (const d of accounts) {
+          if (d.kind !== 'debt' || !d.creditLimit || left <= 0.5) continue;
+          const room = Math.max(0, d.creditLimit * index - Math.max(0, -state.balance[d.id]));
+          const draw = Math.min(room, left);
+          if (draw > 0) { state.balance[d.id] -= draw; left -= draw; withdrawn += draw; credit[d.id] = (credit[d.id] ?? 0) + draw; }
+        }
+        if (left > 0.5) shortfall = left;
+        break;
+      }
       withdrawn += got.amount;
       fromTrad += got.traditional;
       gains += got.gains;

@@ -379,6 +379,7 @@ export function AccountsPage() {
                   <Check label="Paid in full every month (a card)" value={!!a.paidInFull} onChange={(v) => set((x) => { x.paidInFull = v || undefined; if (v) { x.balance = 0; x.interestRate = undefined; x.payment = undefined; } })} />
                   {!a.paidInFull && <>
                   <Num label="Interest rate" percent value={a.interestRate ?? 0} onChange={(v) => set((x) => { x.interestRate = v; })} />
+                  <Num label="Credit limit (a HELOC or credit line)" value={a.creditLimit ?? 0} onChange={(v) => set((x) => { x.creditLimit = v > 0 ? v : undefined; })} />
                   <Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
                   <Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
                   <Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
