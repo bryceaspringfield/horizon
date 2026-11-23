@@ -247,4 +247,10 @@ export const HELP: Record<string, string> = {
   "Plan years": "The plan years a band covers, counted from the first year (1).",
   "Paid in full every month (a card)": "Check this for a credit card you pay off in full each month. The card then never carries a balance or charges interest; its spending is counted in your expenses.",
   "Choose Roth or traditional each year": "Each year, put contributions on the Roth side while your tax rate that year is at or below the rate expected in retirement, and on the traditional (pre-tax) side once it is higher. The plan estimates the retirement rate from a first projection. Applies to 401(k) and IRA contributions.",
+  "Birth date": "The person's date of birth. It sets their age in each year of the plan and their expected age at death.",
+  "Sex": "Used with the life tables for the expected age at death; women live longer on average.",
+  "Race or Hispanic origin": "Used to adjust the expected age at death by the CDC's 2022 life tables for each group. Not given uses the average of all Americans.",
+  "Health": "Conditions which shorten life on average; each one lowers the expected age at death by the years large studies found (hover a condition for its source).",
+  "Set my own plan-to age": "Enter the plan-to age yourself in place of the estimate from the life tables.",
+  "Expected death": "The average date of death for a person with these details, from the SSA's 2022 period life table, the CDC's life tables by race and Hispanic origin, and the health conditions checked. The plan runs to this age.",
 };

@@ -10,7 +10,7 @@ import { Card, Num, Stat, money, PALETTE } from '../ui';
 
 const KIND: Record<ExpenseKind, string> = {
   living: 'Living', housing: 'Housing', healthcare: 'Healthcare', education: 'Education', travel: 'Travel', other: 'Other',
-  oneTime: 'One-time', insurance: 'Insurance', longTermCare: 'Long-term care', childcare: 'Childcare',
+  oneTime: 'One-time', insurance: 'Insurance', longTermCare: 'Long-term care', childcare: 'Childcare', transportation: 'Transportation', pets: 'Pets', homeProjects: 'Home projects',
 } as Record<ExpenseKind, string>;
 
 export function BudgetPage() {

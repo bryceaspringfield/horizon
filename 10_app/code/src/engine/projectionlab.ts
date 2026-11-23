@@ -6,7 +6,8 @@
 // current accounts, assets, and debts (ProjectionLab's "Current Finances").
 import { examplePlan, uid } from './defaults';
 import { estimatePia } from './retirement';
-import type { Account, AccountKind, Expense, ExpenseKind, FilingStatus, Income, IncomeKind, Milestone, Plan } from './types';
+import type { Account, AccountKind, Expense, ExpenseKind, FilingStatus, Income, IncomeKind, Milestone, Person, Plan } from './types';
+import type { DateRef } from './dates';
 
 type Obj = Record<string, unknown>;
 export interface ImportReport {
@@ -36,6 +37,12 @@ function str(o: Obj, ...keys: string[]): string | undefined {
 /** A rate written as 7 or as 0.07. */
 const rate = (n: number | undefined): number | undefined => (n === undefined ? undefined : Math.abs(n) > 1 ? Math.round(n * 1e6) / 1e8 : n);
 const slug = (s: string | undefined) => (s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+/** A start or end given as a full date (YYYY-MM-DD), kept as an exact point (engine/dates.ts). */
+const exactDate = (v: unknown): DateRef | undefined => {
+  const w = obj(v), d = typeof v === 'string' ? v : typeof w.value === 'string' ? w.value : '';
+  return /^\d{4}-\d{2}-\d{2}$/.test(d) && !d.endsWith('-01-01') ? { kind: 'date', date: d } : undefined;
+};
 
 /** Whether a file looks like a ProjectionLab export. */
 export function isProjectionLabExport(data: unknown): boolean {
@@ -206,7 +213,7 @@ export function importProjectionLab(data: unknown, year = new Date().getFullYear
       const g = growthOf(e);
       const start = when(e.start, e) ?? year;
       const end = when(e.end, e);
-      incomes.push({ id: 'i_' + uid(), name, kind, ownerId: owner(e), amount: y.amount, growth: g.growth, startYear: start,
+      incomes.push({ id: 'i_' + uid(), name, kind, ownerId: owner(e), amount: y.amount, growth: g.growth, startYear: start, ...(exactDate(e.start) ? { start: exactDate(e.start) } : {}), ...(exactDate(e.end) ? { end: exactDate(e.end) } : {}),
         ...(y.once ? { endYear: start } : end !== undefined ? { endYear: end - 1 } : {}),
         inflationAdjusted: !g.nominal, ...(g.nominal ? { nominal: true } : {}), taxable: e.taxable !== false && !/gift|inherit/.test(slug(str(e, 'type')) + slug(name)) });
       count('incomes');
@@ -221,7 +228,7 @@ export function importProjectionLab(data: unknown, year = new Date().getFullYear
       const g = growthOf(e);
       const start = when(e.start, e) ?? year;
       const end = when(e.end, e);
-      expenses.push({ id: 'e_' + uid(), name, kind: y.once ? 'oneTime' : kindOf(EXPENSE_KINDS, 'other', str(e, 'type'), name), amount: y.amount, startYear: start,
+      expenses.push({ id: 'e_' + uid(), name, kind: y.once ? 'oneTime' : kindOf(EXPENSE_KINDS, 'other', str(e, 'type'), name), amount: y.amount, startYear: start, ...(exactDate(e.start) ? { start: exactDate(e.start) } : {}), ...(exactDate(e.end) ? { end: exactDate(e.end) } : {}),
         ...(end !== undefined && !y.once ? { endYear: end - 1 } : {}), growth: g.nominal ? 0 : g.growth, ...(g.nominal ? { nominal: true } : {}) });
       count('expenses');
     }
@@ -279,4 +286,68 @@ export function importProjectionLab(data: unknown, year = new Date().getFullYear
   for (const key of ['progress', 'netWorthHistory', 'history']) if (root[key] !== undefined) { notes.push('The net worth history (Progress) was left out; Horizon keeps its own snapshots on the Progress page.'); break; }
   notes.push('ProjectionLab\'s tax settings, withdrawal strategy, Roth conversions, and Monte Carlo settings were left out; Horizon\'s defaults apply. Review the Strategy and Assumptions pages.');
   return { plans, imported: [...counts].map(([label, c]) => ({ label, count: c })), notes: [...new Set(notes)] };
+}
+
+// ---- Export to ProjectionLab (Bryce, 2026-11-23: data moves both ways) ----
+// A plan in ProjectionLab's export layout (meta, today, plans, progress), the inverse of importProjectionLab: people and
+// accounts go to "today", incomes, expenses, contributions, milestones, and rates to the plan; points in time are dates,
+// milestones, or ages; amounts are yearly in today's dollars.
+
+const PL_ACCOUNT: Partial<Record<AccountKind, string>> = { taxable: 'taxable', traditional: '401k', roth: 'roth-ira', hsa: 'hsa', college529: '529' };
+const PL_INCOME: Partial<Record<IncomeKind, string>> = { salary: 'salary', selfEmployment: 'self-employment', rental: 'rental-income', pension: 'pension', annuity: 'annuity', windfall: 'windfall', rsu: 'rsu', bonus: 'bonus' };
+const PL_EXPENSE: Partial<Record<ExpenseKind, string>> = { living: 'living-expenses', housing: 'rent', healthcare: 'healthcare', education: 'education', travel: 'travel', childcare: 'childcare', insurance: 'insurance', transportation: 'transportation', pets: 'pets', homeProjects: 'home-projects', oneTime: 'one-time' };
+const PL_FILING: Record<string, string> = { single: 'single', mfj: 'married-filing-jointly', hoh: 'head-of-household' };
+
+export function exportProjectionLab(plans: Plan[], snapshots: { date: string; netWorth: number }[] = []): Obj {
+  const main = plans[0];
+  const who = (id: string) => (id === main.people[0]?.id ? 'me' : id === main.people[1]?.id ? 'spouse' : 'joint');
+  const age = (p: Person) => main.startYear - p.birthYear;
+  const point = (r: DateRef | undefined, y: number | undefined): Obj | undefined => {
+    if (r?.kind === 'date') return { type: 'date', value: r.date };
+    if (r?.kind === 'milestone') return { type: 'milestone', value: r.milestoneId };
+    if (r?.kind === 'age') return { type: 'age', value: r.age };
+    if (r?.kind === 'retirement') { const p = main.people.find((q) => q.id === r.personId); return p ? { type: 'age', value: main.strategy.retirementAge[p.id] ?? 65 } : undefined; }
+    if (y === undefined) return undefined;
+    return y <= main.startYear ? { type: 'keyword', value: 'now' } : { type: 'date', value: y + '-01-01' };
+  };
+  const today = {
+    partnerStatus: main.people.length > 1 ? 'couple' : 'single',
+    yourName: main.people[0]?.name || 'You', age: main.people[0] ? age(main.people[0]) : 30,
+    ...(main.people[1] ? { spouseName: main.people[1].name || 'Partner', spouseAge: age(main.people[1]) } : {}),
+    location: { country: 'US', state: (main.assumptions.state || '').toLowerCase() },
+    savingsAccounts: main.accounts.filter((a) => a.kind === 'cash').map((a) => ({ id: a.id, name: a.name, balance: a.balance, owner: who(a.ownerId) })),
+    investmentAccounts: main.accounts.filter((a) => PL_ACCOUNT[a.kind]).map((a) => ({ id: a.id, name: a.name, type: PL_ACCOUNT[a.kind], balance: a.balance,
+      ...(a.kind === 'taxable' && a.costBasis !== undefined ? { costBasis: a.costBasis } : {}), owner: who(a.ownerId) })),
+    assets: main.accounts.filter((a) => a.kind === 'asset').map((a) => {
+      const loan = main.accounts.find((d) => d.kind === 'debt' && d.securedBy === a.id);
+      return { id: a.id, name: a.name, type: a.realEstate ? 'real-estate' : 'other', amount: a.balance, owner: who(a.ownerId),
+        ...(loan ? { balance: Math.abs(loan.balance), interestRate: +((loan.interestRate ?? 0) * 100).toFixed(3), monthlyPayment: Math.round((loan.payment ?? 0) / 12) } : {}) };
+    }),
+    debts: main.accounts.filter((a) => a.kind === 'debt' && !a.securedBy && !a.paidInFull).map((a) => ({ id: a.id, name: a.name, type: /student/i.test(a.name) ? 'student-loans' : /card/i.test(a.name) ? 'credit-card' : 'other',
+      amount: Math.abs(a.balance), interestRate: +((a.interestRate ?? 0) * 100).toFixed(3), monthlyPayment: Math.round((a.payment ?? 0) / 12), owner: who(a.ownerId) })),
+  };
+  const planOf = (p: Plan): Obj => ({
+    id: p.id, name: p.name,
+    milestones: p.milestones.map((m) => ({ id: m.id, name: m.name, criteria: [
+      m.kind === 'age' ? { type: 'age', value: m.age } : m.kind === 'year' ? { type: 'year', value: m.year } : m.kind === 'netWorth' ? { type: 'netWorth', value: m.netWorth }
+        : m.kind === 'financialIndependence' ? { type: 'financial-independence' } : { type: m.kind },
+    ] })),
+    income: { events: p.incomes.map((i) => ({ id: i.id, name: i.name, type: PL_INCOME[i.kind] ?? 'other', owner: who(i.ownerId), amount: Math.round(i.amount), frequency: ['windfall', 'accountBonus', 'settlement'].includes(i.kind) ? 'once' : 'yearly',
+      start: point(i.start, i.startYear), ...(point(i.end, i.endYear !== undefined ? i.endYear + 1 : undefined) ? { end: point(i.end, i.endYear !== undefined ? i.endYear + 1 : undefined) } : {}),
+      yearlyChange: i.inflationAdjusted ? (i.growth ? { type: 'match-inflation-plus', value: +(i.growth * 100).toFixed(3) } : { type: 'match-inflation' }) : { type: 'none' } })) },
+    expenses: { events: p.expenses.map((e) => ({ id: e.id, name: e.name, type: PL_EXPENSE[e.kind] ?? 'other', amount: Math.round(e.amount), frequency: e.kind === 'oneTime' ? 'once' : 'yearly',
+      start: point(e.start, e.startYear), ...(point(e.end, e.endYear !== undefined ? e.endYear + 1 : undefined) ? { end: point(e.end, e.endYear !== undefined ? e.endYear + 1 : undefined) } : {}) })) },
+    priorities: { events: [
+      ...p.incomes.filter((i) => i.kind === 'salary' && (i.contributionRate || i.contributionAmount)).map((i) => ({ id: 'c_' + i.id, name: i.name + ' 401(k)', type: (i.contributionRothShare ?? (i.contributionRoth ? 1 : 0)) >= 0.5 ? 'roth-401k' : '401k', owner: who(i.ownerId),
+        ...(i.contributionAmount ? { contribution: i.contributionAmount, contributionType: 'today$' } : { contribution: +((i.contributionRate ?? 0) * 100).toFixed(3), contributionType: '%' }),
+        employerMatch: +((i.employerMatch ?? 0) * 100).toFixed(3), employerMatchLimit: +((i.matchLimit ?? 0) * 100).toFixed(3) })),
+      ...(p.strategy.rothIraContribution ? [{ id: 'c_roth', name: 'Roth IRA', type: 'roth-ira', owner: 'me', contribution: p.strategy.rothIraContribution, contributionType: 'today$' }] : []),
+      ...(p.strategy.hsaContribution ? [{ id: 'c_hsa', name: 'HSA', type: 'hsa', owner: 'me', contribution: p.strategy.hsaContribution, contributionType: 'today$' }] : []),
+    ] },
+    variables: {
+      investmentReturn: +(p.assumptions.returns.stocks * 100).toFixed(3), inflation: +(p.assumptions.inflation * 100).toFixed(3),
+      dividendRate: +(p.assumptions.dividendYield * 100).toFixed(3), filingStatus: PL_FILING[p.assumptions.filingStatus] ?? 'single',
+    },
+  });
+  return { meta: { version: '4.0.0', exportedBy: 'Horizon' }, today, plans: plans.map(planOf), progress: { data: snapshots } };
 }

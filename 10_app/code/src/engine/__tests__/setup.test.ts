@@ -1,3 +1,4 @@
+import { expectedDeathDate } from '../lifespan';
 import { describe, expect, it } from 'vitest';
 import { blankAnswers, planFromAnswers, setupBenefit } from '../setup';
 import { simulate } from '../simulate';
@@ -8,7 +9,7 @@ describe('first-run setup', () => {
     a.you = { ...a.you, name: 'Avery', birthYear: 1996, salary: 90000, contributionRate: 0.1, retirementAge: 62, traditional: 40000, roth: 15000 };
     a.state = 'TX'; a.cash = 12000; a.brokerage = 20000; a.living = 48000; a.rothIra = 3000; a.otherDebt = 18000; a.otherDebtPayment = 350;
     const p = planFromAnswers(a, 2026);
-    expect(p.people).toEqual([{ id: 'p1', name: 'Avery', birthYear: 1996, lifeExpectancy: 92 }]);
+    expect(p.people).toEqual([{ id: 'p1', name: 'Avery', birthYear: 1996, lifeExpectancy: Math.round(expectedDeathDate('1996-07-01', 'unknown', 'all', []).age) }]);
     expect(p.assumptions.state).toBe('TX');
     expect(p.assumptions.filingStatus).toBe('single');
     expect(p.accounts.map((x) => x.kind).sort()).toEqual(['cash', 'debt', 'roth', 'taxable', 'traditional']);
@@ -20,7 +21,7 @@ describe('first-run setup', () => {
     expect(p.socialSecurity[0].pia).toBe(setupBenefit(a.you));
     expect(p.socialSecurity[0].pia).toBeGreaterThan(1500);
     const years = simulate(structuredClone(p)).years;
-    expect(years.length).toBe(92 - 30 + 1);
+    expect(years.length).toBe(p.people[0].lifeExpectancy - 30 + 1);
     expect(years.every((y) => Number.isFinite(y.netWorth))).toBe(true);
     expect(years[0].netWorth).toBeGreaterThan(60000);
   });

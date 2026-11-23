@@ -17,6 +17,7 @@ import { useActivePlan, useDark, useStore, useUndo } from './store';
 import { Card, Check, Select, setAmountsHidden, setShownCurrency } from './ui';
 import { planCurrency } from './engine/currency';
 import { examplePlan } from './engine/defaults';
+import { exportProjectionLab } from './engine/projectionlab';
 import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, moveToDevice, moveToServer, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
 import { install, installed, useInstallOffer } from './install';
 import { hasVault, lock, openExport, removePassword, sealExport, setPassword } from './vault';
@@ -396,6 +397,7 @@ function SettingsPage() {
         <div className="row">
           <button onClick={() => exportAll(true)}>Export encrypted backup</button>
           <button className="ghost" onClick={() => exportAll(false)}>Export unencrypted</button>
+          <button className="ghost" onClick={() => { const { plans, snapshots } = useStore.getState(); const progress = (snapshots as unknown as { date?: string; netWorth?: number }[]).filter((x) => x.date && typeof x.netWorth === 'number').map((x) => ({ date: x.date!, netWorth: x.netWorth! })); download(JSON.stringify(exportProjectionLab(plans, progress), null, 1), `horizon-for-projectionlab-${new Date().toISOString().slice(0, 10)}.json`); }}>Export for ProjectionLab</button>
           <label className="button">Import<input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importAll(e.target.files[0])} /></label>
           <ProjectionLabButton ghost />
           <button className="ghost" onClick={() => { if (confirm('Run the setup again? The plan it builds replaces every plan here. Export a backup first to keep them.')) setSettings({ setupDone: false }); }}>Run the setup again</button>

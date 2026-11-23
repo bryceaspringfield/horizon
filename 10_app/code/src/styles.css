@@ -335,3 +335,40 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent); tex
 .mk.milestone { color: var(--good); border-color: color-mix(in srgb, var(--good) 40%, transparent); }
 .mk.retire { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .mk.short { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+
+/* Your life in months (2026-11-23) */
+.lifewrap { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; align-items: start; }
+.lifegrid { display: grid; gap: 3px; }
+.liferow { display: grid; grid-template-columns: 26px repeat(12, 1fr); gap: 3px; align-items: center; }
+.lifeage { font-size: 11px; color: var(--muted); text-align: right; padding-right: 4px; }
+.lm { display: block; aspect-ratio: 1; border-radius: 3px; background: color-mix(in srgb, var(--accent) 55%, transparent); max-width: 18px; }
+.lm.past { background: color-mix(in srgb, var(--muted) 35%, transparent); }
+.lm.now { background: var(--text); box-shadow: 0 0 0 2px var(--accent); }
+.lm.mark { transform: scale(1.25); box-shadow: 0 0 0 2px var(--panel); }
+.lm.mark.event { background: #0ea5e9; } .lm.mark.milestone { background: var(--good); } .lm.mark.retire { background: #a855f7; }
+.lm.mark.death { background: #94a3b8; } .lm.mark.short { background: var(--bad); }
+.lifelist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lifelist li { display: flex; flex-direction: column; padding-left: 12px; border-left: 3px solid var(--line); }
+.lifelist li small { color: var(--muted); }
+.lifelist li.nowi { border-color: var(--text); } .lifelist li.event { border-color: #0ea5e9; } .lifelist li.milestone { border-color: var(--good); }
+.lifelist li.retire { border-color: #a855f7; } .lifelist li.death { border-color: #94a3b8; } .lifelist li.short { border-color: var(--bad); }
+@media (max-width: 800px) { .lifewrap { grid-template-columns: 1fr; } }
+
+/* Add-expense tiles (2026-11-23) */
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.tile { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: inherit; font: inherit; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.tile:hover { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent); }
+.tile small { color: var(--muted); font-size: 12px; }
+
+/* A year at a glance (2026-11-23) */
+.yearview .yvtop { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+.yearview .yvtop input[type=range] { flex: 1; min-width: 200px; accent-color: var(--accent); }
+.yearview .yvcols { display: grid; grid-template-columns: 1fr 1fr 220px; gap: 28px; }
+.yearview h2 { margin: 4px 0 6px; font-size: 26px; }
+.yearview .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); }
+.yearview .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+.yearview .people { list-style: none; padding: 0; margin: 6px 0 0; display: flex; gap: 14px; flex-wrap: wrap; }
+.yearview .people li { display: flex; flex-direction: column; }
+.yearview .people small { color: var(--muted); }
+.yearview .yvahead { margin-top: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); display: grid; }
+@media (max-width: 900px) { .yearview .yvcols { grid-template-columns: 1fr; } }

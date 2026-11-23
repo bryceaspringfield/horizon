@@ -12,6 +12,12 @@ export interface Person {
   birthYear: number;
   /** Age at death, the plan's horizon for this person. */
   lifeExpectancy: number;
+  /** Details for the expected age at death (engine/lifespan.ts), which fills lifeExpectancy unless ownLife is set. */
+  birthDate?: string;
+  sex?: 'male' | 'female' | 'unknown';
+  race?: 'all' | 'hispanic' | 'aian' | 'asian' | 'black' | 'white';
+  conditions?: string[];
+  ownLife?: boolean;
 }
 
 export type AccountKind =
@@ -210,7 +216,7 @@ export interface SocialSecurity {
   ssdiOnset?: string;
 }
 
-export type ExpenseKind = 'living' | 'housing' | 'healthcare' | 'education' | 'travel' | 'other' | 'oneTime' | 'insurance' | 'longTermCare' | 'childcare';
+export type ExpenseKind = 'living' | 'housing' | 'healthcare' | 'education' | 'travel' | 'other' | 'oneTime' | 'insurance' | 'longTermCare' | 'childcare' | 'transportation' | 'pets' | 'homeProjects';
 
 export interface Expense {
   id: string;

@@ -1,5 +1,6 @@
 // A starting plan for a new user: a couple in their thirties, with every part of the model filled in, to edit.
 import { consensus } from './assumptions';
+import { expectedDeathDate } from './lifespan';
 import type { Plan } from './types';
 
 /** Fills the fields a plan saved by an earlier version lacks, so old plans open. */
@@ -20,7 +21,7 @@ export function emptyPlan(startYear = new Date().getFullYear()): Plan {
   const p = examplePlan(startYear);
   return {
     ...p, name: 'New plan',
-    people: [{ id: 'p1', name: '', birthYear: startYear - 30, lifeExpectancy: 95 }],
+    people: [{ id: 'p1', name: '', birthYear: startYear - 30, lifeExpectancy: Math.round(expectedDeathDate(startYear - 30 + '-07-01', 'unknown', 'all', []).age) }],
     accounts: [], incomes: [], expenses: [], socialSecurity: [], milestones: [], events: [],
     strategy: { ...p.strategy, retirementAge: { p1: 65 }, transfers: [] },
   };

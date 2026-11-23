@@ -2,16 +2,17 @@
 // and the assumptions.
 import { uid } from '../engine/defaults';
 import healthJson from '../data/healthcare.json';
-import type { PayDeduction, LocalTax, Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, LifeEvent, Milestone, Step, Transfer, WithdrawalStep } from '../engine/types';
+import type { Person, PayDeduction, LocalTax, Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, LifeEvent, Milestone, Step, Transfer, WithdrawalStep } from '../engine/types';
 import { estimatePia } from '../engine/retirement';
 import { useProjection } from '../useProjection';
 import statesJson from '../data/states.json';
 import { useActivePlan, useStore } from '../store';
-import { Card, Check, ListEditor, Num, Select, Text, money, pct } from '../ui';
+import { Card, Check, ListEditor, Num, Select, Stat, Text, money, pct } from '../ui';
 import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../engine/currency';
 import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
 import { MARKET, consensus } from '../engine/assumptions';
+import { CONDITIONS, RACES, expectedDeathDate } from '../engine/lifespan';
 import { SPEND_CATEGORIES, categoryOf, type RewardRate, type SpendCategory } from '../engine/cards';
 
 const ACCOUNT_KINDS: [AccountKind, string][] = [
@@ -23,7 +24,7 @@ const INCOME_KINDS: [IncomeKind | 'socialSecurity' | 'ssdi', string][] = [
 ];
 const BONUS_SOURCES: [NonNullable<Income['bonusSource']>, string][] = [['card', 'Credit card'], ['bank', 'Bank'], ['brokerage', 'Brokerage'], ['referral', 'Referral']];
 const EXPENSE_KINDS: [ExpenseKind, string][] = [
-  ['living', 'Living expenses'], ['housing', 'Housing'], ['healthcare', 'Healthcare'], ['education', 'Education'], ['travel', 'Travel'], ['insurance', 'Insurance'], ['longTermCare', 'Long-term care'], ['childcare', 'Childcare (counts toward the care credit)'], ['oneTime', 'One-time'], ['other', 'Other'],
+  ['living', 'Living expenses'], ['housing', 'Housing'], ['healthcare', 'Healthcare'], ['education', 'Education'], ['travel', 'Travel'], ['insurance', 'Insurance'], ['longTermCare', 'Long-term care'], ['childcare', 'Childcare (counts toward the care credit)'], ['transportation', 'Transportation'], ['pets', 'Pets'], ['homeProjects', 'Home projects'], ['oneTime', 'One-time'], ['other', 'Other'],
 ];
 
 /** The currency of one account, income, or expense: the plan's by default. Choosing another adds its exchange rate to
@@ -205,6 +206,15 @@ const DEDUCTION_PRESETS: [string, PayDeduction['treatment']][] = [
   ['Commuter benefits', 'all'], ['Life or disability insurance', 'none'], ['Union dues', 'none'], ['Other', 'none'],
 ];
 
+/** The expected death of a person from their details (engine/lifespan.ts). */
+function lifeOf(q: Person) {
+  return expectedDeathDate(q.birthDate ?? q.birthYear + '-07-01', q.sex ?? 'unknown', q.race ?? 'all', q.conditions ?? []);
+}
+/** Fills a person's plan-to age from the expected age at death, unless they set their own. */
+function lifeFill(q: Person) {
+  if (!q.ownLife) q.lifeExpectancy = Math.round(lifeOf(q).age);
+}
+
 export function PeoplePage() {
   const plan = useActivePlan();
   const update = useUpdate();
@@ -240,14 +250,24 @@ export function PeoplePage() {
           items={plan.people}
           title={(p) => `${p.name}, born ${p.birthYear}`}
           empty="Add yourself first."
-          onAdd={() => update((p) => { p.people.push({ id: 'p' + uid(), name: p.people.length === 1 ? 'Partner' : 'Person ' + (p.people.length + 1), birthYear: p.startYear - 35, lifeExpectancy: 92 }); })}
+          onAdd={() => update((p) => { const q: Person = { id: 'p' + uid(), name: '', birthYear: p.startYear - 30, lifeExpectancy: 0 }; lifeFill(q); p.people.push(q); })}
           onRemove={(i) => update((p) => { if (p.people.length > 1) p.people.splice(i, 1); })}
           render={(person, i) => (
             <>
               <Text label="Name" value={person.name} onChange={(v) => update((p) => { p.people[i].name = v; })} />
-              <Num label="Birth year" value={person.birthYear} onChange={(v) => update((p) => { p.people[i].birthYear = v; })} />
+              <label className="field"><span>Birth date</span><div className="input"><input type="date" value={person.birthDate ?? person.birthYear + '-07-01'} onChange={(e) => { const d = e.target.value; if (d) update((p) => { const q = p.people[i]; q.birthDate = d; q.birthYear = Number(d.slice(0, 4)); lifeFill(q); }); }} /></div></label>
+              <Select label="Sex" value={person.sex ?? 'unknown'} options={[['unknown', 'Not given'], ['female', 'Female'], ['male', 'Male']]} onChange={(v) => update((p) => { p.people[i].sex = v; lifeFill(p.people[i]); })} />
+              <Select label="Race or Hispanic origin" value={person.race ?? 'all'} options={RACES} onChange={(v) => update((p) => { p.people[i].race = v; lifeFill(p.people[i]); })} />
+              <div className="field span"><span>Health</span><div className="pills">
+                {CONDITIONS.map((c) => {
+                  const on = (person.conditions ?? []).includes(c.key);
+                  return <button type="button" key={c.key} title={c.source} className={on ? 'on' : ''} onClick={() => update((p) => { const q = p.people[i]; q.conditions = on ? (q.conditions ?? []).filter((k) => k !== c.key) : [...(q.conditions ?? []), c.key]; lifeFill(q); })}>{c.label}</button>;
+                })}
+              </div></div>
+              <Check label="Set my own plan-to age" value={!!person.ownLife} onChange={(v) => update((p) => { p.people[i].ownLife = v || undefined; lifeFill(p.people[i]); })} />
+              {!person.ownLife && <div className="field"><span>Expected death</span><div className="muted">{lifeOf(person).date} (age {lifeOf(person).age.toFixed(1)})</div></div>}
               {plan.assumptions.planTo && plan.assumptions.planTo.mode !== 'person' && <Check label="Own plan-to age" value={!!person.ownPlanTo} onChange={(v) => update((p) => { p.people[i].ownPlanTo = v || undefined; })} />}
-              {(!plan.assumptions.planTo || plan.assumptions.planTo.mode === 'person' || person.ownPlanTo) && <Num label="Plan to age" value={person.lifeExpectancy} onChange={(v) => update((p) => { p.people[i].lifeExpectancy = v; })} />}
+              {person.ownLife && (!plan.assumptions.planTo || plan.assumptions.planTo.mode === 'person' || person.ownPlanTo) && <Num label="Plan to age" value={person.lifeExpectancy} onChange={(v) => update((p) => { p.people[i].lifeExpectancy = v; })} />}
               {!!plan.assumptions.retirementAgeAll && <Check label="Own retirement age" value={!!person.ownRetirementAge} onChange={(v) => update((p) => { p.people[i].ownRetirementAge = v || undefined; })} />}
               {(!plan.assumptions.retirementAgeAll || person.ownRetirementAge) && <Num label="Retirement age" value={plan.strategy.retirementAge[person.id]} onChange={(v) => update((p) => { p.strategy.retirementAge[person.id] = v; })} />}
             </>
@@ -462,11 +482,43 @@ export function IncomePage() {
   );
 }
 
+/** The add-expense tiles: a type, a starting name, an amount a year (0: entered by the user), and what it covers. */
+const ADD_TILES: [ExpenseKind, string, number, string][] = [
+  ['living', 'Living expenses', 0, 'Groceries, bills, and everyday costs'], ['housing', 'Rent', 0, 'Rent for the home you live in'],
+  ['transportation', 'Transportation', 0, 'Gas, transit, and getting around'], ['insurance', 'Insurance', 0, 'Life, disability, and umbrella policies'],
+  ['homeProjects', 'Home projects', 0, 'Renovations, repairs, and upgrades'], ['pets', 'Pets', 0, 'Food, vet visits, and pet care'],
+  ['oneTime', 'Emergency', 0, 'An unexpected one-time cost'], ['healthcare', 'Healthcare', 0, 'Premiums, copays, and prescriptions'],
+  ['childcare', 'Childcare', 0, 'Daycare and care while you work'], ['education', 'Education', 0, 'Tuition, books, and fees'],
+  ['travel', 'Travel', 0, 'Trips and vacations'], ['other', 'Other', 0, 'Anything else'],
+];
+
 export function ExpensesPage() {
   const plan = useActivePlan();
   const update = useUpdate();
   const funds = [['', 'Cash flow'], ...plan.accounts.filter((a) => a.kind === 'college529').map((a) => [a.id, a.name])] as [string, string][];
+  const { proj } = useProjection();
+  const add = (kind: ExpenseKind, name: string, amount: number) => update((p) => { p.expenses.push({ id: 'e' + uid(), name, kind, amount, startYear: p.startYear, growth: 0 }); });
+  // the year's spending, the first retirement year's, the plan's total, and what is left at the end
+  const first = proj.years[0];
+  const retireYear = Math.min(...plan.people.map((q) => q.birthYear + (plan.strategy.retirementAge[q.id] ?? 65)));
+  const inRetirement = proj.years.find((y) => y.year === retireYear);
+  const lifetime = proj.years.reduce((t, y) => t + y.totalExpenses, 0);
+  const last = proj.years[proj.years.length - 1];
   return (
+    <>
+    <div className="stats">
+      <Stat icon="trend" label="Spending this year" value={money(first?.totalExpenses ?? 0)} />
+      <Stat icon="trend" label="In retirement" value={money(inRetirement?.totalExpenses ?? 0)} sub={'a year, from ' + retireYear} />
+      <Stat icon="trend" label="Lifetime" value={money(lifetime, true)} />
+      <Stat icon="trend" label="Legacy" value={money(last?.netWorth ?? 0, true)} sub={last ? 'at the end, ' + last.year : ''} />
+    </div>
+    <Card title="Add an expense">
+      <div className="tiles">
+        {ADD_TILES.map(([kind, name, amount, sub]) => (
+          <button key={name} className="tile" onClick={() => add(kind, name, amount)}><b>{name}</b><small>{sub}</small></button>
+        ))}
+      </div>
+    </Card>
     <Card title="Expenses">
       <ListEditor<Expense>
         items={plan.expenses}
@@ -500,6 +552,7 @@ export function ExpensesPage() {
         }}
       />
     </Card>
+    </>
   );
 }
 

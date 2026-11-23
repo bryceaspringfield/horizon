@@ -1,6 +1,7 @@
 // The first-run setup: the answers a new user gives (pages/Setup.tsx) and the plan built from them.
 // A plan starts from the example plan's assumptions and strategy defaults, with every person, account, income, and
 // expense replaced by the user's own.
+import { expectedDeathDate } from './lifespan';
 import { examplePlan, uid } from './defaults';
 import { estimatePia } from './retirement';
 import type { Account, FilingStatus, Plan } from './types';
@@ -111,7 +112,7 @@ export function planFromAnswers(a: SetupAnswers, year = new Date().getFullYear()
     id: uid(),
     name: 'My plan',
     startYear: year,
-    people: people.map(({ id, a: p, fallback }, i) => ({ id, name: p.name.trim() || fallback, birthYear: p.birthYear, lifeExpectancy: i === 0 ? 92 : 95 })),
+    people: people.map(({ id, a: p, fallback }, i) => ({ id, name: p.name.trim() || fallback, birthYear: p.birthYear, lifeExpectancy: Math.round(expectedDeathDate(p.birthYear + '-07-01', 'unknown', 'all', []).age) })),
     accounts,
     incomes: people.filter((p) => p.a.salary > 0).map(({ id, a: p, fallback }) => ({
       id: 'i_sal_' + id, name: (p.name.trim() || fallback) + ': salary', kind: 'salary' as const, ownerId: id, amount: p.salary, growth: 0.01,

@@ -1,5 +1,6 @@
 // The pages reading the projection: the dashboard, net worth and cash-flow charts, taxes, Monte Carlo, plan
 // comparison, progress against the plan, and the year-by-year table.
+import { YearView } from './YearView';
 import { MC_METRICS, grade, type McMetric } from '../engine/montecarlo';
 import { useDark } from '../store';
 import { useMemo, useState } from 'react';
@@ -47,6 +48,7 @@ export function Dashboard() {
   const events = proj.years.flatMap((y) => y.milestonesReached.map((id) => ({ year: y.year, m: plan.milestones.find((m) => m.id === id)! })));
   return (
     <>
+      <YearView />
       <div className="stats">
         <Stat icon="coins" label="Net worth today" value={money(first.netWorth, true)} sub={`${money(first.liquidNetWorth, true)} invested`} />
         <Stat icon="flag" label="Financial independence" value={proj.financialIndependenceYear ?? 'Not reached'}

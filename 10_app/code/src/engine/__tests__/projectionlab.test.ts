@@ -92,3 +92,22 @@ describe('ProjectionLab import', () => {
     expect(Number.isFinite(simulate(bare.plans[0]).endingNetWorthReal)).toBe(true);
   });
 });
+
+import { exportProjectionLab } from '../projectionlab';
+describe('export to ProjectionLab', () => {
+  it('round-trips a plan: people, accounts, incomes, expenses, and an exact date', async () => {
+    const { examplePlan } = await import('../defaults');
+    const plan = examplePlan(2026);
+    const inc = plan.incomes[0];
+    inc.end = { kind: 'date', date: '2031-04-15' };
+    const out = exportProjectionLab([plan]);
+    expect(isProjectionLabExport(out)).toBe(true);
+    const back = importProjectionLab(out, 2026).plans[0];
+    expect(back.people.length).toBe(plan.people.length);
+    expect(back.incomes.length).toBe(plan.incomes.length);
+    expect(back.expenses.length).toBe(plan.expenses.length);
+    const total = (p: typeof plan) => p.accounts.filter((a) => a.kind !== 'debt' && a.kind !== 'asset').reduce((t, a) => t + a.balance, 0);
+    expect(total(back)).toBeCloseTo(total(plan), 0);
+    expect(back.incomes.find((i) => i.name === inc.name)?.end).toEqual({ kind: 'date', date: '2031-04-15' });
+  });
+});
