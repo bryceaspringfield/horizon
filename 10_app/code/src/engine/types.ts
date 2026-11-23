@@ -443,7 +443,7 @@ export interface Assumptions {
   /** Social Security follows SSA's announced COLAs for the years they are known (on unless set false). */
   announcedCola?: boolean;
   /** The country whose taxes apply (engine/uk.ts): the United States where unset. */
-  taxCountry?: 'US' | 'UK' | 'AU' | 'CA';
+  taxCountry?: 'US' | 'UK' | 'AU' | 'CA' | 'DE';
   /** UK: a Scottish taxpayer, and a quarter of each pension withdrawal taken tax-free (engine/uk.ts). */
   scotland?: boolean;
   ukLumpSum?: boolean;

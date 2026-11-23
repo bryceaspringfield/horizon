@@ -4,6 +4,7 @@
 import { ukTax } from './uk';
 import { auTax } from './au';
 import { caTax } from './ca';
+import { deTax } from './de';
 import federalYears from '../data/federal.json';
 import states from '../data/states.json';
 import health from '../data/healthcare.json';
@@ -25,7 +26,7 @@ export const rules = rulesFor(YEARS[0]).rules;
 
 export interface TaxInput {
   /** The country whose taxes apply: the United States where unset, or the UK (engine/uk.ts). */
-  country?: 'US' | 'UK' | 'AU' | 'CA';
+  country?: 'US' | 'UK' | 'AU' | 'CA' | 'DE';
   /** UK: a Scottish taxpayer; a quarter of pension withdrawals taken tax-free. Australia: people aged 60 or over. */
   scotland?: boolean;
   ukLumpSum?: boolean;
@@ -239,6 +240,7 @@ export function computeTax(t: TaxInput): TaxResult {
   if (t.country === 'UK') return ukTax(t);
   if (t.country === 'AU') return auTax(t);
   if (t.country === 'CA') return caTax(t);
+  if (t.country === 'DE') return deTax(t);
   if (t.flatRate !== undefined) return flatTax(t, t.flatRate);
   const r = rulesFor(t.year).rules;
   const k = t.index;
