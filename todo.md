@@ -43,3 +43,12 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Open ProjectionLab as a guest (Playwright) and record every screen, setting, and chart: tax-bracket optimization, drawdown order, gain harvesting, Roth conversions, flexible spending, tax strategy, estate planning, compare and what-if; build each one Horizon lacks.
 
 ## From ProjectionLab's screens (Bryce's screenshots, 2026-11-23)
+
+## Simplified models to finish (Bryce, 2026-11-23)
+- Ontario's low-income tax reduction; Quebec's other credits (living alone, age, retirement income).
+- Germany: church tax (8% or 9% by state) and the care surcharge for the childless; the allowance for pensions' own expenses.
+- Netherlands: box 1 rates and credits from the state pension age; box 2.
+- Spain: every region's own income tax scale and wealth tax allowance in place of the reference scale.
+- UK: the lump sum allowance's £268,275 cap on tax-free pension withdrawals; the April 2027 rise in savings rates.
+- Australia: the low-income Medicare levy reduction and the Medicare levy surcharge.
+- Tax strategy: several targets at once (bracket, IRMAA, ACA, an income ceiling) with constraints, in place of one shield.
