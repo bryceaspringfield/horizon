@@ -306,4 +306,6 @@ export const HELP: Record<string, string> = {
   "Out-of-pocket maximum": "The most you pay in a year for covered care; the plan pays everything above it.",
   "Taxes follow": "The country whose income tax, social insurance, and capital gains tax apply. The UK uses HMRC's 2026 to 2027 bands, allowances, and National Insurance, with each person taxed on their own share.",
   "Province or territory": "Where you file in Canada: its brackets and basic personal amount from the CRA 2026 tables. Quebec is not covered yet.",
+  "Scottish taxpayer": "Earned and pension income is taxed at Scotland's 2026 to 2027 rates (19% to 48%); savings and dividends keep the UK rates.",
+  "Take a quarter of each pension withdrawal tax-free": "Each pension withdrawal is a lump sum a quarter of which is tax-free, the rest taxed as income (an uncrystallised funds pension lump sum).",
 };

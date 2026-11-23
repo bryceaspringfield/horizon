@@ -444,6 +444,9 @@ export interface Assumptions {
   announcedCola?: boolean;
   /** The country whose taxes apply (engine/uk.ts): the United States where unset. */
   taxCountry?: 'US' | 'UK' | 'AU' | 'CA';
+  /** UK: a Scottish taxpayer, and a quarter of each pension withdrawal taken tax-free (engine/uk.ts). */
+  scotland?: boolean;
+  ukLumpSum?: boolean;
   /** Canada: the province or territory, two letters (engine/ca.ts); Ontario where unset. */
   province?: string;
   /** The share of taxable accounts' dividends which are qualified (taxed at capital gains rates); the rest is ordinary. 1 where unset. */

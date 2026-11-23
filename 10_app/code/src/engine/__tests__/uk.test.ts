@@ -19,3 +19,11 @@ describe('UK tax, 2026 to 2027', () => {
     expect(r.income).toBeCloseTo((20000 - 12570) * 0.2 + 2000 * 0.1075, 2);
   });
 });
+
+describe('Scotland and the pension lump sum', () => {
+  it('taxes a £50,000 Scottish salary on the Scottish bands', () => {
+    const r = ukPerson({ earned: 50000, pension: 0, savings: 0, dividends: 0, gains: 0, employment: 0 }, 1, true);
+    const above = 50000 - 12570;
+    expect(r.income).toBeCloseTo(3967 * 0.19 + (16956 - 3967) * 0.2 + (31092 - 16956) * 0.21 + (above - 31092) * 0.42, 2);
+  });
+});

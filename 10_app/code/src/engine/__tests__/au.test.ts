@@ -13,3 +13,12 @@ describe('Australian tax, 2026-27', () => {
     expect(auPerson(30000).income).toBeCloseTo(1070, 2);
   });
 });
+
+import { auTax } from '../au';
+describe('super after 60', () => {
+  it('leaves super withdrawals untaxed at 60', () => {
+    const base = { year: 2026, status: 'single', index: 1, wages: 0, selfEmployment: 0, otherOrdinary: 80000, interest: 0, qualifiedDividends: 0, longTermGains: 0, socialSecurity: 0, preTaxDeductions: 0, earlyWithdrawals: 0, over65: 0 } as any;
+    expect(auTax({ ...base, over60: 1 }).total).toBe(0);
+    expect(auTax({ ...base, over60: 0 }).total).toBeGreaterThan(10000);
+  });
+});

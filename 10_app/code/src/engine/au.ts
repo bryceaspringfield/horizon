@@ -3,7 +3,7 @@
 // Each person is taxed alone: a couple's income is split evenly. The Medicare levy is 2% of taxable income; the low income
 // tax offset (LITO) is $700 to $37,500, less 5c a dollar to $45,000, then 1.5c a dollar to $66,667. A capital gain on
 // an asset held over 12 months is halved (the CGT discount). Not modeled: the low-income Medicare levy reduction, the
-// Medicare levy surcharge, and tax-free superannuation income after 60.
+// Medicare levy surcharge. Superannuation withdrawals are tax-free from 60 (each person's share of them, by how many are 60).
 import { bracketTax, type TaxInput, type TaxResult } from './tax';
 
 export const AU_BRACKETS = [[0, 0], [18200, 0.15], [45000, 0.3], [135000, 0.37], [190000, 0.45]];
@@ -21,7 +21,8 @@ export function auPerson(taxable: number) {
 export function auTax(t: TaxInput): TaxResult {
   const n = t.status === 'mfj' ? 2 : 1;
   const gains = Math.max(0, t.longTermGains) * 0.5;
-  const taxable = Math.max(0, t.wages + t.selfEmployment - t.preTaxDeductions + t.otherOrdinary + t.socialSecurity + t.interest + t.qualifiedDividends + gains);
+  const superTaxed = 1 - Math.min(n, t.over60 ?? 0) / n;
+  const taxable = Math.max(0, t.wages + t.selfEmployment - t.preTaxDeductions + t.otherOrdinary * superTaxed + t.socialSecurity + t.interest + t.qualifiedDividends + gains);
   const per = auPerson(taxable / n);
   const income = per.income * n, levy = per.medicare * n, total = income + levy;
   const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains) + t.socialSecurity;

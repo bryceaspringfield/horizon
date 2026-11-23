@@ -26,6 +26,10 @@ export const rules = rulesFor(YEARS[0]).rules;
 export interface TaxInput {
   /** The country whose taxes apply: the United States where unset, or the UK (engine/uk.ts). */
   country?: 'US' | 'UK' | 'AU' | 'CA';
+  /** UK: a Scottish taxpayer; a quarter of pension withdrawals taken tax-free. Australia: people aged 60 or over. */
+  scotland?: boolean;
+  ukLumpSum?: boolean;
+  over60?: number;
   /** Canada: the province or territory (two letters; Ontario where unset). */
   province?: string;
   /** The spread of incentive stock options exercised and held this year: an AMT preference item (section 56(b)(3)). */

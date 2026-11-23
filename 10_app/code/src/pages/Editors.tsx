@@ -1016,6 +1016,8 @@ export function AssumptionsPage() {
     <Card title="Tax country">
       <div className="grid">
         <Select label="Taxes follow" value={a.taxCountry ?? 'US'} options={[['US', 'United States (federal and state)'], ['UK', 'United Kingdom (England, Wales, Northern Ireland)'], ['AU', 'Australia (residents)'], ['CA', 'Canada']]} onChange={(v) => update((p) => { p.assumptions.taxCountry = v === 'US' ? undefined : v; })} />
+        {a.taxCountry === 'UK' && <Check label="Scottish taxpayer" value={!!a.scotland} onChange={(v) => update((p) => { p.assumptions.scotland = v || undefined; })} />}
+        {a.taxCountry === 'UK' && <Check label="Take a quarter of each pension withdrawal tax-free" value={!!a.ukLumpSum} onChange={(v) => update((p) => { p.assumptions.ukLumpSum = v || undefined; })} />}
         {a.taxCountry === 'CA' && <Select label="Province or territory" value={a.province ?? 'ON'} options={Object.entries(PROVINCES).map(([k, v]) => [k, v.name] as [string, string])} onChange={(v) => update((p) => { p.assumptions.province = v === 'ON' ? undefined : v; })} />}
       </div>
     </Card>
