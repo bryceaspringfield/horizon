@@ -27,7 +27,7 @@ const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart
 const sha256 = async (...parts) => hex(await crypto.subtle.digest('SHA-256', enc.encode(parts.join('|'))));
 const random = (n) => hex(crypto.getRandomValues(new Uint8Array(n)));
 const b64ok = (s, min, max) => typeof s === 'string' && s.length >= min && s.length <= max && /^[A-Za-z0-9+/=]+$/.test(s);
-const nameOk = (u) => typeof u === 'string' && /^[a-z0-9._-]{3,40}$/.test(u);
+const nameOk = (u) => typeof u === 'string' && /^[a-z0-9._-]{1,30}$/.test(u);
 
 /** Equal-time comparison of two hex strings. */
 function same(a, b) {
@@ -128,7 +128,7 @@ export class Accounts {
       return json({ salt, iterations: ITERATIONS });
     }
     if (route === 'POST /signup') {
-      if (!nameOk(username)) return json({ error: 'Usernames are 3 to 40 letters, digits, dots, dashes, or underscores.' }, 400);
+      if (!nameOk(username)) return json({ error: 'Usernames are 1 to 30 letters, digits, dots, dashes, or underscores.' }, 400);
       if (!b64ok(body.salt, 16, 64) || !b64ok(body.auth, 40, 60)) return json({ error: 'bad request' }, 400);
       if (this.user(username)) return json({ error: 'That username is taken.' }, 409);
       const serverSalt = random(16);
