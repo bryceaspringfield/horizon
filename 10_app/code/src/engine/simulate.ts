@@ -258,6 +258,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
   /** People who left the household in a separation: their incomes and benefits leave the plan. */
   const departed = new Set<string>();
   let householdStart: number | null = null;
+  let ukLumpUsed = 0; // UK tax-free pension cash taken so far, against the lump sum allowance
   let expenseFactor = 1;
   /** Cumulative inflation at a year's start: from the path inside the plan, at the assumed rate before it. */
   const indexOf = (yr: number) => indexAt[yr] ?? Math.pow(1 + a.inflation, yr - plan.startYear);
@@ -838,7 +839,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
-        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry, province: a.province, extraIncomeRate: a.extraIncomeRate, extraGainsRate: a.extraGainsRate, auNoCover: a.auNoCover, deChurch: a.deChurch, deChildless: a.deChildless, scotland: a.scotland, ukLumpSum: a.ukLumpSum, over60: alive.filter((p) => ages[p.id] >= 60).length,
+        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry, province: a.province, extraIncomeRate: a.extraIncomeRate, extraGainsRate: a.extraGainsRate, auNoCover: a.auNoCover, ukLumpLeft: 268275 * Math.max(1, couple.length) - ukLumpUsed, deChurch: a.deChurch, deChildless: a.deChildless, scotland: a.scotland, ukLumpSum: a.ukLumpSum, over60: alive.filter((p) => ages[p.id] >= 60).length,
         ...(a.taxCountry === 'ES' ? {
           wealthCash: accounts.filter((x) => x.kind === 'cash' || x.kind === 'taxable' || (x.kind === 'asset' && !x.realEstate)).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0),
           wealthOther: accounts.filter((x) => x.kind === 'asset' && x.realEstate).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0) + accounts.filter((x) => x.kind === 'debt').reduce((s2, x) => s2 + Math.min(0, state.balance[x.id]), 0),
@@ -1203,6 +1204,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       milestonesReached,
     });
     magiBy[y] = tax.agi;
+    ukLumpUsed += tax.ukLumpUsed ?? 0;
     index *= 1 + path.inflation[i];
     capeNow *= (1 + path.stocks[i]) / ((1 + path.inflation[i]) * 1.015);
     ssIndex *= 1 + (a.announcedCola === false ? path.inflation[i] : SS_COLA[y + 1] ?? path.inflation[i]);

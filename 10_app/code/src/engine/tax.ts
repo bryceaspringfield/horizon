@@ -34,6 +34,8 @@ export interface TaxInput {
   extraGainsRate?: number;
   /** Australia: no private hospital cover (the Medicare levy surcharge applies). */
   auNoCover?: boolean;
+  /** UK: what is left of the lump sum allowance (tax-free pension cash) for the household. */
+  ukLumpLeft?: number;
   /** The Netherlands' box 3: bank balances and other taxable investments at the start of the year. */
   wealthCash?: number;
   wealthOther?: number;
@@ -161,6 +163,8 @@ export interface TaxResult {
   ftc?: { usedGeneral: number; usedPassive: number; newGeneral: number; newPassive: number };
   /** The qualified business income deduction. */
   qbi: number;
+  /** UK: the tax-free pension cash taken this year, against the lump sum allowance. */
+  ukLumpUsed?: number;
 }
 
 const scale = (brackets: number[][], k: number): Bracket[] => brackets.map(([t, r]) => [t * k, r]);

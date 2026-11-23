@@ -5,7 +5,8 @@
 // April 2026). The UK taxes each person: a couple's income is split evenly between the two. Scotland's bands on earned and
 // pension income (gov.uk/scottish-income-tax, 2026 to 2027: limits above the allowance from the Scottish Rate Resolution)
 // apply to a Scottish taxpayer. A quarter of each pension withdrawal can be taken tax-free (an uncrystallised funds pension
-// lump sum). Not modeled: the lump sum allowance's £268,275 cap, and the 2-point rise in savings rates from April 2027.
+// lump sum), up to the lump sum allowance of £268,275 a person over a lifetime. Not modeled: the 2-point rise in savings
+// rates from April 2027.
 import type { TaxInput, TaxResult } from './tax';
 
 export const UK = {
@@ -64,9 +65,11 @@ export function ukPerson(p: { earned: number; pension: number; savings: number; 
 
 /** The UK in the shape of the engine's tax result: income tax in federal, NI in fica, capital gains tax on its own line. */
 export function ukTax(t: TaxInput): TaxResult {
-  const n = t.status === 'mfj' ? 2 : 1, k = 1, pensionTaxed = t.ukLumpSum ? 0.75 : 1;
+  const n = t.status === 'mfj' ? 2 : 1, k = 1;
+  // a quarter of each pension withdrawal tax-free while the lump sum allowance (£268,275 a person, frozen) lasts
+  const taxFree = t.ukLumpSum ? Math.min(0.25 * Math.max(0, t.otherOrdinary), Math.max(0, t.ukLumpLeft ?? 268275 * n)) : 0;
   const per = ukPerson({
-    earned: (t.wages + t.selfEmployment - t.preTaxDeductions) / n, pension: (t.otherOrdinary * pensionTaxed + t.socialSecurity) / n,
+    earned: (t.wages + t.selfEmployment - t.preTaxDeductions) / n, pension: (t.otherOrdinary - taxFree + t.socialSecurity) / n,
     savings: t.interest / n, dividends: t.qualifiedDividends / n, gains: Math.max(0, t.longTermGains) / n, employment: (t.wages + t.selfEmployment) / n,
   }, k, !!t.scotland);
   const income = per.income * n, cgt = per.cgt * n, ni = per.ni * n, total = income + cgt + ni;
@@ -74,5 +77,5 @@ export function ukTax(t: TaxInput): TaxResult {
   return { federal: income, capitalGains: cgt, niit: 0, fica: ni, state: 0, penalty: 0, total, taxableIncome: per.taxable * n,
     ordinaryTaxable: per.taxable * n, taxableSocialSecurity: t.socialSecurity, marginalRate: per.marginal, effectiveRate: gross > 0 ? total / gross : 0,
     agi: gross - t.preTaxDeductions, deduction: per.allowance * n, itemized: false, credits: 0, amt: 0, local: 0, foreignExclusion: 0, foreignTaxCredit: 0,
-    foreignTaxPaid: 0, seniorDeduction: 0, qbi: 0 };
+    foreignTaxPaid: 0, seniorDeduction: 0, qbi: 0, ukLumpUsed: taxFree || undefined };
 }

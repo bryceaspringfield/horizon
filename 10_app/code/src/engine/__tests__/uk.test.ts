@@ -27,3 +27,13 @@ describe('Scotland and the pension lump sum', () => {
     expect(r.income).toBeCloseTo(3967 * 0.19 + (16956 - 3967) * 0.2 + (31092 - 16956) * 0.21 + (above - 31092) * 0.42, 2);
   });
 });
+
+import { ukTax } from '../uk';
+describe('UK lump sum allowance', () => {
+  it('stops the tax-free quarter once the allowance is used', () => {
+    const t = { year: 2026, status: 'single', index: 1, wages: 0, selfEmployment: 0, otherOrdinary: 100000, interest: 0, qualifiedDividends: 0, longTermGains: 0, socialSecurity: 0, preTaxDeductions: 0, earlyWithdrawals: 0, over65: 0, ukLumpSum: true } as any;
+    expect(ukTax({ ...t, ukLumpLeft: 268275 }).ukLumpUsed).toBe(25000);
+    expect(ukTax({ ...t, ukLumpLeft: 10000 }).ukLumpUsed).toBe(10000);
+    expect(ukTax({ ...t, ukLumpLeft: 0 }).total).toBeGreaterThan(ukTax({ ...t, ukLumpLeft: 268275 }).total);
+  });
+});
