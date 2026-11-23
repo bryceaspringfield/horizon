@@ -179,6 +179,8 @@ export interface Income {
   end?: import('./dates').DateRef;
   contributionRoth?: boolean;
   employerMatch?: number;
+  /** The Netherlands: income from a substantial shareholding (5% or more of a company), taxed in box 2. */
+  nlBox2?: boolean;
   /** Salary: the employer's yearly deposit into the owner's HSA (today's dollars), free of income and payroll tax. */
   employerHsa?: number;
   /** Salary: the share of pay the employer matches at most (e.g., 100% of the first 6%). */

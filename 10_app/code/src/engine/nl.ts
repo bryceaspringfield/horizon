@@ -6,8 +6,8 @@
 // 1.28% on bank balances (provisional until early 2027) and 6.00% on other assets (box 3, berekening 2026). Each person is
 // taxed alone: a couple's income is split evenly. From the state pension age (the whole year; born 1946 or later): 17.85%
 // to €38,883, the same higher brackets, a general credit of €1,556 less 3.195% over €29,736, a work credit half the size
-// (tabel arbeidskorting 2026, AOW-leeftijd), and the elderly credit (€2,067 to €46,002, less 15% to €59,782). Not modeled:
-// box 2 and the mortgage interest deduction.
+// (tabel arbeidskorting 2026, AOW-leeftijd), and the elderly credit (€2,067 to €46,002, less 15% to €59,782). Box 2 taxes income
+// marked as from a substantial shareholding. Not modeled: the mortgage interest deduction.
 import { bracketTax, type TaxInput, type TaxResult } from './tax';
 
 export const NL_BOX1 = [[0, 0.3575], [38883, 0.3756], [78426, 0.495]];
@@ -55,10 +55,12 @@ export function nlTax(t: TaxInput): TaxResult {
   const income = earnings + (t.otherOrdinary + t.socialSecurity) / n;
   const box1 = n * nlBox1(income, Math.max(0, earnings), (t.over67 ?? 0) >= n);
   const box3 = n * nlBox3((t.wealthCash ?? 0) / n, (t.wealthOther ?? 0) / n);
-  const total = box1 + box3;
+  // box 2 (belastingdienst.nl, box 2, 2026): 24.5% to €68,843 a person, 31% above
+  const per2 = (t.box2 ?? 0) / n, box2 = n * (Math.min(per2, 68843) * 0.245 + Math.max(0, per2 - 68843) * 0.31);
+  const total = box1 + box2 + box3;
   const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + t.qualifiedDividends + Math.max(0, t.longTermGains) + t.socialSecurity;
   const marginal = income > 78426 ? 0.495 : income > 38883 ? 0.3756 : (t.over67 ?? 0) >= n ? 0.1785 : 0.3575;
-  return { federal: box1, capitalGains: box3, niit: 0, fica: 0, state: 0, penalty: 0, total, taxableIncome: income * n, ordinaryTaxable: income * n,
+  return { federal: box1 + box2, capitalGains: box3, niit: 0, fica: 0, state: 0, penalty: 0, total, taxableIncome: income * n, ordinaryTaxable: income * n,
     taxableSocialSecurity: t.socialSecurity, marginalRate: marginal, effectiveRate: gross > 0 ? total / gross : 0, agi: gross - t.preTaxDeductions,
     deduction: 0, itemized: false, credits: 0, amt: 0, local: 0, foreignExclusion: 0, foreignTaxCredit: 0, foreignTaxPaid: 0, seniorDeduction: 0, qbi: 0 };
 }

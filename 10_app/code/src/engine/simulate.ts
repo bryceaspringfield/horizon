@@ -357,7 +357,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     const contributions: Record<string, number> = {};
     const withdrawals: Record<string, number> = {};
     const expenses: Record<string, number> = {};
-    let isoSpread = 0;
+    let isoSpread = 0, box2 = 0;
     let wages = 0, selfEmp = 0, otherOrdinary = 0, untaxedIncome = 0, preTax = 0, match = 0, sePremium = 0, assetGain = 0, homeExclusion = 0;
     const fo = { earned: 0, earnedBy: {} as Record<string, number>, noUsPayroll: 0, taxEarned: 0, generalOther: 0, taxGeneralOther: 0, passiveIncome: 0, taxPassive: 0, taxOther: 0 };
     const deferredBy: Record<string, number> = {};
@@ -462,6 +462,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
           if (tAcc && toTrad > 0) { deposit(tAcc.id, toTrad); preTax += toTrad; }
         }
       }
+      else if (inc.taxable && inc.nlBox2 && a.taxCountry === 'NL') box2 += amt;
       else if (inc.taxable) otherOrdinary += amt;
       else untaxedIncome += amt;
       // Income from abroad: pay for work abroad can be excluded; foreign tax paid feeds the credit, by basket.
@@ -839,7 +840,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
-        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry, province: a.province, extraIncomeRate: a.extraIncomeRate, extraGainsRate: a.extraGainsRate, auNoCover: a.auNoCover, ukLumpLeft: 268275 * Math.max(1, couple.length) - ukLumpUsed, deChurch: a.deChurch, deChildless: a.deChildless, scotland: a.scotland, ukLumpSum: a.ukLumpSum, over60: alive.filter((p) => ages[p.id] >= 60).length, over67: alive.filter((p) => ages[p.id] >= 67).length,
+        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry, province: a.province, extraIncomeRate: a.extraIncomeRate, extraGainsRate: a.extraGainsRate, auNoCover: a.auNoCover, ukLumpLeft: 268275 * Math.max(1, couple.length) - ukLumpUsed, deChurch: a.deChurch, deChildless: a.deChildless, scotland: a.scotland, ukLumpSum: a.ukLumpSum, over60: alive.filter((p) => ages[p.id] >= 60).length, over67: alive.filter((p) => ages[p.id] >= 67).length, box2,
         ...(a.taxCountry === 'ES' ? {
           wealthCash: accounts.filter((x) => x.kind === 'cash' || x.kind === 'taxable' || (x.kind === 'asset' && !x.realEstate)).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0),
           wealthOther: accounts.filter((x) => x.kind === 'asset' && x.realEstate).reduce((s2, x) => s2 + Math.max(0, state.balance[x.id]), 0) + accounts.filter((x) => x.kind === 'debt').reduce((s2, x) => s2 + Math.min(0, state.balance[x.id]), 0),

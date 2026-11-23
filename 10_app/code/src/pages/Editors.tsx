@@ -508,6 +508,7 @@ export function IncomePage() {
                   <Num label="Share price today" value={x.options?.price ?? 0} onChange={(v) => set((y) => { y.options = { ...(y.options ?? { type: 'nso' as const, shares: 0, strike: 0, price: 0, growth: 0.07 }), price: v }; })} />
                   <Num label="Share price growth a year" percent value={x.options?.growth ?? 0.07} onChange={(v) => set((y) => { y.options = { ...(y.options ?? { type: 'nso' as const, shares: 0, strike: 0, price: 0, growth: 0.07 }), growth: v }; })} />
                 </>}
+                {plan.assumptions.taxCountry === 'NL' && x.taxable && <Check label="From a substantial shareholding (box 2)" value={!!x.nlBox2} onChange={(v) => set((y) => { y.nlBox2 = v || undefined; })} />}
                 {x.kind === 'rsu' && <Num label="Vests over (years)" value={x.vestYears ?? 4} onChange={(v) => set((y) => { y.vestYears = v; })} />}
                 {x.kind === 'rsu' && <Num label="Cliff (years before the first vesting)" value={x.vestCliffYears ?? 0} hint="With a one-year cliff, nothing vests in the first year and two parts vest in the second." onChange={(v) => set((y) => { y.vestCliffYears = v || undefined; })} />}
                 {x.kind === 'salary' && <>

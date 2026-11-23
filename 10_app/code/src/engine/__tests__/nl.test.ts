@@ -27,3 +27,12 @@ describe('Dutch tax from the state pension age', () => {
     expect(nlBox1(30000, 0, true)).toBeCloseTo(30000 * 0.1785 - (1556 - 0.03195 * 264) - 2067, 2);
   });
 });
+
+import { nlTax } from '../nl';
+describe('box 2', () => {
+  it("matches the Belastingdienst's example: €17,224 on €70,000", () => {
+    const t = { year: 2026, status: 'single', index: 1, wages: 0, selfEmployment: 0, otherOrdinary: 0, interest: 0, qualifiedDividends: 0, longTermGains: 0, socialSecurity: 0, preTaxDeductions: 0, earlyWithdrawals: 0, over65: 0, box2: 70000 } as any;
+    // the example rounds each part down (16,866.54 and 358.67)
+    expect(Math.abs(nlTax(t).total - 17224)).toBeLessThan(2);
+  });
+});

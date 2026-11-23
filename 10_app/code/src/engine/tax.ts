@@ -50,6 +50,8 @@ export interface TaxInput {
   over60?: number;
   /** People aged 67 or more (the Dutch state pension age). */
   over67?: number;
+  /** The Netherlands' box 2: income from a substantial shareholding (5% or more of a company). */
+  box2?: number;
   /** Canada: the province or territory (two letters; Ontario where unset). */
   province?: string;
   /** The spread of incentive stock options exercised and held this year: an AMT preference item (section 56(b)(3)). */
