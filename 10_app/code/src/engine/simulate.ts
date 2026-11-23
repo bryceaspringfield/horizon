@@ -150,6 +150,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
   let fiYear: number | null = null;
   const reached = new Set<string>();
   let guardrailSpend: number | null = null;
+  let flexHigh: number | null = null, flexStart: number | null = null;
   let guardrailRate: number | null = null;
   /** Cumulative inflation at the start of each plan year, and modified AGI by year (Medicare looks two years back). */
   const indexAt: Record<number, number> = {};
@@ -444,6 +445,20 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       }
       expenses[e.id] = amt;
       totalExpenses += amt;
+    }
+    // Flexible spending: the discretionary share of each expense is cut while the portfolio sits under its high by the
+    // chosen share, and raised while it sits above where it began by the chosen share (all in today's dollars).
+    let flexChange = 0;
+    const discretionary = plan.expenses.reduce((t, e) => t + (expenses[e.id] ?? 0) * (e.discretionary ?? 0), 0);
+    if (s.flex?.enabled) {
+      const realPortfolio = liquid(state, accounts) / index;
+      flexHigh = Math.max(flexHigh ?? realPortfolio, realPortfolio); flexStart ??= realPortfolio;
+      const factor = realPortfolio < flexHigh * (1 - s.flex.drop) ? 1 - s.flex.cut
+        : s.flex.boost && realPortfolio > flexStart * (1 + (s.flex.rise ?? 0.25)) ? 1 + s.flex.boost : 1;
+      if (factor !== 1) for (const e of plan.expenses) {
+        const d = (expenses[e.id] ?? 0) * (e.discretionary ?? 0) * (factor - 1);
+        if (d) { expenses[e.id] += d; totalExpenses += d; flexChange += d; }
+      }
     }
     for (const d of accounts) {
       if (d.kind !== 'debt' || state.balance[d.id] >= 0) continue;
@@ -852,6 +867,12 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     const fiBase = s.fiCountsRealAssets ? liquidNW + realNet : liquidNW;
     if (fiYear === null && fiBase / index * s.safeWithdrawalRate >= realExpenses && realExpenses > 0) fiYear = y;
     const nwMilestone = s.fiCountsRealAssets === false ? netWorth - realNet : netWorth;
+    // Coast FI: the invested balance which, with no more saving, grows to the financial independence number by the first
+    // retirement; debt-free: every debt paid off.
+    const coastYears = Math.max(0, Math.min(...plan.people.map((p) => p.birthYear + (s.retirementAge[p.id] ?? 200))) - y);
+    const coastReturn = a.returns.stocks * 0.8 + a.returns.bonds * 0.2 - a.inflation;
+    const coastReached = realExpenses > 0 && liquidNW / index >= realExpenses / (s.safeWithdrawalRate || 0.04) / Math.pow(1 + coastReturn, coastYears);
+    const debtFree = accounts.every((x) => x.kind !== 'debt' || balances[x.id] > -0.5);
     const milestonesReached: string[] = [];
     for (const m of plan.milestones) {
       if (reached.has(m.id)) continue;
@@ -859,8 +880,11 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         (c.kind === 'year' && c.year !== undefined && y >= c.year) ||
         (c.kind === 'age' && c.personId !== undefined && c.age !== undefined && ages[c.personId] >= c.age) ||
         (c.kind === 'financialIndependence' && fiYear !== null) ||
-        (c.kind === 'netWorth' && c.netWorth !== undefined && nwMilestone / index >= c.netWorth);
+        (c.kind === 'netWorth' && c.netWorth !== undefined && nwMilestone / index >= c.netWorth) ||
+        (c.kind === 'liquidNetWorth' && c.netWorth !== undefined && liquidNW / index >= c.netWorth) ||
+        (c.kind === 'coastFi' && coastReached) || (c.kind === 'debtFree' && debtFree);
       const hit =
+        ((m.kind === 'liquidNetWorth' || m.kind === 'coastFi' || m.kind === 'debtFree') && holds(m)) ||
         (m.kind === 'all' && (m.conditions ?? []).length > 0 && (m.conditions ?? []).every(holds)) ||
         (m.kind === 'year' && y === m.year) ||
         (m.kind === 'age' && m.personId !== undefined && ages[m.personId] === m.age) ||
@@ -927,6 +951,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       },
       investmentReturn,
       shortfall,
+      flexChange: flexChange || undefined,
+      discretionary: discretionary || undefined,
       milestonesReached,
     });
     magiBy[y] = tax.agi;

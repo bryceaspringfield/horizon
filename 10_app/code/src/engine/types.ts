@@ -164,19 +164,21 @@ export interface Expense {
   nominal?: boolean;
   /** The currency the amounts are in, where it differs from the plan's. */
   currency?: string;
+  /** The share of the expense which can be cut in a bad stretch (0: essential; 1: wholly discretionary); used by flexible spending. */
+  discretionary?: number;
 }
 
 export interface Milestone {
   id: string;
   name: string;
   /** A calendar year, or a condition the simulation tests each year. */
-  kind: 'year' | 'age' | 'financialIndependence' | 'netWorth' | 'all';
+  kind: 'year' | 'age' | 'financialIndependence' | 'netWorth' | 'liquidNetWorth' | 'coastFi' | 'debtFree' | 'all';
   year?: number;
   personId?: string;
   age?: number;
   netWorth?: number;
   /** kind 'all': reached in the first year every condition holds. */
-  conditions?: { kind: 'year' | 'age' | 'financialIndependence' | 'netWorth'; year?: number; personId?: string; age?: number; netWorth?: number }[];
+  conditions?: { kind: 'year' | 'age' | 'financialIndependence' | 'netWorth' | 'liquidNetWorth' | 'coastFi' | 'debtFree'; year?: number; personId?: string; age?: number; netWorth?: number }[];
   /** People who retire when this milestone is reached, in place of their retirement age. */
   retires?: string[];
 }
@@ -234,6 +236,9 @@ export interface Strategy {
   /** Qualified charitable distributions: from 70½ (counted from 71), the plan's charity paid from traditional IRAs, up
    * to the yearly limit; it counts toward the RMD and is not income. */
   qcd?: boolean;
+  /** Flexible spending: while the portfolio (today's dollars) sits this share under its high, the discretionary share of every
+   * expense is cut by `cut`; while it sits `rise` above where it began, discretionary spending is raised by `boost`. */
+  flex?: { enabled: boolean; drop: number; cut: number; rise?: number; boost?: number };
   /** Count real assets (a home, net of its mortgage) in the financial independence test and the net worth milestones. */
   fiCountsRealAssets?: boolean;
 }
@@ -409,6 +414,9 @@ export interface YearResult {
   };
   investmentReturn: number;
   shortfall: number;
+  /** The change flexible spending made to the year's expenses (negative: a cut), and the year's discretionary spending. */
+  flexChange?: number;
+  discretionary?: number;
   milestonesReached: string[];
 }
 

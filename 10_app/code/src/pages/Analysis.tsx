@@ -419,7 +419,7 @@ export function TablePage() {
     a.click();
   };
   return (
-    <Card title={`Year by year (${dollarsNote(real)})`} wide actions={<button onClick={csv}>Download CSV</button>}>
+    <Card title={`Year by year (${dollarsNote(real)})`} wide actions={<><button onClick={csv}>Download CSV</button><button className="ghost" onClick={() => window.print()}>Print or save as PDF</button></>}>
       <div className="scroll">
         <table className="num">
           <thead><tr>{cols.map((c) => <th key={c}>{c}</th>)}</tr></thead>

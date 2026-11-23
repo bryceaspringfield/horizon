@@ -328,6 +328,7 @@ export function ExpensesPage() {
             <>
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
               <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
+              <Num label="Discretionary share" percent value={x.discretionary ?? 0} hint="The part which could be cut in a bad stretch. Flexible spending (Strategy) uses it." onChange={(v) => set((y) => { y.discretionary = Math.max(0, Math.min(1, v)) || undefined; })} />
               <Select label="Type" value={x.kind} options={EXPENSE_KINDS} onChange={(v) => set((y) => { y.kind = v; })} />
               <Num label={(x.kind === 'oneTime' ? 'Amount' : 'Yearly amount') + (x.nominal ? " (that year's $)" : " (today's $)")} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
               <Num label={x.kind === 'oneTime' ? 'Year' : 'Start year'} value={x.startYear} onChange={(v) => set((y) => { y.startYear = v; })} />
@@ -453,24 +454,24 @@ export function MilestonesPage() {
           return (
             <>
               <Text label="Name" value={m.name} onChange={(v) => set((y) => { y.name = v; })} />
-              <Select label="When" value={m.kind} options={[['year', 'A year'], ['age', 'An age'], ['financialIndependence', 'Financial independence'], ['netWorth', 'A net worth'], ['all', 'All of several conditions']]} onChange={(v) => set((y) => { y.kind = v; })} />
+              <Select label="When" value={m.kind} options={[['year', 'A year'], ['age', 'An age'], ['financialIndependence', 'Financial independence'], ['netWorth', 'A net worth'], ['liquidNetWorth', 'Invested assets of an amount'], ['coastFi', 'Coast FI'], ['debtFree', 'Debt-free'], ['all', 'All of several conditions']]} onChange={(v) => set((y) => { y.kind = v; })} />
               {m.kind === 'year' && <Num label="Year" value={m.year} onChange={(v) => set((y) => { y.year = v; })} />}
               {m.kind === 'age' && <>
                 <Select label="Person" value={m.personId ?? plan.people[0].id} options={plan.people.map((p) => [p.id, p.name] as [string, string])} onChange={(v) => set((y) => { y.personId = v; })} />
                 <Num label="Age" value={m.age} onChange={(v) => set((y) => { y.age = v; })} />
               </>}
-              {m.kind === 'netWorth' && <Num label="Net worth (today's $)" value={m.netWorth} onChange={(v) => set((y) => { y.netWorth = v; })} />}
+              {(m.kind === 'netWorth' || m.kind === 'liquidNetWorth') && <Num label="Amount (today's $)" value={m.netWorth} onChange={(v) => set((y) => { y.netWorth = v; })} />}
               {m.kind === 'all' && <div className="span">
                 {(m.conditions ?? []).map((c, j) => (
                   <div key={j} className="row">
-                    <Select label="Condition" value={c.kind} options={[['year', 'From a year'], ['age', 'From an age'], ['financialIndependence', 'Once financially independent'], ['netWorth', 'Net worth at least']]}
+                    <Select label="Condition" value={c.kind} options={[['year', 'From a year'], ['age', 'From an age'], ['financialIndependence', 'Once financially independent'], ['netWorth', 'Net worth at least'], ['liquidNetWorth', 'Invested assets at least'], ['coastFi', 'Once at Coast FI'], ['debtFree', 'Once debt-free']]}
                       onChange={(v) => set((y) => { y.conditions![j] = { kind: v, personId: plan.people[0].id }; })} />
                     {c.kind === 'year' && <Num label="Year" value={c.year} onChange={(v) => set((y) => { y.conditions![j].year = v; })} />}
                     {c.kind === 'age' && <>
                       <Select label="Person" value={c.personId ?? plan.people[0].id} options={plan.people.map((p) => [p.id, p.name] as [string, string])} onChange={(v) => set((y) => { y.conditions![j].personId = v; })} />
                       <Num label="Age" value={c.age} onChange={(v) => set((y) => { y.conditions![j].age = v; })} />
                     </>}
-                    {c.kind === 'netWorth' && <Num label="Net worth (today's $)" value={c.netWorth} onChange={(v) => set((y) => { y.conditions![j].netWorth = v; })} />}
+                    {(c.kind === 'netWorth' || c.kind === 'liquidNetWorth') && <Num label="Amount (today's $)" value={c.netWorth} onChange={(v) => set((y) => { y.conditions![j].netWorth = v; })} />}
                     <button className="ghost danger" onClick={() => set((y) => { y.conditions!.splice(j, 1); })}>Remove</button>
                   </div>
                 ))}
@@ -558,6 +559,13 @@ export function StrategyPage() {
           {(s.spending === 'fixedPercent' || s.spending === 'guardrails' || s.spending === 'textbook') && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
           <Num label="Safe withdrawal rate (FI test)" percent value={s.safeWithdrawalRate} onChange={(v) => update((p) => { p.strategy.safeWithdrawalRate = v; })} />
           <Check label="Count real assets (home equity) toward FI and net worth milestones" value={!!s.fiCountsRealAssets} onChange={(v) => update((p) => { p.strategy.fiCountsRealAssets = v; })} />
+          <Check label="Flexible spending: cut discretionary spending in bad stretches" value={!!s.flex?.enabled} onChange={(v) => update((p) => { p.strategy.flex = { drop: 0.2, cut: 0.5, rise: 0.25, boost: 0, ...p.strategy.flex, enabled: v }; })} />
+          {s.flex?.enabled && <>
+            <Num label="Cut when the portfolio is under its high by" percent value={s.flex.drop} onChange={(v) => update((p) => { p.strategy.flex!.drop = v; })} />
+            <Num label="Share of discretionary spending cut" percent value={s.flex.cut} onChange={(v) => update((p) => { p.strategy.flex!.cut = Math.max(0, Math.min(1, v)); })} />
+            <Num label="Raise when the portfolio is above its start by" percent value={s.flex.rise ?? 0.25} onChange={(v) => update((p) => { p.strategy.flex!.rise = v; })} />
+            <Num label="Raise of discretionary spending" percent value={s.flex.boost ?? 0} onChange={(v) => update((p) => { p.strategy.flex!.boost = v; })} />
+          </>}
           <Check label="Give to charity from IRAs from 71 (qualified charitable distributions)" value={!!s.qcd} onChange={(v) => update((p) => { p.strategy.qcd = v; })} />
         </div>
         <p className="muted">A qualified charitable distribution pays the plan's yearly charity (Taxes and health) straight from a traditional IRA, up to $111,000 a person in 2026 ($114,000 in 2027), counts toward the RMD, and is left out of income. An HSA pays the year's healthcare expenses and premiums tax-free; HSA money spent on anything else is income, with a 20% penalty before 65.</p>

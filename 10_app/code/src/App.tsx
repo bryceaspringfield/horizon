@@ -3,6 +3,7 @@ import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage
 import { TermsPage } from './pages/Terms';
 import { Setup } from './pages/Setup';
 import { ImportReportCard, ProjectionLabButton } from './pages/ImportPL';
+import { PlanWarnings } from './pages/Warnings';
 import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { ReportPage } from './pages/Report';
@@ -310,6 +311,7 @@ export default function App() {
           </section>
         )}
         <ImportReportCard />
+        {page === 'dashboard' && <PlanWarnings go={(k) => go(k as PageKey)} />}
         <Page />
       </main>
     </div>

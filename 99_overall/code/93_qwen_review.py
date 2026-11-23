@@ -169,7 +169,11 @@ def tasks():
 
 
 def run(name, prompt):
-    reply = qwen_farm.ask_stream(prompt, SYSTEM, 'medium' if name.startswith('ledger_') else EFFORT, BUDGET)
+    # qwen_farm.ask_stream raises where no answer comes (no server, reasoning alone at every effort): a failed task writes no file
+    try:
+        reply = qwen_farm.ask_stream(prompt, SYSTEM, 'medium' if name.startswith('ledger_') else EFFORT, BUDGET)
+    except Exception as e:
+        return name, f'FAILED: {type(e).__name__} {str(e)[:200]}'
     open(os.path.join(OUT, name + '.md'), 'w').write(f'# {name}\n\n{reply}\n')
     return name, len(reply)
 
@@ -179,12 +183,14 @@ def main():
     todo = tasks()
     first = ['missing_projectionlab', 'user_requests']
     want = sys.argv[1:] or first + [n for n in todo if n not in first]
-    want = [n for n in want if not os.path.exists(os.path.join(OUT, n + '.md'))]
+    # done: a file with an answer in it (an empty or reasoning-only file from before the 2026-11-23 guard is asked again)
+    done = lambda n: os.path.exists(os.path.join(OUT, n + '.md')) and os.path.getsize(os.path.join(OUT, n + '.md')) > 200 and 'Only the reasoning arrived' not in read(os.path.join(OUT, n + '.md'))[:300]
+    want = [n for n in want if not done(n)]
     print(len(todo), 'tasks;', len(want), 'asked', flush=True)
     with cf.ThreadPoolExecutor(WORKERS) as ex:
         for f in cf.as_completed([ex.submit(run, n, todo[n]) for n in want]):
             name, n = f.result()
-            print(name, n, 'chars', flush=True)
+            print(name, n, 'chars' if isinstance(n, int) else '', flush=True)
 
 
 if __name__ == '__main__':

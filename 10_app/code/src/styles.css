@@ -228,3 +228,9 @@ button.link { background: none; border: 0; padding: 0; color: var(--accent); tex
 
 /* A pill with nothing to do (Undo with no edit yet). */
 .pill.off { opacity: 0.4; pointer-events: none; }
+
+/* The dashboard's list of things worth a look. */
+.warnings ul { margin: 6px 0 0; padding-left: 18px; }
+.warnings li { margin: 4px 0; }
+.warnings li.problem::marker { color: var(--bad); }
+.warnings li button.link { text-align: left; }
