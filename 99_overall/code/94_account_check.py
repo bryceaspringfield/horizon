@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Checks accounts end to end on this machine: starts the account server (40_sync_server, wrangler dev, fresh storage),
 builds the app pointed at it, and in headless Chromium, as two devices:
-  1. creates an account, renames the plan, and waits for "Saved";
+  1. creates an account (the button stays off until the Terms of Use are accepted), renames the plan, and waits for "Saved";
   2. on a second device, a wrong password fails, the right one opens the renamed plan;
   3. the server's storage holds no plan text (the plan name is absent from its files);
   4. a save from each device in turn: the older one sees the conflict notice;
@@ -98,13 +98,34 @@ def main():
             a.click('button:has-text("Create account")')
             a.fill('input[name=username]', 'tester'); a.fill('input[name=password]', 'correct horse battery')
             a.fill('input[name=password2]', 'correct horse battery')
+            blocked = a.locator('form button[type=submit]').is_disabled()
+            a.click('button.link:has-text("Terms of Use") >> nth=0')
+            shown = a.locator('h4:has-text("No financial, investment, tax, or legal advice")').count() == 1
+            a.click('button:has-text("Back")')
+            kept = a.input_value('input[name=username]') == 'tester'
+            a.check('input[name=agree]')
+            step('the Terms of Use open, and an account needs them accepted', blocked and shown and kept
+                 and not a.locator('form button[type=submit]').is_disabled(), f'blocked {blocked}, shown {shown}, form kept {kept}')
             a.click('form button[type=submit]')
-            a.wait_for_selector('nav', timeout=30000)
+            a.wait_for_selector('text=Welcome to Horizon', timeout=30000)  # a new account opens on the first-run setup
+            a.click('button:has-text("explore an example plan")'); a.wait_for_selector('nav')
             a.goto(app + 'people'); a.wait_for_timeout(1500)
             a.locator('label.field:has-text("Plan name") input').fill(NAME)
             a.wait_for_timeout(4000)
             pill = a.locator('.topbar .pill').all_inner_texts()
             step('account created and the edit saved', any('Saved' in t for t in pill), ' | '.join(pill))
+
+            # The Auto theme (the default) follows the device: dark on a dark device, at the sign-in screen and in the app.
+            theme = lambda pg: pg.evaluate('document.documentElement.dataset.theme')
+            dk = b.new_context(color_scheme='dark').new_page()
+            dk.goto(app); dk.wait_for_selector('text=Create account')
+            at_gate = theme(dk)
+            dk.click('button:has-text("Use without an account")'); dk.wait_for_selector('text=Welcome to Horizon', timeout=30000)
+            dk.click('button:has-text("explore an example plan")'); dk.wait_for_selector('nav'); dk.wait_for_timeout(800)
+            in_app = theme(dk)
+            dk.emulate_media(color_scheme='light'); dk.wait_for_timeout(800)
+            step('the Auto theme follows the device', at_gate == 'dark' and in_app == 'dark' and theme(dk) == 'light' and theme(a) == 'light',
+                 f'dark device: {at_gate} at sign-in, {in_app} in the app, {theme(dk)} after the device turns light')
 
             # 2. A second device: a wrong password fails, the right one opens the renamed plan.
             c = device()

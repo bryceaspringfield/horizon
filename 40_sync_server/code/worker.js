@@ -15,6 +15,7 @@
 //   POST /password {salt, auth, data, version}        -> {token, version}  (re-sealed data; other sessions end)
 //   POST /logout                                      -> {}
 //   POST /delete   {auth}                             -> {}
+//   GET  /admin/stats  (Bearer: the ADMIN_KEY secret)  -> counts only: accounts, and sessions seen lately
 // Ten wrong logins in a row lock a username for 15 minutes.
 
 const ORIGINS = ['https://bryceaspringfield.github.io', 'http://localhost:5173', 'http://localhost:4173', 'http://127.0.0.1:8765'];
@@ -61,12 +62,15 @@ export default {
 };
 
 export class Accounts {
-  constructor(state) {
+  constructor(state, env) {
+    this.env = env;
     this.sql = state.storage.sql;
     this.sql.exec(`CREATE TABLE IF NOT EXISTS users (name TEXT PRIMARY KEY, salt TEXT, auth TEXT, server_salt TEXT,
       data TEXT, version INTEGER, failures INTEGER DEFAULT 0, locked_until INTEGER DEFAULT 0, created INTEGER)`);
     this.sql.exec('CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, name TEXT, expires INTEGER)');
     this.sql.exec('CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT)');
+    // When each session last made a request (to the minute), for the count of people online; added 2026-11-23.
+    try { this.sql.exec('ALTER TABLE sessions ADD COLUMN last_seen INTEGER DEFAULT 0'); } catch { /* the column exists */ }
   }
 
   secret() {
@@ -83,7 +87,7 @@ export class Accounts {
 
   async newSession(name) {
     const token = random(32);
-    this.sql.exec('INSERT INTO sessions (token, name, expires) VALUES (?, ?, ?)', await sha256(token), name, Date.now() + SESSION_DAYS * 864e5);
+    this.sql.exec('INSERT INTO sessions (token, name, expires, last_seen) VALUES (?, ?, ?, ?)', await sha256(token), name, Date.now() + SESSION_DAYS * 864e5, Date.now());
     this.sql.exec('DELETE FROM sessions WHERE expires < ?', Date.now());
     return token;
   }
@@ -91,8 +95,10 @@ export class Accounts {
   async session(req) {
     const m = /^Bearer ([0-9a-f]{64})$/.exec(req.headers.get('Authorization') ?? '');
     if (!m) return null;
-    const row = this.sql.exec('SELECT name, expires FROM sessions WHERE token = ?', await sha256(m[1])).toArray()[0];
+    const hash = await sha256(m[1]);
+    const row = this.sql.exec('SELECT name, expires, last_seen FROM sessions WHERE token = ?', hash).toArray()[0];
     if (!row || row.expires < Date.now()) return null;
+    if (Date.now() - (row.last_seen ?? 0) > 60_000) this.sql.exec('UPDATE sessions SET last_seen = ? WHERE token = ?', Date.now(), hash);
     return this.user(row.name) ?? null;
   }
 
@@ -143,6 +149,20 @@ export class Accounts {
       if (r === 'locked') return json({ error: 'Too many wrong passwords. Try again in 15 minutes.' }, 429);
       if (r !== 'ok') return json({ error: 'Wrong username or password.' }, 401);
       return json({ token: await this.newSession(u.name), data: u.data, version: u.version });
+    }
+
+    if (route === 'GET /admin/stats') {
+      const key = /^Bearer (.+)$/.exec(req.headers.get('Authorization') ?? '')?.[1] ?? '';
+      if (!this.env.ADMIN_KEY || !same(await sha256(key), await sha256(this.env.ADMIN_KEY))) return json({ error: 'not found' }, 404);
+      const one = (q, ...a) => Object.values(this.sql.exec(q, ...a).toArray()[0])[0];
+      const now = Date.now();
+      const seen = (ms) => one('SELECT COUNT(DISTINCT name) FROM sessions WHERE last_seen > ?', now - ms);
+      return json({
+        accounts: one('SELECT COUNT(*) FROM users'),
+        accounts_with_saved_plans: one('SELECT COUNT(*) FROM users WHERE data IS NOT NULL'),
+        accounts_created_last_24h: one('SELECT COUNT(*) FROM users WHERE created > ?', now - 864e5),
+        online_last_5_minutes: seen(5 * 6e4), active_last_24_hours: seen(864e5), active_last_30_days: seen(30 * 864e5),
+      });
     }
 
     const u = await this.session(req);

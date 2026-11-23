@@ -7,3 +7,5 @@ node_modules/
 20_tax_rules/input/*medicare*.html
 .wrangler/
 __pycache__/
+# ProjectionLab help-center text (their copyright), captured for the feature comparison: kept on disk, not published.
+99_overall/input/projectionlab/layout/

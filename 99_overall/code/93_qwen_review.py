@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Asks Qwen (the farm's qwen3.8-27b, 131,072-token context) at high reasoning effort and a large answer budget, many
-requests at once, for:
+"""Asks Qwen (the farm's qwen3.8-27b, 131,072-token context) at the highest reasoning effort (xhigh), six streamed
+requests at once (a finished task's file is kept and skipped), for:
   1. errors in each engine file of the app (tax law, finance, and code), each with the exact lines and a fix;
   2. errors in each page file (wrong numbers, broken inputs, misleading labels);
   3. ProjectionLab features Horizon still lacks, from ProjectionLab's changelog (99_overall/input/projectionlab/);
@@ -23,8 +23,9 @@ H = '/home/baspring/projects/independent/horizon'
 SRC = H + '/10_app/code/src'
 PL = H + '/99_overall/input/projectionlab'
 OUT = H + '/99_overall/output/qwen_review'
-EFFORT = 'high'
+EFFORT = 'xhigh'   # the server's efforts: xhigh, medium, low (qwen_farm.effort_name maps 'high' to xhigh)
 BUDGET = 40000
+WORKERS = 6
 
 SYSTEM = ('You are a senior engineer and a US personal-finance and tax expert (CFP, EA) reviewing Horizon, an open-source '
           'retirement and financial planning web app (React and TypeScript) modeled on ProjectionLab. Think carefully and '
@@ -97,11 +98,31 @@ def tasks():
         'value, and effort; skip bank account linking and anything needing a server, since Horizon runs in the browser '
         'only), say for each whether Horizon already has it, and give a concrete design for Horizon (types, engine '
         'steps, and UI).\n\n' + readme + '\n\n' + types + '\n\n=== Requests ===\n' + listing)
+    # ProjectionLab's help center (99_overall/input/projectionlab/layout/help_articles.txt, 179 pages, captured
+    # 2026-11-23 by a headless browser), in parts which fit the context: every feature and setting Horizon lacks.
+    help_path = os.path.join(PL, 'layout', 'help_articles.txt')
+    if os.path.exists(help_path):
+        arts = [x for x in read(help_path).split('\n\n===== ') if '/help/' in x[:120] and '/category/' not in x[:120]]
+        parts, cur = [], ''
+        for x in arts:
+            if len(cur) + len(x) > 230000:
+                parts.append(cur); cur = ''
+            cur += '\n\n===== ' + x
+        parts.append(cur)
+        for i, part in enumerate(parts):
+            out[f'layout_{i + 1}'] = (
+                'Below are Horizon\'s README and types, then part of ProjectionLab\'s help center (each article describes '
+                'a page, panel, setting, or workflow of the ProjectionLab app). Go through the articles one by one. For each, '
+                'list every feature, input, setting, chart, table, or option the article describes which Horizon lacks or '
+                'covers only partly, judged from the README and the types. Give the article, the item, Horizon\'s state '
+                '(missing or partial, and why you think so), and a one-line design. Skip billing, advisors, employers, '
+                'sign-in, non-US countries, and bank linking. End with the 15 most valuable gaps of this part, ranked.\n\n'
+                + readme + '\n\n' + types + '\n\n=== ProjectionLab help center, part ' + str(i + 1) + ' ===' + part)
     return out
 
 
 def run(name, prompt):
-    reply = qwen_farm.ask(prompt, SYSTEM, effort=EFFORT, max_tokens=BUDGET)
+    reply = qwen_farm.ask_stream(prompt, SYSTEM, EFFORT, BUDGET)
     open(os.path.join(OUT, name + '.md'), 'w').write(f'# {name}\n\n{reply}\n')
     return name, len(reply)
 
@@ -109,9 +130,11 @@ def run(name, prompt):
 def main():
     os.makedirs(OUT, exist_ok=True)
     todo = tasks()
-    want = sys.argv[1:] or list(todo)
+    first = ['missing_projectionlab', 'user_requests']
+    want = sys.argv[1:] or first + [n for n in todo if n not in first]
+    want = [n for n in want if not os.path.exists(os.path.join(OUT, n + '.md'))]
     print(len(todo), 'tasks;', len(want), 'asked', flush=True)
-    with cf.ThreadPoolExecutor(12) as ex:
+    with cf.ThreadPoolExecutor(WORKERS) as ex:
         for f in cf.as_completed([ex.submit(run, n, todo[n]) for n in want]):
             name, n = f.result()
             print(name, n, 'chars', flush=True)

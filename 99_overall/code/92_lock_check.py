@@ -46,6 +46,7 @@ def main():
         pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
         errors = []
         pg.on('pageerror', lambda e: errors.append(str(e)))
+        pg.goto(url); pg.click('button:has-text("explore an example plan")'); pg.wait_for_selector('nav')  # the first-run setup: the example plan
         pg.goto(url + 'people'); pg.wait_for_timeout(1500)
         name = pg.locator('main input').first
         name.fill('Secret Plan Zeta'); pg.wait_for_timeout(500)

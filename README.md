@@ -56,3 +56,8 @@ State estate (12 states and DC) and inheritance (5 states) taxes: exemptions fro
 ```
 cd 10_app/code && npm install && npm run dev
 ```
+
+## License
+
+The code is released into the public domain under the Unlicense (`LICENSE`): anyone may use, copy, change, share, and sell it, for any purpose and with no conditions.
+The hosted app has its own Terms of Use (`10_app/code/src/pages/Terms.tsx`), which state that Horizon gives no financial advice.

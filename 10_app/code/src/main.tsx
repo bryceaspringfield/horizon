@@ -1,10 +1,11 @@
 import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import { useStore } from './store';
+import { deviceDark, useStore } from './store';
 import { erase, hasVault, PLAIN_KEY, unlock, unlockRemembered } from './vault';
 import { MODE_KEY, resume, signIn, signUp } from './account';
 import { Icon } from './icons';
+import { Terms, TERMS_DATE, TERMS_KEY } from './pages/Terms';
 import './styles.css';
 
 /** The sign-in screen (an account on Horizon's server, or this device only), the local vault's lock, then the app. */
@@ -17,6 +18,8 @@ function Gate() {
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [agree, setAgree] = useState(false);
+  const [terms, setTerms] = useState(false);
   const enter = async () => {
     await useStore.persist.rehydrate();
     useStore.getState().openMain();
@@ -47,14 +50,26 @@ function Gate() {
   const submitAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (mode === 'signup' && !agree) return setError('Accept the Terms of Use to create an account.');
     if (mode === 'signup' && pw.length < 10) return setError('Use a password of at least 10 characters.');
     if (mode === 'signup' && pw !== pw2) return setError('The passwords differ.');
     setBusy(true);
     const err = mode === 'signin' ? await signIn(user, pw, remember) : await signUp(user, pw, remember, localStorage.getItem(PLAIN_KEY));
     setBusy(false);
-    if (err) setError(err);
-    else await enter();
+    if (err) return setError(err);
+    if (mode === 'signup') localStorage.setItem(TERMS_KEY, TERMS_DATE);
+    await enter();
   };
+  const termsLink = <button type="button" className="link" onClick={() => setTerms(true)}>Terms of Use</button>;
+  if (terms) return (
+    <div className="login">
+      <div className="card termscard">
+        <div className="brand"><div className="logo"><Icon name="lock" size={16} /></div>Horizon: Terms of Use</div>
+        <Terms />
+        <button type="button" onClick={() => setTerms(false)}>Back</button>
+      </div>
+    </div>
+  );
   if (state === 'account') return (
     <div className="login">
       <form onSubmit={submitAccount} className="card">
@@ -68,9 +83,11 @@ function Gate() {
         <label className="field"><span>Password</span><div className="input"><input name="password" type="password" autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} value={pw} onChange={(e) => setPw(e.target.value)} /></div></label>
         {mode === 'signup' && <label className="field"><span>Password again</span><div className="input"><input name="password2" type="password" autoComplete="new-password" value={pw2} onChange={(e) => setPw2(e.target.value)} /></div></label>}
         <label className="check"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />Stay signed in on this device</label>
+        {mode === 'signup' && <label className="check"><input type="checkbox" name="agree" checked={agree} onChange={(e) => setAgree(e.target.checked)} /><span>I have read and accept the {termsLink}. Horizon gives no financial, investment, tax, or legal advice.</span></label>}
         {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={busy || !user || !pw}>{busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : 'Create account'}</button>
+        <button type="submit" disabled={busy || !user || !pw || (mode === 'signup' && !agree)}>{busy ? 'One moment…' : mode === 'signin' ? 'Sign in' : 'Create account'}</button>
         <button type="button" className="ghost" onClick={local}>Use without an account, on this device only</button>
+        <p className="muted small">Horizon is an educational calculator, and it gives no financial advice. Using it, with or without an account, means you accept the {termsLink}.</p>
       </form>
     </div>
   );
@@ -90,4 +107,6 @@ function Gate() {
   );
 }
 
+// Before the plans load, the sign-in screen follows the device's light or dark setting.
+document.documentElement.dataset.theme = deviceDark() ? 'dark' : 'light';
 createRoot(document.getElementById('root')!).render(<StrictMode><Gate /></StrictMode>);

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage, TaxHealthPage, EventsPage } from './pages/Editors';
+import { TermsPage } from './pages/Terms';
+import { Setup } from './pages/Setup';
 import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { ReportPage } from './pages/Report';
 import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
-import { useActivePlan, useStore } from './store';
+import { useActivePlan, useDark, useStore } from './store';
 import { Card, Check, Select } from './ui';
 import { examplePlan } from './engine/defaults';
 import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
@@ -112,6 +114,7 @@ const PAGES = {
   table: ['Year table', TablePage],
   report: ['Plan report', ReportPage],
   settings: ['Settings and data', SettingsPage],
+  terms: ['Terms of Use', TermsPage],
 } as const;
 type PageKey = keyof typeof PAGES;
 
@@ -136,14 +139,14 @@ const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
   ['Your plan', ['people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
   ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table', 'report']],
-  ['Tracking', ['progress', 'settings']],
+  ['Tracking', ['progress', 'settings', 'terms']],
 ];
 
 export default function App() {
   const [page, setPage] = useState<PageKey>(pageFromUrl);
-  const theme = useStore((s) => s.settings.theme);
+  const dark = useDark();
   const sync = useSync();
-  useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
+  useEffect(() => { document.documentElement.dataset.theme = dark ? 'dark' : 'light'; }, [dark]);
   // Addresses are paths under the app's base (/horizon/taxes); an old #taxes link is turned into its path.
   useEffect(() => {
     const want = BASE + (page === 'dashboard' ? '' : page);
@@ -163,12 +166,13 @@ export default function App() {
     history.pushState(null, '', BASE + (k === 'dashboard' ? '' : k));
     setPage(k); setMenu(false); window.scrollTo(0, 0);
   };
+  if (!settings.setupDone) return <Setup />;
   return (
     <div className={'app' + (menu ? ' menu-open' : '')}>
       <div className="mobilebar">
         <button className="ghost icon" aria-label="Menu" onClick={() => setMenu(!menu)}><Icon name="menu" /></button>
         <div className="brand"><div className="logo"><Icon name="trend" size={15} /></div>Horizon</div>
-        <span className="pill" onClick={() => setSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}><Icon name={settings.theme === 'dark' ? 'sun' : 'moon'} size={15} /></span>
+        <span className="pill" onClick={() => setSettings({ theme: dark ? 'light' : 'dark' })}><Icon name={dark ? 'sun' : 'moon'} size={15} /></span>
       </div>
       <div className="scrim" onClick={() => setMenu(false)} />
       <nav>
@@ -202,8 +206,8 @@ export default function App() {
             </> : <span className="pill" onClick={() => (hasVault() ? lock() : go('settings'))} title={hasVault() ? 'Lock the app now' : 'Protect your plans with a password'}>
               <Icon name="lock" size={15} />{hasVault() ? 'Lock' : 'Set a password'}
             </span>}
-            <span className="pill" onClick={() => setSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
-              <Icon name={settings.theme === 'dark' ? 'sun' : 'moon'} size={15} />
+            <span className="pill" onClick={() => setSettings({ theme: dark ? 'light' : 'dark' })}>
+              <Icon name={dark ? 'sun' : 'moon'} size={15} />
             </span>
           </div>
         </div>
@@ -282,7 +286,7 @@ function SettingsPage() {
       <Card title="Display">
         <div className="grid">
           <Check label="Show amounts in today's dollars" value={settings.realDollars} onChange={(v) => setSettings({ realDollars: v })} />
-          <Select label="Theme" value={settings.theme} options={[['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />
+          <Select label="Theme" value={settings.theme} options={[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />
         </div>
       </Card>
       <AccountCard />
@@ -293,11 +297,9 @@ function SettingsPage() {
           <button onClick={() => exportAll(true)}>Export encrypted backup</button>
           <button className="ghost" onClick={() => exportAll(false)}>Export unencrypted</button>
           <label className="button">Import<input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importAll(e.target.files[0])} /></label>
+          <button className="ghost" onClick={() => { if (confirm('Run the setup again? The plan it builds replaces every plan here. Export a backup first to keep them.')) setSettings({ setupDone: false }); }}>Run the setup again</button>
           <button className="danger" onClick={() => { if (confirm('Replace every plan and snapshot with the example plan?')) useStore.getState().importAll({ plans: [examplePlan()], snapshots: [], settings }); }}>Reset</button>
         </div>
-      </Card>
-      <Card title="What the model covers">
-        <p className="muted">Federal tax with the 2026 and 2027 IRS tables (indexed by inflation after 2027): brackets, standard or itemized deductions (mortgage interest, charity, and state and property taxes under the SALT cap), long-term gains and qualified dividends stacked on ordinary income, the 3.8% net investment income tax, FICA with the wage base and Additional Medicare Tax, and the taxable part of Social Security. State tax with 2026 brackets for every state and DC. Retirement accounts with each year's 401(k), IRA, and HSA limits and catch-ups, one 401(k) limit a person, RMDs at 73 or 75, the 10% early withdrawal penalty, Roth conversions, and 0% gain harvesting. Social Security with claiming adjustments, spousal and survivor benefits. Medicare premiums with IRMAA, and ACA premiums with the premium tax credit. Not modeled: tax credits, the AMT, local income taxes, and state taxes on capital gains alone.</p>
       </Card>
     </>
   );

@@ -1,5 +1,6 @@
 // Everything the app keeps, in the browser's local storage only: plans, net-worth snapshots, and settings. Export and
 // import move it as one JSON file.
+import { useSyncExternalStore } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { vaultStorage } from './vault';
@@ -24,10 +25,13 @@ export interface Snapshot {
 
 export interface Settings {
   realDollars: boolean;
-  theme: 'light' | 'dark';
+  /** 'auto' follows the device's light or dark setting. */
+  theme: 'auto' | 'light' | 'dark';
   mcTrials: number;
   mcMethod: 'normal' | 'historicalBlocks' | 'backtest';
   dismissedLockTip?: boolean;
+  /** Set once the first-run setup (pages/Setup.tsx) built a plan or the user chose the example plan. */
+  setupDone?: boolean;
   /** The plan the app opens on and other plans compare against. */
   mainPlanId?: string;
   /** Net worth charts count real assets (a home net of its mortgage). */
@@ -63,7 +67,7 @@ export const useStore = create<AppState>()(
       activeId: first.id,
       compareIds: [],
       snapshots: [],
-      settings: { realDollars: true, theme: 'light', mcTrials: 1000, mcMethod: 'normal' },
+      settings: { realDollars: true, theme: 'auto', mcTrials: 1000, mcMethod: 'normal' },
       update: (fn) =>
         set((st) => {
           let plans = st.plans.map((p) => {
@@ -103,18 +107,34 @@ export const useStore = create<AppState>()(
       setSettings: (s) => set((st) => ({ settings: { ...st.settings, ...s } })),
       setMain: (id) => set((st) => ({ settings: { ...st.settings, mainPlanId: id } })),
       openMain: () => set((st) => (st.plans.some((p) => p.id === st.settings.mainPlanId) ? { activeId: st.settings.mainPlanId! } : {})),
-      importAll: (data) => set({ plans: data.plans.map(upgradePlan), snapshots: data.snapshots ?? [], settings: data.settings ?? get().settings, activeId: data.plans[0].id }),
+      importAll: (data) => set({ plans: data.plans.map(upgradePlan), snapshots: data.snapshots ?? [], settings: { ...(data.settings ?? get().settings), setupDone: true }, activeId: data.plans[0].id }),
     }),
     // The state is read only after the login screen (main.tsx) unlocks a vault, or at once when there is none.
     {
-      name: 'horizon-v1', storage: createJSONStorage(() => appStorage), skipHydration: true, version: 2,
-      migrate: (state) => {
-        const s = state as { plans?: Plan[] };
+      name: 'horizon-v1', storage: createJSONStorage(() => appStorage), skipHydration: true, version: 3,
+      migrate: (state, version) => {
+        const s = state as { plans?: Plan[]; settings?: { theme?: string; setupDone?: boolean } };
         s.plans?.forEach(upgradePlan);
+        // Auto became the default theme in version 3: Light, the old default, becomes Auto; a chosen Dark stays.
+        if (version < 3 && s.settings?.theme === 'light') s.settings.theme = 'auto';
+        // The first-run setup came with version 3: plans stored before it are the user's own already.
+        if (version < 3 && s.settings) s.settings.setupDone = true;
         return s as AppState;
       },
     },
   ),
 );
+
+const darkQuery = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+/** Whether the device asks for a dark look. */
+export const deviceDark = () => darkQuery?.matches ?? false;
+/** Whether the app shows dark now: the chosen theme, or the device's setting under Auto (followed live). */
+export function useDark(): boolean {
+  const theme = useStore((s) => s.settings.theme);
+  const device = useSyncExternalStore(
+    (f) => { darkQuery?.addEventListener('change', f); return () => darkQuery?.removeEventListener('change', f); },
+    deviceDark, () => false);
+  return theme === 'auto' ? device : theme === 'dark';
+}
 
 export const useActivePlan = () => useStore((st) => st.plans.find((p) => p.id === st.activeId) ?? st.plans[0]);

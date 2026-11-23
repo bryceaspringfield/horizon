@@ -1,7 +1,7 @@
 // Small building blocks shared by every page: money and percent formatting, labeled inputs, cards, and a chart.
 import ReactECharts from 'echarts-for-react';
 import type { ReactNode } from 'react';
-import { useStore } from './store';
+import { useDark } from './store';
 import { Icon } from './icons';
 
 export const money = (v: number, compact = false) =>
@@ -117,7 +117,7 @@ export const PALETTE = ['#5b5bf0', '#14b8a6', '#f59e0b', '#a855f7', '#f43f5e', '
 
 /** An ECharts chart with the app's look: muted axes, dashed grid lines, rounded tooltips, and the app palette. */
 export function Chart({ option, height = 360 }: { option: Record<string, unknown>; height?: number }) {
-  const dark = useStore((s) => s.settings.theme === 'dark');
+  const dark = useDark();
   const muted = dark ? '#959bb4' : '#6b7185', line = dark ? '#262d48' : '#e7e9f2';
   const axis = (ax: unknown) => {
     const style = (x: Record<string, unknown>) => ({
