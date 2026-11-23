@@ -1012,6 +1012,11 @@ export function AssumptionsPage() {
   return (
     <>
     <CurrencyCard />
+    <Card title="Tax country">
+      <div className="grid">
+        <Select label="Taxes follow" value={a.taxCountry ?? 'US'} options={[['US', 'United States (federal and state)'], ['UK', 'United Kingdom (England, Wales, Northern Ireland)']]} onChange={(v) => update((p) => { p.assumptions.taxCountry = v === 'US' ? undefined : v; })} />
+      </div>
+    </Card>
     <ExpatCard />
     <Card title="Metrics">
         <div className="grid">

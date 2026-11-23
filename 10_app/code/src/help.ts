@@ -304,4 +304,5 @@ export const HELP: Record<string, string> = {
   "Deductible": "What you pay in full each year before the plan starts sharing costs.",
   "Coinsurance after the deductible": "Your share of bills after the deductible: 20% for a typical plan.",
   "Out-of-pocket maximum": "The most you pay in a year for covered care; the plan pays everything above it.",
+  "Taxes follow": "The country whose income tax, social insurance, and capital gains tax apply. The UK uses HMRC's 2026 to 2027 bands, allowances, and National Insurance, with each person taxed on their own share.",
 };

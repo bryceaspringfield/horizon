@@ -817,7 +817,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
-        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread,
+        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread, country: a.taxCountry,
         saverContributions: alive.map((p) => (deferredBy[p.id] ?? 0) + (p.id === firstWorker?.id ? iraIn + rothIn : 0)) });
     }
     let harvested = 0;
