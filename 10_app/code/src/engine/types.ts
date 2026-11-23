@@ -237,6 +237,9 @@ export interface Estate {
   /** Federal estate tax exemption a person, 2026 ($15,000,000 under the 2025 act, indexed after); the excess is taxed
    * at 40%. */
   exemption: number;
+  /** Who inherits, for state inheritance taxes (children and grandchildren, siblings, or others), and how many. */
+  heirs?: 'children' | 'siblings' | 'others';
+  heirCount?: number;
 }
 
 export interface Plan {

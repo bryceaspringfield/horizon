@@ -19,14 +19,17 @@ export function EstatePage() {
       <div className="stats">
         <Stat icon="coins" label={`Estate in ${l.year}`} value={money(l.grossEstate, true)} sub="future dollars" />
         <Stat icon="taxes" label="Federal estate tax" value={money(l.estateTax, true)} sub="40% above the exemption" />
+        <Stat icon="taxes" label={`${l.state} estate and inheritance tax`} value={money(l.stateEstateTax + l.stateInheritanceTax, true)} sub={l.stateEstateTax + l.stateInheritanceTax > 0 ? `${money(l.stateEstateTax, true)} estate, ${money(l.stateInheritanceTax, true)} inheritance` : 'none in this state'} />
         <Stat icon="taxes" label="Heirs' income tax" value={money(l.heirsIncomeTax, true)} sub="on inherited traditional accounts and HSAs" />
         <Stat icon="flag" label="Net legacy" value={money(l.netLegacy, true)} sub={`${money(l.netLegacyReal, true)} in today's dollars`} tone="good" />
       </div>
       <Card title="Estate assumptions">
         <div className="grid">
           <Num label="Heirs' income tax rate" percent value={e.heirsTaxRate} onChange={(v) => update((p) => { p.estate = { ...e, heirsTaxRate: v }; })} />
+          <Select label="Heirs are" value={e.heirs ?? 'children'} options={[['children', 'Children or grandchildren'], ['siblings', 'Siblings'], ['others', 'Others (nieces, friends)']]} onChange={(v) => update((p) => { p.estate = { ...e, heirs: v }; })} />
+          <Num label="Number of heirs" value={e.heirCount ?? 2} onChange={(v) => update((p) => { p.estate = { ...e, heirCount: Math.max(1, v) }; })} />
         </div>
-        <p className="muted">The federal estate tax exemption is $15,000,000 a person in 2026 and $15,480,000 in 2027 (IRS), indexed by inflation after; a married couple gets two through portability. State estate and inheritance taxes are not modeled. Heirs must empty an inherited traditional IRA within ten years and pay income tax on it; taxable accounts and real estate pass with a stepped-up basis and Roth accounts pass tax-free.</p>
+        <p className="muted">The federal estate tax exemption is $15,000,000 a person in 2026 and $15,480,000 in 2027 (IRS), indexed by inflation after; a married couple gets two through portability. State estate taxes (12 states and DC) and inheritance taxes (5 states) use the Tax Foundation's table of October 1, 2026, for the state of residence at the last death; between each state's lowest and top rates the rate is taken to rise evenly, an approximation of its own brackets, and New York's cliff applies. Heirs must empty an inherited traditional IRA within ten years and pay income tax on it; taxable accounts and real estate pass with a stepped-up basis and Roth accounts pass tax-free.</p>
       </Card>
       <Card title="Estate tax if the estate passed in each year (future dollars)">
         <Chart height={280} option={{ tooltip: moneyTooltip, grid: { left: 70, right: 16, top: 20, bottom: 30 },

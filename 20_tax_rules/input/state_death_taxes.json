@@ -1,0 +1,25 @@
+{
+  "_source": "Hand-entered 2026-11-22 from estate-inheritance-taxes.html (Tax Foundation, as of October 1, 2026): each exemption and rate range, which states index exemptions (CT, ME, NY, RI, DC), and where the top rate starts (HI $10M, WA $9M, MN and NY $10.1M). Elsewhere the top rate is taken to start at $10.04M, the top of the old federal state death tax credit table (IRC 2011) the 0.8%-16% states use. Between the exemption and that point the model raises the rate evenly from the lowest to the top rate: an approximation of each state's own brackets. Inheritance tax rates by heir class are each state's statutory class rates (PA 4.5% lineal, 12% siblings, 15% others; NE 1% over $100,000, 11% over $40,000 for collateral relatives, 15% over $25,000 others, siblings in the 1% class; NJ and KY exempt children, siblings at 11% and 4% at the low end, others 15% and 6%; MD exempts children and siblings, others 10%).",
+  "estate": {
+    "CT": {"exemption": 15000000, "low": 0.12, "top": 0.12, "topAt": 0, "indexed": true},
+    "HI": {"exemption": 5490000, "low": 0.10, "top": 0.20, "topAt": 10000000, "portable": true},
+    "IL": {"exemption": 4000000, "low": 0.008, "top": 0.16, "topAt": 10040000},
+    "ME": {"exemption": 7160000, "low": 0.08, "top": 0.12, "topAt": 13160000, "indexed": true},
+    "MD": {"exemption": 5000000, "low": 0.008, "top": 0.16, "topAt": 10040000, "portable": true},
+    "MA": {"exemption": 2000000, "low": 0.008, "top": 0.16, "topAt": 10040000},
+    "MN": {"exemption": 3000000, "low": 0.13, "top": 0.16, "topAt": 10100000},
+    "NY": {"exemption": 7350000, "low": 0.0306, "top": 0.16, "topAt": 10100000, "indexed": true, "cliff": 1.05},
+    "OR": {"exemption": 1000000, "low": 0.10, "top": 0.16, "topAt": 9500000},
+    "RI": {"exemption": 1838056, "low": 0.008, "top": 0.16, "topAt": 10040000, "indexed": true},
+    "VT": {"exemption": 5000000, "low": 0.16, "top": 0.16, "topAt": 0},
+    "WA": {"exemption": 3000000, "low": 0.10, "top": 0.20, "topAt": 9000000},
+    "DC": {"exemption": 4988400, "low": 0.112, "top": 0.16, "topAt": 10040000, "indexed": true}
+  },
+  "inheritance": {
+    "PA": {"children": [0, 0.045], "siblings": [0, 0.12], "others": [0, 0.15]},
+    "NE": {"children": [100000, 0.01], "siblings": [100000, 0.01], "others": [25000, 0.15]},
+    "NJ": {"children": [0, 0], "siblings": [25000, 0.11], "others": [0, 0.15]},
+    "KY": {"children": [0, 0], "siblings": [1000, 0.04], "others": [500, 0.06]},
+    "MD": {"children": [0, 0], "siblings": [0, 0], "others": [1000, 0.10]}
+  }
+}

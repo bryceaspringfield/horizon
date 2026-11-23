@@ -18,3 +18,4 @@
 | 20_tax_rules/input/n-26-66.pdf | https://www.irs.gov/pub/irs-drop/n-26-66.pdf | 2027 retirement plan limits: 401(k) $25,500, catch-up $8,500 and $11,750 at 60-63, IRA $7,500 and $1,100, Roth IRA phase-out starts (Notice 2026-66) |
 | 20_tax_rules/input/rp-26-24.pdf | https://www.irs.gov/pub/irs-drop/rp-26-24.pdf | 2027 HSA limits, $4,500 and $9,000 (Rev. Proc. 2026-24) |
 | 20_tax_rules/input/n-25-67.pdf | https://www.irs.gov/pub/irs-drop/n-25-67.pdf | 2026 retirement limits notice: saver's credit income tiers (Notice 2025-67) |
+| 20_tax_rules/input/estate-inheritance-taxes.html | https://taxfoundation.org/data/all/state/estate-inheritance-taxes/ | State estate and inheritance tax exemptions and rate ranges as of October 1, 2026, which states index exemptions, and where the top rates start (Tax Foundation, from Bloomberg Tax and state statutes) |

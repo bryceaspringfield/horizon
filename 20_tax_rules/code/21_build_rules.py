@@ -102,6 +102,10 @@ def main():
     json.dump(years, open(os.path.join(OUT, 'federal.json'), 'w'), indent=1)
     health = json.load(open(os.path.join(IN, 'healthcare.json')))
     json.dump(health, open(os.path.join(OUT, 'healthcare.json'), 'w'), indent=1)
+    death = json.load(open(os.path.join(IN, 'state_death_taxes.json')))
+    for code, e in death['estate'].items():
+        assert 0 <= e['low'] <= e['top'] <= 0.2 and e['exemption'] > 0, code
+    json.dump(death, open(os.path.join(OUT, 'state_death_taxes.json'), 'w'), indent=1)
     print('federal years:', ' '.join(years))
     st = states()
     json.dump(st, open(os.path.join(OUT, 'states.json'), 'w'), indent=1, sort_keys=True)

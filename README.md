@@ -44,7 +44,7 @@ every historical start year), a crash stress test, FIRE metrics (lean, regular, 
 after estate tax and heirs' income tax, plan comparison, a plot builder, progress tracking with CSV import, and a year
 table with CSV export.
 
-Not modeled: state estate and inheritance taxes, and non-US tax systems (both in `todo.md`).
+State estate (12 states and DC) and inheritance (5 states) taxes come from the Tax Foundation table of October 1, 2026, with the rate between each state's lowest and top rates taken to rise evenly. Not modeled: non-US tax systems (in `todo.md`).
 
 ## Run it locally
 
