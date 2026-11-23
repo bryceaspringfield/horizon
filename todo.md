@@ -23,7 +23,7 @@ Asked by Bryce on 2026-11-23, in the order to build.
 
 ## Statements, flows, and savings (Bryce, 2026-11-23)
 - Statement spending: how each category compares to the plan and where it can be cut.
-- Flows: automatic transfers between accounts on a schedule, employer matches, and provider IRA matches (Robinhood, Webull) with their clawback if the money leaves within a holding period (Robinhood: 5 years).
+- Flows: confirm automatic transfers on a schedule cover every case (provider IRA matches with clawback are in, committed with shared memberships).
 
 ## Pay and benefits follow-ups (Bryce, 2026-11-23)
 
