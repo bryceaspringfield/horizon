@@ -288,4 +288,9 @@ export const HELP: Record<string, string> = {
   "Base withdrawal rate": "The part of the CAPE rule's withdrawal rate paid whatever stocks cost: 1.75% in Early Retirement Now's version.",
   "Weight on the earnings yield": "How much of the earnings yield (1 over CAPE) adds to the withdrawal rate: 0.5 in Early Retirement Now's version.",
   "Credit limit (a HELOC or credit line)": "The most this line of credit lends, in today's dollars. When the other accounts run dry, the plan borrows here before falling short; the loan then accrues interest and is paid down by the payment.",
+  "Option type": "Non-qualified options (NSOs) are taxed as wages on the spread at exercise; incentive options (ISOs) are taxed as capital gains when the shares are sold.",
+  "Shares": "The number of shares the options buy.",
+  "Strike price": "The price a share costs under the option.",
+  "Share price today": "What one share trades or is valued at now.",
+  "Share price growth a year": "How fast the share price grows until the exercise year, which is the income's start year.",
 };

@@ -128,7 +128,7 @@ export interface Step {
   nominal?: boolean;
 }
 
-export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu' | 'bonus' | 'accountBonus' | 'settlement';
+export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu' | 'bonus' | 'accountBonus' | 'settlement' | 'options';
 
 export interface PayDeduction {
   name: string;
@@ -184,6 +184,10 @@ export interface Income {
   /** RSUs: the grant vests in equal parts over these years from startYear; vested shares are taxed as wages and kept
    * in the taxable account (their value is the basis). */
   vestYears?: number;
+  /** Stock options, exercised and held in startYear: the type, shares, strike, and the share price today with its growth a
+   * year. NSOs: the spread is wages, the shares' basis their value; ISOs: the shares' basis is 0, the gain taxed on sale
+   * (the AMT on an ISO spread is not modeled). */
+  options?: { type: 'nso' | 'iso'; shares: number; strike: number; price: number; growth: number };
   /** RSUs: nothing vests during these first years; the parts held back then vest together (a one-year cliff: 1). */
   vestCliffYears?: number;
   /** Salary: a yearly bonus as a share of the salary, paid and taxed with it. */

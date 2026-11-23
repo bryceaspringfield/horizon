@@ -401,6 +401,16 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
             match += m;
           }
         }
+      } else if (inc.kind === 'options') {
+        const o = inc.options;
+        if (o && y === inc.startYear) {
+          const spread = Math.max(0, o.shares * (o.price * Math.pow(1 + o.growth, y - plan.startYear) - o.strike));
+          income[inc.id] = spread;
+          untaxedIncome -= spread;
+          state.balance[taxableAcc.id] += spread;
+          if (o.type === 'nso') { wages += spread; state.basis[taxableAcc.id] += spread; }
+          contributions[taxableAcc.id] = (contributions[taxableAcc.id] ?? 0) + spread;
+        }
       } else if (inc.kind === 'rsu') {
         // The grant's value vests in equal parts; vested shares are wages but stay invested, not cash.
         // Equal parts a year; with a cliff, nothing vests in the first years and the parts held back vest together.

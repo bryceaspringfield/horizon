@@ -22,7 +22,7 @@ const ACCOUNT_KINDS: [AccountKind, string][] = [
   ['roth', 'Roth 401(k) / IRA'], ['hsa', 'HSA'], ['college529', '529 college savings'], ['asset', 'Asset (home, car)'], ['debt', 'Debt (mortgage, loan)'],
 ];
 const INCOME_KINDS: [IncomeKind | 'socialSecurity' | 'ssdi', string][] = [
-  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['bonus', 'Bonus (taxed as wages)'], ['socialSecurity', 'Social Security (retirement)'], ['ssdi', 'Social Security disability (SSDI)'], ['accountBonus', 'Account or referral bonus (one-time)'], ['settlement', 'Settlement payout (one-time)'], ['other', 'Other'],
+  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['options', 'Stock options (exercised and held)'], ['rsu', 'RSU grant (total value)'], ['bonus', 'Bonus (taxed as wages)'], ['socialSecurity', 'Social Security (retirement)'], ['ssdi', 'Social Security disability (SSDI)'], ['accountBonus', 'Account or referral bonus (one-time)'], ['settlement', 'Settlement payout (one-time)'], ['other', 'Other'],
 ];
 const BONUS_SOURCES: [NonNullable<Income['bonusSource']>, string][] = [['card', 'Credit card'], ['bank', 'Bank'], ['brokerage', 'Brokerage'], ['referral', 'Referral']];
 const EXPENSE_KINDS: [ExpenseKind, string][] = [
@@ -463,6 +463,13 @@ export function IncomePage() {
                   <Num label="Employer contribution: SEP IRA or solo 401(k)" percent value={x.employerContributionRate ?? 0} hint="A share of net earnings, at most 20% for a sole owner." onChange={(v) => set((y) => { y.employerContributionRate = Math.min(0.2, v) || undefined; })} />
                 </>}
                 {x.kind !== 'windfall' && <StepsEditor steps={x.steps} nominal={x.nominal} onChange={(st) => set((y) => { y.steps = st; })} />}
+                {x.kind === 'options' && <>
+                  <Select label="Option type" value={x.options?.type ?? 'nso'} options={[['nso', 'Non-qualified (NSO)'], ['iso', 'Incentive (ISO)']]} onChange={(v) => set((y) => { y.options = { ...(y.options ?? { type: 'nso' as const, shares: 0, strike: 0, price: 0, growth: 0.07 }), type: v }; y.endYear = y.startYear; })} />
+                  <Num label="Shares" value={x.options?.shares ?? 0} onChange={(v) => set((y) => { y.options = { ...(y.options ?? { type: 'nso' as const, shares: 0, strike: 0, price: 0, growth: 0.07 }), shares: v }; y.endYear = y.startYear; })} />
+                  <Num label="Strike price" value={x.options?.strike ?? 0} onChange={(v) => set((y) => { y.options = { ...(y.options ?? { type: 'nso' as const, shares: 0, strike: 0, price: 0, growth: 0.07 }), strike: v }; })} />
+                  <Num label="Share price today" value={x.options?.price ?? 0} onChange={(v) => set((y) => { y.options = { ...(y.options ?? { type: 'nso' as const, shares: 0, strike: 0, price: 0, growth: 0.07 }), price: v }; })} />
+                  <Num label="Share price growth a year" percent value={x.options?.growth ?? 0.07} onChange={(v) => set((y) => { y.options = { ...(y.options ?? { type: 'nso' as const, shares: 0, strike: 0, price: 0, growth: 0.07 }), growth: v }; })} />
+                </>}
                 {x.kind === 'rsu' && <Num label="Vests over (years)" value={x.vestYears ?? 4} onChange={(v) => set((y) => { y.vestYears = v; })} />}
                 {x.kind === 'rsu' && <Num label="Cliff (years before the first vesting)" value={x.vestCliffYears ?? 0} hint="With a one-year cliff, nothing vests in the first year and two parts vest in the second." onChange={(v) => set((y) => { y.vestCliffYears = v || undefined; })} />}
                 {x.kind === 'salary' && <>

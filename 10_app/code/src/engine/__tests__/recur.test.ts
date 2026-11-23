@@ -48,3 +48,17 @@ describe('line of credit', () => {
     expect(without - r.shortfall).toBeGreaterThan(90000);
   });
 });
+
+describe('stock options', () => {
+  it('taxes an NSO spread as wages and an ISO spread not at exercise', () => {
+    const run = (type: 'nso' | 'iso') => {
+      const plan = examplePlan();
+      const y0 = plan.startYear;
+      plan.incomes.push({ id: 'opt', name: 'Options', kind: 'options', ownerId: plan.people[0].id, amount: 0, growth: 0, startYear: y0 + 1, endYear: y0 + 1, inflationAdjusted: false, taxable: true, options: { type, shares: 1000, strike: 10, price: 110, growth: 0 } } as any);
+      return simulate(plan).years.find((x) => x.year === y0 + 1)!;
+    };
+    const nso = run('nso'), iso = run('iso');
+    expect(nso.income.opt).toBeCloseTo(100000, -1);
+    expect(nso.taxes.total - iso.taxes.total).toBeGreaterThan(20000);
+  });
+});
