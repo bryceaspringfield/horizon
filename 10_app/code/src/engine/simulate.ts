@@ -206,6 +206,11 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
    * amounts by the share of the year each holds; with indexFrom, the amount stays as entered until that year, then grows
    * with inflation from there. */
   const amountIn = (y: number, index: number, it: { amount: number; growth: number; startYear: number; steps?: Step[]; nominal?: boolean; indexFrom?: number }, inflationAdjusted = true) => {
+    // the common case first: no changes and no frozen stretch, as before (Monte Carlo calls this every year of every trial)
+    if (!it.steps?.length && !it.indexFrom) {
+      if (it.nominal) return it.amount * (inflationAdjusted ? index / indexOf(it.startYear) : 1) * Math.pow(1 + it.growth, y - it.startYear);
+      return it.amount * (inflationAdjusted ? index : 1) * Math.pow(1 + it.growth, y - plan.startYear);
+    }
     const at = (st: Step) => (st.date ? yearOf(st.date) : st.year);
     const value = (amount: number, from: number, nominal: boolean, stepped: boolean) => {
       let infl = inflationAdjusted ? index : 1;

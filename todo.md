@@ -32,3 +32,12 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Statement upload: bank and card statements (CSV, OFX/QFX, PDF) parsed in the browser into a spending log, categorized (with the card categories), deduplicated, and summarized by month and category; how each category compares to the plan and where it can be cut.
 - Flows: automatic transfers between accounts on a schedule, employer matches, and provider IRA matches (Robinhood, Webull) with their clawback if the money leaves within a holding period (Robinhood: 5 years).
 - Shared costs: memberships a household can share (Amazon Prime household, family plans of streaming and phone), with the saving of one shared plan over separate ones.
+
+## Pay and benefits follow-ups (Bryce, 2026-11-23)
+- Social Security COLA from SSA's announcements: the announced rate for each year it is known (2.8% for 2026), the plan's inflation after; refreshed when SSA announces the next (October).
+- Medicare premiums withheld from the Social Security check: the check shown net of Part B (and Part D where withheld), the premiums still counted once.
+
+## Households and prefilled costs (Bryce, 2026-11-23)
+- Households: each with a place and members over time (moves on dates or life events); shared costs scale with household size by an economies-of-scale rule, not per head; costs others pay count as zero for that person; children and pets add their own.
+- Insurance coverage imported or prefilled: premiums, deductible, out-of-pocket maximum, copays, employer HSA money; employer presets (MIT's 2026 benefits first).
+- Prefilled costs: tuition by university and program (College Scorecard), rent by metro (HUD fair market rents, Zillow ZORI), home prices (Zillow ZHVI), essentials by place.

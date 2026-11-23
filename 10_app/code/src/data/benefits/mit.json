@@ -1,0 +1,41 @@
+{
+  "employer": "MIT",
+  "year": 2026,
+  "retrieved": "2026-11-23",
+  "sources": {
+    "premiums": "https://hr.mit.edu/benefits/health/plans/rates",
+    "hsa": "https://hr.mit.edu/benefits/health/hdhp/hsa",
+    "fsa": "https://hr.mit.edu/benefits/fsa/health",
+    "ppo": "https://hr.mit.edu/benefits/health/ppo",
+    "401k": "https://hr.mit.edu/benefits/401k/contributions"
+  },
+  "groups": {
+    "staff": { "label": "Staff, faculty, and postdoctoral associates (paid semimonthly)", "paychecks": 24 },
+    "support": { "label": "Support and service staff (paid weekly)", "paychecks": 52 }
+  },
+  "tiers": [["employee", "Employee"], ["spouse", "Employee + spouse or partner"], ["children", "Employee + child(ren)"], ["family", "Family"]],
+  "medical": {
+    "ppo": {
+      "name": "BCBS PPO+ Health Plan",
+      "premium": {
+        "staff": { "employee": 136.0, "spouse": 328.0, "children": 280.5, "family": 432.0 },
+        "support": { "employee": 59.32, "spouse": 142.87, "children": 124.75, "family": 189.96 }
+      },
+      "deductible": { "employee": 175, "spouse": 350, "children": 350, "family": 350 },
+      "copays": "In network: $0 office visits and $10 specialists at MIT Health; $25 office visits and $40 specialists elsewhere."
+    },
+    "hdhp": {
+      "name": "BCBS High Deductible Health Plan",
+      "premium": {
+        "staff": { "employee": 91.5, "spouse": 238.5, "children": 202.5, "family": 306.0 },
+        "support": { "employee": 39.17, "spouse": 102.34, "children": 89.43, "family": 132.91 }
+      },
+      "deductible": { "employee": 1700, "spouse": 3400, "children": 3400, "family": 3400 },
+      "hsaEmployer": { "employee": 500, "spouse": 1000, "children": 1000, "family": 1000 },
+      "copays": "The deductible applies first; MIT deposits its HSA money once a year."
+    }
+  },
+  "hsaLimit": { "employee": 4400, "family": 8750, "catchUp55": 1000 },
+  "fsa": { "healthMin": 104, "healthMax": 3400, "carryover": 680 },
+  "retirement401k": { "matchRate": 1, "matchLimit": 0.05, "note": "MIT's page states a 5% match on pre-tax and Roth contributions, vested at once; the cap is taken as 5% of pay (confirm in the plan's summary)." }
+}
