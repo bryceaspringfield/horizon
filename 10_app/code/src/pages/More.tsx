@@ -80,7 +80,7 @@ export function PlotPage() {
     { key: 'liq', label: 'Investments', get: (y) => y.liquidNetWorth },
     { key: 'inc', label: 'Income', get: (y) => Object.values(y.income).reduce((t, v) => t + v, 0) },
     { key: 'ss', label: 'Social Security', get: (y) => y.socialSecurity },
-    { key: 'sp', label: 'Spending', get: (y) => y.totalExpenses },
+    { key: 'sp', label: 'Spending', get: (y) => y.spending ?? y.totalExpenses },
     { key: 'tax', label: 'Total taxes', get: (y) => y.taxes.total },
     { key: 'fed', label: 'Federal income tax', get: (y) => y.taxes.federal },
     { key: 'st', label: 'State tax', get: (y) => y.taxes.state },

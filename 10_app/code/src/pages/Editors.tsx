@@ -962,6 +962,8 @@ export function AssumptionsPage() {
         <div className="grid">
           <Select label="Liquid net worth subtracts" value={a.metrics?.liquidDebts ?? 'none'} options={[['none', 'No debts'], ['unsecured', 'Unsecured debts'], ['all', 'All debts, home loans included']]} onChange={(v) => update((p) => { p.assumptions.metrics = { ...p.assumptions.metrics, liquidDebts: v }; })} />
           <Num label="Share of the estate left to charity" percent value={a.metrics?.charityShare ?? 0} onChange={(v) => update((p) => { p.assumptions.metrics = { ...p.assumptions.metrics, charityShare: Math.max(0, Math.min(1, v)) || undefined }; })} />
+          <Select label="Effective tax rate over" value={a.metrics?.taxRateBase ?? 'gross'} options={[['gross', 'Gross income'], ['agi', 'Adjusted gross income'], ['taxable', 'Taxable income']]} onChange={(v) => update((p) => { p.assumptions.metrics = { ...p.assumptions.metrics, taxRateBase: v === 'gross' ? undefined : v }; })} />
+          <Check label="Count taxes as spending" value={!!a.metrics?.spendingWithTaxes} onChange={(v) => update((p) => { p.assumptions.metrics = { ...p.assumptions.metrics, spendingWithTaxes: v || undefined }; })} />
         </div>
       </Card>
     <Card title="By horizon">

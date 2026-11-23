@@ -46,7 +46,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Open ProjectionLab as a guest (Playwright) and record every screen, setting, and chart: tax-bracket optimization, drawdown order, gain harvesting, Roth conversions, flexible spending, tax strategy, estate planning, compare and what-if; build each one Horizon lacks.
 
 ## From ProjectionLab's screens (Bryce's screenshots, 2026-11-23)
-- Metrics settings still open: what counts as spending, and how the effective tax rate is figured.
 - Net worth history: tracked accounts by date with 1M, 3M, YTD, 1Y, 5Y, 10Y, and All ranges, the change since a date, and the composition bar (investable assets, liquid assets, liquid net worth).
 - Rates as curves by age, edited point by point (the horizon bands drawn as a chart).
 - Expense form: amount with a frequency (once, a month, a year), spender, timing, flexibility, and recurrence in one place.

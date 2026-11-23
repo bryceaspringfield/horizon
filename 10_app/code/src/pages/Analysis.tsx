@@ -135,7 +135,7 @@ function IncomeSpendingChart() {
         { name: 'Work and other income', type: 'bar', stack: 'in', barMaxWidth: 14, data: inc((y) => Object.values(y.income).reduce((t, v) => t + v, 0)) },
         { name: 'Social Security', type: 'bar', stack: 'in', data: inc((y) => y.socialSecurity) },
         { name: 'Withdrawals', type: 'bar', stack: 'in', data: inc((y) => Object.values(y.withdrawals).reduce((t, v) => t + v, 0)) },
-        { name: 'Spending', type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2.5 }, data: inc((y) => y.totalExpenses) },
+        { name: 'Spending', type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2.5 }, data: inc((y) => y.spending ?? y.totalExpenses) },
         { name: 'Taxes', type: 'line', smooth: true, symbol: 'none', lineStyle: { width: 2, type: 'dashed' }, data: inc((y) => y.taxes.total) },
       ],
     }} />
@@ -169,7 +169,7 @@ export function CashFlowPage() {
     }>
       <div className="stats">
         <Stat label="Year" value={year} sub={plan.people.map((p) => `${p.name} ${y.ages[p.id]}`).join(', ')} />
-        <Stat label="Spending" value={money(adj(y.totalExpenses, i))} />
+        <Stat label="Spending" value={money(adj(y.spending ?? y.totalExpenses, i))} />
         <Stat label="Taxes" value={money(adj(y.taxes.total, i))} sub={`${pct(y.taxes.effectiveRate)} effective`} />
         <Stat label="Saved" value={money(adj(Object.values(y.contributions).reduce((t, v) => t + v, 0), i))} />
       </div>

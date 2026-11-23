@@ -271,4 +271,6 @@ export const HELP: Record<string, string> = {
   "Until (blank: for good)": "The date they stop paying. Leave it blank if they keep paying for good.",
   "Liquid net worth subtracts": "Which debts come off liquid net worth, the measure used for financial independence and invested-asset milestones: none (cash and investments alone), unsecured debts such as cards and student loans, or every debt including the mortgage on a home.",
   "Share of the estate left to charity": "The share of what is left at the end that goes to charity. It is deducted before estate tax, as the charitable deduction allows, and left out of what heirs receive in net legacy.",
+  "Effective tax rate over": "The income the effective tax rate divides all taxes by: gross income, adjusted gross income, or taxable income after deductions.",
+  "Count taxes as spending": "Adds income, payroll, and property taxes to spending in the spending charts and totals.",
 };

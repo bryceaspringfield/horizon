@@ -385,7 +385,7 @@ export interface LocalTax {
 export interface Assumptions {
   /** How metrics are figured (ProjectionLab's Metrics settings): which debts liquid net worth subtracts (none, the
    * unsecured ones, or all, real-asset loans included), and the share of the estate left to charity in net legacy. */
-  metrics?: { liquidDebts?: 'none' | 'unsecured' | 'all'; charityShare?: number };
+  metrics?: { liquidDebts?: 'none' | 'unsecured' | 'all'; charityShare?: number; taxRateBase?: 'gross' | 'agi' | 'taxable'; spendingWithTaxes?: boolean };
   /** Plan everyone to one age, or to one calendar year, except people who keep their own (Person.ownPlanTo). */
   planTo?: { mode: 'person' | 'age' | 'year'; age?: number; year?: number };
   /** One retirement age for everyone, except people who keep their own (Person.ownRetirementAge). */
@@ -486,6 +486,8 @@ export interface YearResult {
   socialSecurity: number;
   expenses: Record<string, number>;
   totalExpenses: number;
+  /** Spending as the Metrics settings count it: expenses, plus taxes when chosen. */
+  spending?: number;
   contributions: Record<string, number>;
   employerMatch: number;
   withdrawals: Record<string, number>;
