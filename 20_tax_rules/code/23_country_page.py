@@ -12,13 +12,25 @@ import time
 rows = list(csv.DictReader(open('/home/baspring/projects/independent/horizon/20_tax_rules/output/country_order.csv')))
 ok = rows
 by_users = {r['iso2']: i + 1 for i, r in enumerate(sorted([r for r in ok if r['internet_users'] != ''], key=lambda r: -int(r['internet_users'])))}
-# a flag for a two-letter code flagcdn.com holds; a blank of the same width otherwise (Artsakh, Transnistria)
+# a flag for a two-letter code from flagcdn.com; Artsakh's and Transnistria's from Wikimedia Commons (Flag_of_Artsakh.svg,
+# Flag_of_Transnistria_(state).svg), as PNG files kept in the page's own folder
+LOCAL_FLAG = {'X-ART': 'artsakh', 'X-TRN': 'transnistria'}
 flag = lambda c: (f"<img class=f loading=lazy alt='' width=20 height=15 src='https://flagcdn.com/20x15/{c.lower()}.png' srcset='https://flagcdn.com/40x30/{c.lower()}.png 2x'>"
-                  if len(c) == 2 else "<span class=f style='display:inline-block;width:20px;height:15px'></span>")
+                  if len(c) == 2 else f"<img class=f loading=lazy alt='' width=20 height=15 style='object-fit:cover' src='{LOCAL_FLAG[c]}_40.png' srcset='{LOCAL_FLAG[c]}_80.png 2x'>")
 nth = lambda v: '' if v == '' else v + ('th' if v[-2:] in ('11', '12', '13') else {'1': 'st', '2': 'nd', '3': 'rd'}.get(v[-1], 'th'))
+import re, unicodedata
+def norm(t):
+    """Lower case, accents dropped, punctuation as spaces: the form the filter compares in."""
+    t = ''.join(c for c in unicodedata.normalize('NFD', t) if not unicodedata.combining(c)).lower()
+    return re.sub(r'[^a-z0-9]+', ' ', t).strip()
+def keys(r):
+    """Every spelling of a row for the filter: each as typed with spaces and run together ("u s a" and "usa"), joined by bars."""
+    names = [r['country'], r['iso2'] if len(r['iso2']) == 2 else ''] + r['aliases'].split('; ') + r['includes'].split('; ')
+    forms = dict.fromkeys(f for x in names if x for f in (norm(x), norm(x).replace(' ', '')))
+    return '|' + '|'.join(forms) + '|'
 n = lambda v: f'{int(v):,}' if v != '' else ''
 tr = ''.join(
-    f"<tr><td class=r>{r['order']}</td><td class=r data-v='{by_users.get(r['iso2'], 9999)}'>{by_users.get(r['iso2'], '')}</td><td>{flag(r['iso2'])}{html.escape(r['country'])}</td><td>{r['iso2'] if len(r['iso2']) == 2 else ''}</td>"
+    f"<tr data-s='{keys(r)}'><td class=r>{r['order']}</td><td class=r data-v='{by_users.get(r['iso2'], 9999)}'>{by_users.get(r['iso2'], '')}</td><td>{flag(r['iso2'])}{html.escape(r['country'])}</td><td>{r['iso2'] if len(r['iso2']) == 2 else ''}</td>"
     f"<td>{html.escape(r['basis'])}</td><td class=r data-v='{r['internet_users'] or 0}'>{n(r['internet_users'])}</td><td class=r data-v='{r['population'] or 0}'>{n(r['population'])}</td>"
     f"<td class=r data-v='{r['subnational_order'] or 9999}'>{nth(r['subnational_order'])}</td><td class=w>{html.escape('. '.join(x for x in (r['includes'], r['note']) if x))}</td></tr>"
     for r in ok)
@@ -37,14 +49,15 @@ th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;c
 </style></head><body><main>
 <h1>Horizon: the order in which each country's tax system is added</h1>
 <p>A dependency is counted in its host country, where it becomes a choice among the country's states, provinces, and territories.</p>
-<p>Internet users = total population (World Bank indicator SP.POP.TOTL) times individuals using the Internet as a percentage of the population (IT.NET.USER.ZS), each at its newest year with a value. __N__ countries and territories; those with no Internet-use figure come last. Built __DATE__. A click on a column heading sorts by the column.</p>
-<div class="bar"><input id="q" type="search" placeholder="Filter by country"></div>
+<p>Internet users = total population (World Bank indicator SP.POP.TOTL) times individuals using the Internet as a percentage of the population (IT.NET.USER.ZS), each at its newest year with a value. __N__ countries and territories; those with no Internet-use figure come last. Built __DATE__. A click on a column heading sorts by the column. The search box accepts other names and spellings (UK, Holland, Burma, DRC, Türkiye) and the territories counted in a country (Puerto Rico).</p>
+<div class="bar"><input id="q" type="search" placeholder="Find a country, by any name or spelling"></div>
 <div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r title="The order in which the country's state and province taxes are added">Build order for state and province taxes</th><th>Counted in the country, and notes</th></tr></thead><tbody>__ROWS__</tbody></table></div>
 <h2>State and province taxes</h2>
 <p>The column "Build order for state and province taxes" is a place in line, and it is no count of states. The United States is 1st, meaning the taxes of all 50 states, the District of Columbia, and the territories are built before any other country's regional taxes. The large federations follow by Internet users.</p>
 </main><script>
 const tb = document.querySelector('#t tbody'), rows = [...tb.rows];
-document.getElementById('q').addEventListener('input', e => { const v = e.target.value.toLowerCase(); for (const r of rows) r.hidden = !r.cells[2].textContent.toLowerCase().includes(v); });
+const norm = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+document.getElementById('q').addEventListener('input', e => { const v = norm(e.target.value), c = v.replace(/ /g, ''); for (const r of rows) r.hidden = v !== '' && !r.dataset.s.includes(v) && !r.dataset.s.includes(c); });
 const val = (r, i) => { const c = r.cells[i]; return c.dataset.v !== undefined ? +c.dataset.v : (isNaN(+c.textContent) || c.textContent === '' ? c.textContent : +c.textContent); };
 const sortBy = (i, d) => { rows.sort((a, b) => { const x = val(a, i), y = val(b, i); return (x > y ? 1 : x < y ? -1 : 0) * d; }); rows.forEach(r => tb.appendChild(r)); };
 let last = -1, dir = 1;
