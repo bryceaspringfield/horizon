@@ -39,7 +39,7 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 38,SA,Saudi Arabia,Internet users,36973555,36973555,2025,100.0,2024,,,
 39,DZ,Algeria,Internet users,36723375,47435312,2025,77.4,2024,,,
 40,MY,Malaysia,Internet users,35265694,35977838,2025,98.0,2024,,,
-41,MA,Morocco,Internet users,35048862,38430770,2025,91.2,2024,,,Regional choices with settings of their own: Western Sahara
+41,MA,Morocco,Internet users,35048862,38430770,2025,91.2,2024,,,
 42,UZ,Uzbekistan,Internet users,33164856,37053428,2025,89.5,2024,,,
 43,PL,Poland,Internet users,32276694,36435861,2025,88.6,2024,,,
 44,UA,Ukraine,Internet users,32149025,38980376,2025,82.5,2024,,,
@@ -92,10 +92,10 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 91,LY,Libya,Internet users,6112621,7458555,2025,82.0,2024,,,
 92,DK,Denmark,Internet users,6088357,6120900,2025,99.5,2024,Faroe Islands; Greenland,,
 93,TJ,Tajikistan,Internet users,6018285,10786734,2025,55.8,2024,,,
-94,RS,Serbia,Internet users,5742990,6549143,2025,87.7,2024,,,Regional choices with settings of their own: Kosovo
+94,RS,Serbia,Internet users,5742990,6549143,2025,87.7,2024,,,
 95,PY,Paraguay,Internet users,5721133,7013078,2025,81.6,2024,,,
 96,HT,Haiti,Internet users,5698423,11906095,2025,47.9,2024,,,
-97,SO,"Somalia, Fed. Rep.",Internet users,5491573,19654739,2025,27.9,2024,,,Regional choices: Somaliland
+97,SO,"Somalia, Fed. Rep.",Internet users,5491573,19654739,2025,27.9,2024,,,"Regional choices: Puntland, Jubaland, South West State, Galmudug, Hirshabelle, Banadir (Mogadishu), Somaliland, North Eastern State (SSC-Khatumo)"
 98,IE,Ireland,Internet users,5330130,5484367,2025,97.2,2024,,,
 99,BG,Bulgaria,Internet users,5303546,6433302,2025,82.4,2024,,,
 100,FI,Finland,Internet users,5292068,5646436,2025,93.7,2024,,,
@@ -140,7 +140,7 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 139,MK,North Macedonia,Internet users,1695266,1820909,2025,93.1,2025,,,
 140,BH,Bahrain,Internet users,1600366,1600366,2025,100.0,2024,,,
 141,BW,Botswana,Internet users,1472182,2562122,2025,57.5,2024,,,
-142,XK,Kosovo,Internet users,1410405,1576876,2025,89.4,2018,,,"Also a regional choice under Serbia, opening the same settings"
+142,XK,Kosovo,Internet users,1410405,1576876,2025,89.4,2018,,,
 143,GM,"Gambia, The",Internet users,1396775,2822093,2025,49.5,2024,,,
 144,TM,Turkmenistan,Internet users,1370653,7618847,2025,18.0,2016,,,
 145,EE,Estonia,Internet users,1260408,1366475,2025,92.2,2024,,,
@@ -198,4 +198,4 @@ order,iso2,country,basis,internet_users,population,population_year,internet_shar
 197,X-ART,Artsakh,no Internet-use figure: last,,,,,,,,"Also a regional choice under Azerbaijan, opening the same settings; no population or Internet figure held yet"
 198,KP,"Korea, Dem. People's Rep.",no Internet-use figure: last,,26571036,2025,,,,,
 199,X-TRN,Transnistria,no Internet-use figure: last,,,,,,,,"Also a regional choice under Moldova, opening the same settings; no population or Internet figure held yet"
-200,EH,Western Sahara,no Internet-use figure: last,,,,,,,,"Also a regional choice under Morocco, opening the same settings; no population or Internet figure held yet"
+200,EH,Western Sahara,no Internet-use figure: last,,,,,,,,"Regional choices: Tifariti, Bir Lehlou, Agounit, Dougaj, Meharrize, Mijek, Zug (the seven municipalities the Sahrawi government administers; no Moroccan-held area is offered); no population or Internet figure held yet"

@@ -57,7 +57,11 @@ NO_FIGURES = {'EH': 'Western Sahara', 'X-ART': 'Artsakh', 'X-TRN': 'Transnistria
 # first-level districts on both sides of the line, in place of a choice between the Republic of Cyprus and Northern Cyprus.
 # Western Sahara: the seven municipalities of the zone the Sahrawi Arab Democratic Republic holds (the Free Zone, east of the berm), each
 # also the seat of one of its seven military regions; the list is from Wikipedia's Free Zone article and wants an official SADR source.
-REGIONS = {'GE': ['Abkhazia', 'South Ossetia'], 'SO': ['Somaliland'],
+# Somalia: the administrations which levy taxes in fact (Bryce, 2026-11-23): the five federal member states, the Banadir region
+# (Mogadishu), Somaliland (self-declared independent since 1991, with a revenue system of its own), and the North Eastern State
+# (SSC-Khatumo, formed in 2025; its standing wants a check against a current official source).
+REGIONS = {'GE': ['Abkhazia', 'South Ossetia'],
+           'SO': ['Puntland', 'Jubaland', 'South West State', 'Galmudug', 'Hirshabelle', 'Banadir (Mogadishu)', 'Somaliland', 'North Eastern State (SSC-Khatumo)'],
            'EH': ['Tifariti', 'Bir Lehlou', 'Agounit', 'Dougaj', 'Meharrize', 'Mijek', 'Zug (the seven municipalities the Sahrawi government administers; no Moroccan-held area is offered)'],
            'CY': ['Nicosia', 'Limassol', 'Larnaca', 'Paphos', 'Famagusta (these five de facto the Republic of Cyprus)',
                   'Lefkoşa', 'Gazimağusa', 'Girne', 'Güzelyurt', 'İskele', 'Lefke (these six de facto Northern Cyprus)']}

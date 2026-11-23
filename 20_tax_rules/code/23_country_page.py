@@ -42,7 +42,7 @@ th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;c
 <div class="bar"><input id="q" type="search" placeholder="Filter by country"><span class="seg"><button id="adj" class="on">Adjusted order</button><button id="users">By Internet users alone</button></span></div>
 <div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r>Year</th><th class=r>Share online</th><th class=r>Year</th><th class=r title="The order in which the country's state and province taxes are added">States and provinces</th><th>Counted in the country, and notes</th></tr></thead><tbody>__ROWS__</tbody></table></div>
 <h2>States and provinces</h2>
-<p>Within a country, state and province taxes are added in the order of the "States and provinces" column: the United States first, then the large federations by Internet users.</p>
+<p>State taxes and province taxes inside each country are added in the order of the "States and provinces" column. The United States comes first, then the large federations by Internet users.</p>
 </main><script>
 const tb = document.querySelector('#t tbody'), rows = [...tb.rows];
 document.getElementById('q').addEventListener('input', e => { const v = e.target.value.toLowerCase(); for (const r of rows) r.hidden = !r.cells[2].textContent.toLowerCase().includes(v); });
