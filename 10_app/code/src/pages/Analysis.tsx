@@ -10,7 +10,7 @@ import { useStore, type Snapshot } from '../store';
 import { projectPlan, useProjection } from '../useProjection';
 import { Card, Chart, Num, Select, Stat, money, moneyAxis, moneyTooltip, pct } from '../ui';
 import { Icon } from '../icons';
-import { TaxYear } from './More';
+import { NotableEvents, TaxByItem, TaxYear } from './More';
 import { uid } from '../engine/defaults';
 import { fireMetrics } from '../engine/fire';
 
@@ -211,6 +211,8 @@ export function TaxesPage() {
         }} />
       </Card>
       <TaxYear />
+      <TaxByItem />
+      <NotableEvents />
       {proj.years.some((y) => y.taxes.withheld) && <Card title="Tax withheld and tax owed" wide>
         <Chart height={260} option={{
           tooltip: moneyTooltip, legend: {}, grid: { left: 70, right: 16, top: 40, bottom: 30 }, xAxis: { type: 'category', data: proj.years.map((y) => String(y.year)) }, yAxis: moneyAxis,

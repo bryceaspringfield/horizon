@@ -160,3 +160,62 @@ export function TaxYear() {
     </Card>
   );
 }
+
+/** The plan's notable tax events over its life (ProjectionLab's Tax Analytics): penalized withdrawals, RMDs, Roth
+ * conversions, and tax-deferred withdrawals, in future dollars. */
+export function NotableEvents() {
+  const { plan, proj } = useProjection();
+  const trad = new Set(plan.accounts.filter((a) => a.kind === 'traditional').map((a) => a.id));
+  let penalized = 0, rmd = 0, conv = 0, deferred = 0;
+  for (const y of proj.years) {
+    penalized += (y.taxes.penalty ?? 0) / 0.1;
+    rmd += y.rmd ?? 0; conv += y.rothConversion ?? 0;
+    for (const [id, v] of Object.entries(y.withdrawals ?? {})) if (trad.has(id)) deferred += v;
+  }
+  return (
+    <Card title="Notable events over the plan">
+      <div className="stats">
+        <Stat label="Penalized withdrawals" value={money(penalized, true)} sub="taken before 59 1/2, with the 10% penalty" />
+        <Stat label="Required minimum distributions" value={money(rmd, true)} />
+        <Stat label="Roth conversions" value={money(conv, true)} />
+        <Stat label="Tax-deferred withdrawals" value={money(deferred, true)} />
+      </div>
+    </Card>
+  );
+}
+
+/** Each income of a year with its share of tax: ordinary income at the year's average income tax rate on ordinary income,
+ * wages with payroll tax added (an average, not each item's marginal rate). */
+export function TaxByItem() {
+  const { plan, proj } = useProjection();
+  const [year, setYear] = useState(plan.startYear);
+  const y = proj.years.find((q) => q.year === year) ?? proj.years[0];
+  const t = y.taxes;
+  const ordinary = Math.max(1, t.taxableIncome + (t.deduction ?? 0));
+  const incomeRate = (t.federal + t.state + (t.local ?? 0) - t.capitalGains) / ordinary;
+  const wages = plan.incomes.filter((x) => x.kind === 'salary' || x.kind === 'selfEmployment').reduce((s, x) => s + (y.income[x.id] ?? 0), 0);
+  const payroll = wages > 0 ? t.fica / wages : 0;
+  const names = new Map<string, string>([...plan.incomes.map((x) => [x.id, x.name] as [string, string]), ...plan.accounts.map((a) => [a.id, a.name + ' (withdrawal)'] as [string, string])]);
+  const rows = [
+    ...Object.entries(y.income).filter(([, v]) => v > 0).map(([id, v]) => {
+      const inc = plan.incomes.find((x) => x.id === id);
+      const work = inc?.kind === 'salary' || inc?.kind === 'selfEmployment';
+      const rate = inc && !inc.taxable ? 0 : incomeRate + (work ? payroll : 0);
+      return { name: names.get(id) ?? id, gross: v, rate };
+    }),
+    ...Object.entries(y.withdrawals ?? {}).filter(([, v]) => v > 0).map(([id, v]) => {
+      const a = plan.accounts.find((x) => x.id === id);
+      return { name: names.get(id) ?? id, gross: v, rate: a?.kind === 'traditional' ? incomeRate : 0 };
+    }),
+  ].sort((p, q) => q.gross - p.gross);
+  return (
+    <Card title={`Tax by income item, ${year}`} actions={<input type="range" min={plan.startYear} max={proj.years[proj.years.length - 1].year} value={year} onChange={(e) => setYear(Number(e.target.value))} />}>
+      <div className="scroll">
+        <table className="num">
+          <thead><tr><th>Income</th><th>Gross</th><th>Tax</th><th>Net</th><th>Rate</th></tr></thead>
+          <tbody>{rows.map((r, i) => <tr key={i}><td>{r.name}</td><td>{money(r.gross)}</td><td>{money(r.gross * r.rate)}</td><td>{money(r.gross * (1 - r.rate))}</td><td>{pct(r.rate)}</td></tr>)}</tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}

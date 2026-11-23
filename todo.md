@@ -45,8 +45,8 @@ Asked by Bryce on 2026-11-23, in the order to build.
 ## From ProjectionLab's screens (Bryce's screenshots, 2026-11-23)
 
 ## Simplified models to finish (Bryce, 2026-11-23)
-- Ontario's low-income tax reduction; Quebec's other credits (living alone, age, retirement income).
-- Germany: church tax (8% or 9% by state) and the care surcharge for the childless; the allowance for pensions' own expenses.
+- Quebec's other credits (living alone, age, retirement income); Ontario's $575 reduction for each child.
+- Germany: the allowance for pensions' own expenses.
 - Netherlands: box 1 rates and credits from the state pension age; box 2.
 - Spain: every region's own income tax scale and wealth tax allowance in place of the reference scale.
 - UK: the lump sum allowance's £268,275 cap on tax-free pension withdrawals; the April 2027 rise in savings rates.
@@ -54,6 +54,5 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Tax strategy: several targets at once (bracket, IRMAA, ACA, an income ceiling) with constraints, in place of one shield.
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)
-- Estate: heirs' tax rate on tax-deferred accounts, capital gains rate, stepped-up basis, liquidation cost, administrative cost, the final tax return, estate drag, and a breakdown by account.
-- Tax analytics: by income item, gross, tax, net, and effective rate; notable events (penalized distributions, RMDs, Roth conversions, tax-deferred distributions).
+- Estate: the final tax return, and a breakdown of the estate by account.
 
