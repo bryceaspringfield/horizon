@@ -11,6 +11,8 @@ type Mark = { t: number; label: string; kind: 'event' | 'milestone' | 'retire' |
 export function TimelinePage() {
   const { plan, proj } = useProjection();
   const [who, setWho] = useState(plan.people[0]?.id ?? '');
+  const [unit, setUnit] = useState<'weeks' | 'months' | 'years'>('months');
+  const U = unit === 'weeks' ? 52 : unit === 'months' ? 12 : 1, perRow = unit === 'years' ? 10 : U;
   const person = plan.people.find((p) => p.id === who) ?? plan.people[0];
   const now = new Date();
   const today = now.getFullYear() + now.getMonth() / 12;
@@ -24,7 +26,7 @@ export function TimelinePage() {
     ...(proj.depletionYear ? [{ t: proj.depletionYear, label: 'Money runs short', kind: 'short' as const }] : []),
   ].sort((a, b) => a.t - b.t);
   const years = person ? Math.ceil(person.lifeExpectancy) + 1 : 0;
-  const monthOf = (t: number) => Math.floor((t - born) * 12);
+  const monthOf = (t: number) => Math.floor((t - born) * U);
   const byMonth = new Map<number, Mark[]>();
   for (const m of marks) { const k = monthOf(m.t); byMonth.set(k, [...(byMonth.get(k) ?? []), m]); }
   const nowMonth = monthOf(today);
@@ -34,15 +36,16 @@ export function TimelinePage() {
   };
   return (
     <>
-      <Card title="Your life in months" wide>
-        <div className="row"><Select label="Person" value={person?.id ?? ''} options={plan.people.map((p) => [p.id, p.name || 'You'] as [string, string])} onChange={setWho} /></div>
+      <Card title={'Your life in ' + unit} wide>
+        <div className="row"><Select label="Person" value={person?.id ?? ''} options={plan.people.map((p) => [p.id, p.name || 'You'] as [string, string])} onChange={setWho} />
+          <Select label="Count in" value={unit} options={[['weeks', 'Weeks'], ['months', 'Months'], ['years', 'Years']]} onChange={setUnit} /></div>
         <div className="lifewrap">
           <div className="lifegrid" role="img" aria-label="Every month of this person's life">
-            {Array.from({ length: years }, (_, yr) => (
+            {Array.from({ length: Math.ceil((years * U) / perRow) }, (_, yr) => (
               <div key={yr} className="liferow">
-                <span className="lifeage">{yr % 10 === 0 ? yr : ''}</span>
-                {Array.from({ length: 12 }, (_, mo) => {
-                  const k = yr * 12 + mo, here = byMonth.get(k);
+                <span className="lifeage">{unit === 'years' ? yr * 10 : yr % 10 === 0 ? yr : ''}</span>
+                {Array.from({ length: perRow }, (_, mo) => {
+                  const k = yr * perRow + mo, here = byMonth.get(k);
                   const cls = 'lm' + (k < nowMonth ? ' past' : k === nowMonth ? ' now' : '') + (here ? ' mark ' + here[0].kind : '');
                   return <i key={mo} className={cls} title={here ? here.map((h) => h.label).join(', ') : undefined} />;
                 })}
@@ -50,7 +53,7 @@ export function TimelinePage() {
             ))}
           </div>
           <ul className="lifelist">
-            <li><b>Behind you</b><small>{Math.max(0, nowMonth)} months</small></li>
+            <li><b>Behind you</b><small>{Math.max(0, nowMonth)} {unit}</small></li>
             <li className="nowi"><b>Today</b><small>{now.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</small></li>
             {marks.filter((m) => m.t >= today - 1).map((m, i) => (
               <li key={i} className={m.kind}><b>{m.label}</b><small>{ahead(m.t)}</small></li>

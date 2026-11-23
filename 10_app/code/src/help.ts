@@ -310,4 +310,5 @@ export const HELP: Record<string, string> = {
   "Take a quarter of each pension withdrawal tax-free": "Each pension withdrawal is a lump sum a quarter of which is tax-free, the rest taxed as income (an uncrystallised funds pension lump sum).",
   "Forgiveness is tax-free (PSLF)": "Public Service Loan Forgiveness is not income. Forgiveness under an income-driven repayment plan is taxed as income from 2026.",
   "Enable plugins (window.horizonPluginAPI)": "Lets a script in this browser read your accounts and update balances with getAccounts, updateAccountValues, and exportData, passing the key shown here. Keep the key private.",
+  "Count in": "Each square is a week, a month, or a year of the chosen life; past squares are shaded, and the squares of events and milestones are marked.",
 };
