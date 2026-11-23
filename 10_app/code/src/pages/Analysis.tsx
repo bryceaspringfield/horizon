@@ -1,5 +1,6 @@
 // The pages reading the projection: the dashboard, net worth and cash-flow charts, taxes, Monte Carlo, plan
 // comparison, progress against the plan, and the year-by-year table.
+import { MC_METRICS, grade, type McMetric } from '../engine/montecarlo';
 import { useDark } from '../store';
 import { useMemo, useState } from 'react';
 import type { AccountKind, Plan } from '../engine/types';
@@ -237,6 +238,7 @@ export function MonteCarloPage() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const [result, setResult] = useState<MonteCarloResult | null>(null);
+  const [metric, setMetric] = useState<McMetric>('liquid');
   const [busy, setBusy] = useState(false);
   const run = () => {
     setBusy(true);
@@ -256,21 +258,30 @@ export function MonteCarloPage() {
       </Card>
       {result && <>
         <div className="stats">
-          <Stat label="Chance of success" value={pct(result.successRate, 0)} sub={`${result.trials} ${result.method === 'backtest' ? 'start years' : 'trials'}`} tone={result.successRate >= 0.85 ? 'good' : 'bad'} />
+          <Stat label="Chance of success" value={pct(result.successRate, 0)} sub={grade(result.successRate).label + ' · ' + result.trials + (result.method === 'backtest' ? ' start years' : ' trials')} tone={grade(result.successRate).tone === 'bad' ? 'bad' : 'good'} />
           <Stat label="Ending, median (today's $)" value={money(result.endingReal.p50, true)} />
           <Stat label="Ending, bad case (10th pct.)" value={money(result.endingReal.p10, true)} />
           <Stat label="Ending, good case (90th pct.)" value={money(result.endingReal.p90, true)} />
         </div>
-        <Card title="Investments across trials (today's dollars)" wide>
+        <Card title="Outcomes">
+          <div className="budgetbar" role="img" aria-label="Outcomes of the trials">
+            {result.outcomes.filter((o) => o.share > 0).map((o) => <span key={o.key} title={o.label + ': ' + pct(o.share, 0)} style={{ flex: o.share, background: o.success ? (o.key === 'clean' ? '#14b8a6' : '#5eead4') : o.key === 'early' ? '#f43f5e' : o.key === 'mid' ? '#fb923c' : '#f59e0b' }} />)}
+          </div>
+          <ul className="budgetlist">
+            {result.outcomes.map((o) => <li key={o.key}><span>{o.label}</span><b>{pct(o.share, 0)}</b><em>{o.success ? 'success' : 'shortfall'}</em></li>)}
+          </ul>
+        </Card>
+        <div className="row"><Select label="Show" value={metric} options={MC_METRICS} onChange={setMetric} /></div>
+        <Card title={(MC_METRICS.find((m) => m[0] === metric)?.[1] ?? '') + " across trials (today's dollars)"} wide>
           <Chart height={400} option={{
             tooltip: moneyTooltip, legend: { top: 0 }, grid: { left: 70, right: 20, top: 40, bottom: 30 },
-            xAxis: { type: 'category', data: result.bands.map((b) => String(b.year)) }, yAxis: moneyAxis,
+            xAxis: { type: 'category', data: result.metricBands[metric].map((b) => String(b.year)) }, yAxis: moneyAxis,
             series: [
-              { name: '10th', type: 'line', stack: 'b', symbol: 'none', lineStyle: { opacity: 0 }, data: result.bands.map((b) => Math.round(b.p10)) },
-              { name: '10th–90th', type: 'line', stack: 'b', symbol: 'none', lineStyle: { opacity: 0 }, areaStyle: { opacity: 0.15 }, data: result.bands.map((b) => Math.round(b.p90 - b.p10)) },
-              { name: '25th', type: 'line', symbol: 'none', lineStyle: { type: 'dashed' }, data: result.bands.map((b) => Math.round(b.p25)) },
-              { name: 'Median', type: 'line', symbol: 'none', lineStyle: { width: 3 }, data: result.bands.map((b) => Math.round(b.p50)) },
-              { name: '75th', type: 'line', symbol: 'none', lineStyle: { type: 'dashed' }, data: result.bands.map((b) => Math.round(b.p75)) },
+              { name: '10th', type: 'line', stack: 'b', symbol: 'none', lineStyle: { opacity: 0 }, data: result.metricBands[metric].map((b) => Math.round(b.p10)) },
+              { name: '10th–90th', type: 'line', stack: 'b', symbol: 'none', lineStyle: { opacity: 0 }, areaStyle: { opacity: 0.15 }, data: result.metricBands[metric].map((b) => Math.round(b.p90 - b.p10)) },
+              { name: '25th', type: 'line', symbol: 'none', lineStyle: { type: 'dashed' }, data: result.metricBands[metric].map((b) => Math.round(b.p25)) },
+              { name: 'Median', type: 'line', symbol: 'none', lineStyle: { width: 3 }, data: result.metricBands[metric].map((b) => Math.round(b.p50)) },
+              { name: '75th', type: 'line', symbol: 'none', lineStyle: { type: 'dashed' }, data: result.metricBands[metric].map((b) => Math.round(b.p75)) },
             ],
           }} />
         </Card>

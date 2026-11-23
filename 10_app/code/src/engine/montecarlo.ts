@@ -36,6 +36,22 @@ export interface MonteCarloResult {
   endingReal: { p10: number; p50: number; p90: number };
   /** Backtests: each start year's outcome. */
   starts?: { start: number; success: boolean; endingReal: number }[];
+  /** The same percentile bands for other measures, in today's dollars: total net worth, spending, and income. */
+  metricBands: Record<McMetric, Band[]>;
+  /** Each trial's outcome, by kind: lasting with no cuts, lasting only with flexible-spending cuts, or running short
+   * before 70, from 70 to 84, or at 85 or later (the first person's age). Shares of all trials. */
+  outcomes: { key: string; label: string; share: number; success: boolean }[];
+}
+
+export type McMetric = 'liquid' | 'netWorth' | 'expenses' | 'income';
+export const MC_METRICS: [McMetric, string][] = [['liquid', 'Invested assets'], ['netWorth', 'Net worth'], ['expenses', 'Spending'], ['income', 'Income']];
+
+/** The grade of a chance of success (Success Rates): Excellent from 95%, Good from 85%, Fair from 75%, Needs attention
+ * from 50%, else At risk; the cut points can be set. */
+export function grade(rate: number, cuts: number[] = [0.95, 0.85, 0.75, 0.5]): { label: string; tone: 'good' | 'ok' | 'bad' } {
+  const labels = ['Excellent', 'Good', 'Fair', 'Needs attention'];
+  for (let i = 0; i < cuts.length; i++) if (rate >= cuts[i]) return { label: labels[i], tone: i < 2 ? 'good' : 'ok' };
+  return { label: 'At risk', tone: 'bad' };
 }
 
 /** A small seeded generator, so a run repeats exactly. */
@@ -133,7 +149,38 @@ export function runMonteCarlo(plan: Plan, method: Method, trials = 1000, seed = 
     survival.push({ year, share: runs.filter((r) => r.proj.depletionYear === null || r.proj.depletionYear > year).length / runs.length });
   }
   const ending = real.map((r) => r[r.length - 1] ?? 0).sort((x, y) => x - y);
+  // other measures, deflated the same way
+  const measure = (f: (y: (typeof runs)[0]['proj']['years'][0]) => number): Band[] => {
+    const cols = runs.map(({ proj, path }) => { let k = 1; return proj.years.map((y, i) => { const v = f(y) / k; k *= 1 + path.inflation[i]; return v; }); });
+    return Array.from({ length: n }, (_, i) => {
+      const col = cols.map((r) => r[i] ?? 0).sort((x, y) => x - y);
+      return { year: plan.startYear + i, p10: pct(col, 0.1), p25: pct(col, 0.25), p50: pct(col, 0.5), p75: pct(col, 0.75), p90: pct(col, 0.9) };
+    });
+  };
+  const metricBands: Record<McMetric, Band[]> = {
+    liquid: bands,
+    netWorth: measure((y) => y.netWorth),
+    expenses: measure((y) => y.totalExpenses),
+    income: measure((y) => Object.values(y.income).reduce((t, v) => t + v, 0) + y.socialSecurity),
+  };
+  const born = plan.people[0]?.birthYear ?? plan.startYear - 40;
+  const kinds = [
+    { key: 'clean', label: 'Lasts with no spending cuts', success: true },
+    { key: 'cuts', label: 'Lasts with flexible spending cuts', success: true },
+    { key: 'early', label: 'Runs short before 70', success: false },
+    { key: 'mid', label: 'Runs short from 70 to 84', success: false },
+    { key: 'late', label: 'Runs short at 85 or later', success: false },
+  ];
+  const count: Record<string, number> = {};
+  for (const r of runs) {
+    const d = r.proj.depletionYear;
+    const k = d === null ? (r.proj.years.some((y) => (y.flexChange ?? 0) < -1) ? 'cuts' : 'clean') : d - born < 70 ? 'early' : d - born < 85 ? 'mid' : 'late';
+    count[k] = (count[k] ?? 0) + 1;
+  }
+  const outcomes = kinds.map((x) => ({ ...x, share: (count[x.key] ?? 0) / runs.length }));
   return {
+    metricBands,
+    outcomes,
     method,
     trials: runs.length,
     successRate: runs.filter((r) => r.proj.depletionYear === null).length / runs.length,

@@ -7,6 +7,8 @@ import { PlanWarnings } from './pages/Warnings';
 import { BudgetPage } from './pages/Budget';
 import { CardsPage } from './pages/Cards';
 import { SpendingPage } from './pages/Spending';
+import { TimelinePage } from './pages/Timeline';
+import { RentOwnPage } from './pages/RentOwn';
 import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { ReportPage } from './pages/Report';
@@ -187,6 +189,8 @@ const PAGES = {
   compare: ['Compare plans', ComparePage],
   progress: ['Progress', ProgressPage],
   table: ['Year table', TablePage],
+  timeline: ['Life in years', TimelinePage],
+  rentown: ['Rent or buy', RentOwnPage],
   report: ['Plan report', ReportPage],
   settings: ['Settings and data', SettingsPage],
   terms: ['Terms of Use', TermsPage],
@@ -213,7 +217,7 @@ function pageFromUrl(): PageKey {
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
   ['Your plan', ['people', 'accounts', 'income', 'expenses', 'budget', 'spending', 'cards', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
-  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table', 'report']],
+  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table', 'timeline', 'rentown', 'report']],
   ['Tracking', ['progress', 'settings', 'terms']],
 ];
 

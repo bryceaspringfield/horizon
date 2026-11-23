@@ -7,6 +7,8 @@ const paths: Record<string, string> = {
   expenses: 'M2 7h20v12H2zM2 11h20M6 15h4',
   cards: 'M2 6h20v12H2zM2 10h20M6 14h4',
   spending: 'M4 3h16v18l-3-2-2 2-3-2-3 2-2-2-3 2zM8 8h8M8 12h8M8 16h5',
+  timeline: 'M12 2v20M5 6h7M12 11h7M5 16h7',
+  rentown: 'M3 11l9-7 9 7v10H3zM9 21v-6h6v6',
   budget: 'M21 12a9 9 0 1 1-9-9v9zM15 3.5a9 9 0 0 1 5.5 5.5H15z',
   milestones: 'M4 22V4M4 4h12l-2 4 2 4H4',
   strategy: 'M3 3v18h18M7 15l4-4 3 3 5-6',
