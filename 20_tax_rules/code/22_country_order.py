@@ -47,12 +47,12 @@ MERGE = {'AS': 'US', 'GU': 'US', 'MP': 'US', 'PR': 'US', 'VI': 'US',
          'IL': 'PS'}
 RENAME = {'PS': 'Occupied Palestine'}
 # Common English names in place of the World Bank's forms (Bryce, 2026-11-23: "Somalia", "Laos", "Congo Republic", "D.R. Congo").
-# Bryce's choices where two names are in use: Côte d'Ivoire, Timor-Leste, Cabo Verde, Eswatini, Czechia, North Macedonia, and Turkey
+# Bryce's choices where two names are in use: Côte d'Ivoire, Timor-Leste, Cabo Verde, Eswatini, Czechia, North Macedonia, Naoero (not Nauru), and Turkey
 # (not Türkiye); the other name of each stays a search alias.
 COMMON = {'RU': 'Russia', 'EG': 'Egypt', 'VN': 'Vietnam', 'IR': 'Iran', 'TR': 'Turkey', 'KR': 'South Korea', 'KP': 'North Korea', 'CD': 'D.R. Congo',
           'CG': 'Congo Republic', 'VE': 'Venezuela', 'CI': "Côte d'Ivoire", 'SY': 'Syria', 'YE': 'Yemen', 'KG': 'Kyrgyzstan', 'SO': 'Somalia', 'LA': 'Laos',
           'SK': 'Slovakia', 'GM': 'Gambia', 'BN': 'Brunei', 'BS': 'Bahamas', 'ST': 'São Tomé and Príncipe', 'LC': 'Saint Lucia',
-          'VC': 'Saint Vincent and the Grenadines', 'KN': 'Saint Kitts and Nevis', 'FM': 'Micronesia', 'NR': 'Nauru', 'HK': 'Hong Kong', 'MO': 'Macao',
+          'VC': 'Saint Vincent and the Grenadines', 'KN': 'Saint Kitts and Nevis', 'FM': 'Micronesia', 'HK': 'Hong Kong', 'MO': 'Macao',
           'VI': 'U.S. Virgin Islands', 'PR': 'Puerto Rico', 'CW': 'Curaçao', 'MF': 'Saint Martin', 'SX': 'Sint Maarten', 'PS': 'Palestine (West Bank and Gaza)'}
 # Other spellings and names a search accepts (the page's filter, and Horizon's country picker); the World Bank's own form and the
 # names of the territories counted in a country are added to each row's list by the script.
@@ -72,7 +72,7 @@ ALIASES = {
     'KG': 'Kyrgyz Republic; Kirghizia', 'DK': 'Danmark', 'IE': 'Éire; Republic of Ireland', 'FI': 'Suomi', 'LA': "Lao; Lao People's Democratic Republic",
     'SK': 'Slovak Republic', 'GE': 'Sakartvelo', 'HR': 'Hrvatska', 'BA': 'Bosnia; Herzegovina; BiH', 'MD': 'Moldavia', 'MK': 'Macedonia; FYROM', 'GM': 'The Gambia',
     'SZ': 'Swaziland', 'TL': 'East Timor', 'BN': 'Brunei Darussalam', 'CV': 'Cape Verde', 'BS': 'The Bahamas', 'ST': 'Sao Tome', 'FM': 'Federated States of Micronesia; FSM',
-    'NR': 'Naoero', 'X-ART': 'Nagorno-Karabakh; Republic of Artsakh; Karabakh', 'X-TRN': 'Pridnestrovie; Transdniestria; PMR',
+    'NR': 'Nauru', 'X-ART': 'Nagorno-Karabakh; Republic of Artsakh; Karabakh', 'X-TRN': 'Pridnestrovie; Transdniestria; PMR',
     'EH': 'Sahrawi Arab Democratic Republic; SADR; Sahrawi Republic', 'XK': 'Kosova', 'GR': 'Hellas; Ellada', 'HU': 'Magyarország', 'LB': 'Liban', 'TN': 'Tunisie',
     'EE': 'Eesti', 'LV': 'Latvija', 'LT': 'Lietuva', 'IS': 'Ísland', 'AL': 'Shqipëria', 'AM': 'Hayastan', 'ME': 'Crna Gora', 'RS': 'Srbija', 'SI': 'Slovenija',
     'CY': 'Kypros; Kibris; Northern Cyprus', 'PG': 'PNG', 'CF': 'CAR', 'TT': 'Trinidad; Tobago', 'AG': 'Antigua; Barbuda', 'KN': 'St Kitts; Saint Christopher and Nevis',
