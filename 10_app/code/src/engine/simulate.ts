@@ -648,7 +648,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     }
     // Flexible spending: the discretionary share of each expense is cut while the portfolio sits under its high by the
     // chosen share, and raised while it sits above where it began by the chosen share (all in today's dollars).
-    let flexChange = 0;
+    let flexChange = 0, notSpending = 0;
     const discretionary = plan.expenses.reduce((t, e) => t + (expenses[e.id] ?? 0) * (e.discretionary ?? 0), 0);
     if (s.flex?.enabled && y >= (s.flex.from ?? -Infinity) && y <= (s.flex.to ?? Infinity)) {
       const realPortfolio = liquid(state, accounts, y, (id) => ages[id]) / index;
@@ -673,9 +673,13 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       if (d.kind !== 'debt' || d.paidInFull || state.balance[d.id] >= 0) continue;
       const owed = -state.balance[d.id] * (1 + (d.interestRate ?? 0));
       const pay = Math.min(owed, (d.payment ?? 0) + (d.extraPayment ?? 0) * index);
+      const principal = Math.max(0, pay - -state.balance[d.id] * (d.interestRate ?? 0));
       state.balance[d.id] = -(owed - pay);
       expenses[d.id] = pay;
       totalExpenses += pay;
+      // what the spending metric leaves out, by the Metrics settings: mortgage payments or their principal, debt principal
+      const sp = a.metrics?.spendingDebts;
+      if (sp) { const home = !!d.securedBy; notSpending += home ? (sp.mortgage === 'none' ? pay : sp.mortgage === 'interest' ? principal : 0) : (sp.debtPrincipal === false ? principal : 0); }
     }
     // Health insurance tied to income: Medicare from 65 (IRMAA on MAGI two years back), and the ACA with its credit
     // for retirees under 65 (on last year's MAGI, the best estimate before the year's own taxes are known).
@@ -1150,7 +1154,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       socialSecurity: ssTotal,
       expenses,
       totalExpenses,
-      spending: a.metrics?.spendingWithTaxes ? totalExpenses + tax.total : totalExpenses,
+      spending: (a.metrics?.spendingWithTaxes ? totalExpenses + tax.total : totalExpenses) - notSpending,
       contributions,
       employerMatch: match,
       withdrawals,
@@ -1185,7 +1189,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         ordinaryTaxable: tax.ordinaryTaxable,
         marginalRate: tax.marginalRate,
         withheld: (() => { let w = 0; for (const x of accounts) { const d = withdrawals[x.id] ?? 0; if (x.kind === 'traditional') w += d * (a.withholdTraditional ?? 0); else if (x.kind === 'taxable') w += d * (a.withholdTaxable ?? 0); } return w || undefined; })(),
-        effectiveRate: ((b) => (b > 0 ? tax.total / b : 0))(a.metrics?.taxRateBase === 'agi' ? tax.agi : a.metrics?.taxRateBase === 'taxable' ? tax.taxableIncome : gross),
+        effectiveRate: ((b) => (b > 0 ? (tax.total - (a.metrics?.rateWithoutLocal ? tax.local ?? 0 : 0) + (a.metrics?.rateWithProperty ? propertyTax : 0)) / b : 0))(a.metrics?.taxRateBase === 'agi' ? tax.agi : a.metrics?.taxRateBase === 'taxable' ? tax.taxableIncome : gross),
       },
       investmentReturn,
       shortfall,

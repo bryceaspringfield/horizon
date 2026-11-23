@@ -334,4 +334,8 @@ export const HELP: Record<string, string> = {
   "Withheld from taxable withdrawals": "The share of each taxable account sale withheld for tax.",
   "Rates follow": "Fixed uses the return and inflation assumptions on this page; history replays each year's actual stock, bond, and cash returns and inflation from a start year, in order.",
   "History from the year": "The first historical year the plan replays: 1966, for instance, starts with the high inflation of the 1970s; 1929 with the Depression.",
+  "Mortgage payments in spending": "Whether spending counts the whole mortgage payment, only its interest (treating principal as saving), or none of it.",
+  "Count consumer debt principal as spending": "Whether paying down cards and loans counts as spending, or only their interest.",
+  "Effective rate includes local income tax": "Count city and county income tax in the effective tax rate.",
+  "Effective rate includes property tax": "Count property tax in the effective tax rate.",
 };

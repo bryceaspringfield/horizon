@@ -56,5 +56,5 @@ Asked by Bryce on 2026-11-23, in the order to build.
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)
 - Estate: heirs' tax rate on tax-deferred accounts, capital gains rate, stepped-up basis, liquidation cost, administrative cost, the final tax return, estate drag, and a breakdown by account.
 - Tax analytics: by income item, gross, tax, net, and effective rate; notable events (penalized distributions, RMDs, Roth conversions, tax-deferred distributions).
-- Metrics: effective rate including return of capital, non-taxable sale proceeds, tax-free withdrawals, local income tax, and property tax; spending including mortgage payments, mortgage principal, consumer debt principal.
+- Metrics: the effective rate's income adding return of capital, non-taxable sale proceeds, and tax-free withdrawals.
 
