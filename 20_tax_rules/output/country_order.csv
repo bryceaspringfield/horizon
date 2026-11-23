@@ -1,0 +1,218 @@
+order,iso2,country,basis,internet_users,population,population_year,internet_share_pct,internet_year
+1,US,United States,"the United States, first",323649075,341784857,2025,94.7,2024
+2,CA,Canada,ProjectionLab: full rules,39299709,41651653,2025,94.4,2024
+3,GB,United Kingdom,ProjectionLab: full rules,66340697,69487000,2025,95.5,2024
+4,AU,Australia,ProjectionLab: full rules,26546120,27614411,2025,96.1,2024
+5,ES,Spain,ProjectionLab: tax estimates,47261227,49355143,2025,95.8,2024
+6,NL,Netherlands,ProjectionLab: tax estimates,17546233,18087633,2025,97.0,2024
+7,DE,Germany,ProjectionLab: preset,78064314,83491249,2025,93.5,2024
+8,CH,Switzerland,ProjectionLab: preset,8848853,9092436,2025,97.3,2025
+9,NO,Norway,ProjectionLab: preset,5554761,5610870,2025,99,2024
+10,BE,Belgium,ProjectionLab: preset,11437335,11941781,2025,95.8,2024
+11,NZ,New Zealand,ProjectionLab: preset,4979622,5324700,2025,93.5,2024
+12,SG,Singapore,ProjectionLab: preset,5767578,6111175,2025,94.4,2024
+13,BR,Brazil,ProjectionLab: preset,179748746,212812405,2025,84.5,2024
+14,CN,China,ProjectionLab: preset,1288431859,1406585000,2025,91.6,2025
+15,HK,"Hong Kong SAR, China",ProjectionLab: preset,7180599,7498900,2025,95.8,2024
+16,IN,India,Internet users,1024705867,1463865525,2025,70,2025
+17,ID,Indonesia,Internet users,207950074,285721236,2025,72.8,2024
+18,PK,Pakistan,Internet users,146120851,255219554,2025,57.3,2024
+19,MX,Mexico,Internet users,109677348,131946900,2025,83.1,2024
+20,JP,Japan,Internet users,105529792,123366734,2025,85.5,2024
+21,NG,Nigeria,Internet users,97888522,237527782,2025,41.2,2024
+22,BD,Bangladesh,Internet users,93854951,175686899,2025,53.4,2024
+23,EG,"Egypt, Arab Rep.",Internet users,88358320,118365995,2025,74.6,2024
+24,VN,Viet Nam,Internet users,85495160,101598527,2025,84.2,2024
+25,IR,"Iran, Islamic Rep.",Internet users,78869619,92417681,2025,85.3,2024
+26,PH,Philippines,Internet users,78554424,116786962,2025,67.3,2024
+27,TR,Turkiye,Internet users,77093385,85878556,2025,89.8,2025
+28,TH,Thailand,Internet users,65078955,71619863,2025,90.9,2024
+29,FR,France,Internet users,60923201,68720337,2025,88.7,2024
+30,IT,Italy,Internet users,52564972,58915656,2025,89.2,2024
+31,ZA,South Africa,Internet users,50734443,64747319,2025,78.4,2024
+32,KR,"Korea, Rep.",Internet users,50596933,51684564,2025,97.9,2024
+33,CO,Colombia,Internet users,42390801,53425635,2025,79.3,2024
+34,AR,Argentina,Internet users,41113624,45851378,2025,89.7,2024
+35,IQ,Iraq,Internet users,38309941,47020774,2025,81.5,2024
+36,SA,Saudi Arabia,Internet users,36973555,36973555,2025,100,2024
+37,DZ,Algeria,Internet users,36723375,47435312,2025,77.4,2024
+38,MY,Malaysia,Internet users,35265694,35977838,2025,98.0,2024
+39,MA,Morocco,Internet users,35048862,38430770,2025,91.2,2024
+40,UZ,Uzbekistan,Internet users,33164856,37053428,2025,89.5,2024
+41,PL,Poland,Internet users,32276694,36435861,2025,88.6,2024
+42,UA,Ukraine,Internet users,32149025,38980376,2025,82.5,2024
+43,ET,Ethiopia,Internet users,29724328,135472051,2025,21.9,2024
+44,PE,Peru,Internet users,28338018,34576665,2025,82.0,2024
+45,GH,Ghana,Internet users,25307882,35064272,2025,72.2,2024
+46,MM,Myanmar,Internet users,24928358,54850648,2025,45.4,2020
+47,CD,"Congo, Dem. Rep.",Internet users,22198096,112832473,2025,19.7,2024
+48,TZ,Tanzania,Internet users,21983572,70545865,2025,31.2,2024
+49,VE,"Venezuela, RB",Internet users,21866442,28516896,2025,76.7,2024
+50,KE,Kenya,Internet users,20122694,57532493,2025,35.0,2024
+51,KZ,Kazakhstan,Internet users,19466330,20843754,2025,93.4,2024
+52,CL,Chile,Internet users,18984146,19859921,2025,95.6,2024
+53,RO,Romania,Internet users,17363697,19020271,2025,91.3,2024
+54,AO,Angola,Internet users,15891169,39040039,2025,40.7,2024
+55,EC,Ecuador,Internet users,14114812,18289896,2025,77.2,2024
+56,CM,Cameroon,Internet users,13821822,29879337,2025,46.3,2024
+57,NP,Nepal,Internet users,13719674,29618118,2025,46.3,2024
+58,CI,Cote d'Ivoire,Internet users,13553113,32711547,2025,41.4,2024
+59,KH,Cambodia,Internet users,12221459,17847982,2025,68.5,2024
+60,LK,Sri Lanka,Internet users,11876600,21756000,2025,54.6,2024
+61,SN,Senegal,Internet users,11381481,18931966,2025,60.1,2024
+62,GT,Guatemala,Internet users,11254103,18687881,2025,60.2,2024
+63,JO,Jordan,Internet users,11016360,11520684,2025,95.6,2024
+64,DO,Dominican Republic,Internet users,10483901,11520487,2025,91.0,2024
+65,SE,Sweden,Internet users,10147990,10596620,2025,95.8,2025
+66,BO,Bolivia,Internet users,10028319,12581843,2025,79.7,2024
+67,SD,Sudan,Internet users,9609159,51662147,2025,18.6,2017
+68,PT,Portugal,Internet users,9560911,10804871,2025,88.5,2024
+69,CZ,Czechia,Internet users,9546459,10886878,2025,87.7,2024
+70,TN,Tunisia,Internet users,9446658,12348573,2025,76.5,2024
+71,AZ,Azerbaijan,Internet users,9304272,10246996,2025,90.8,2025
+72,ML,Mali,Internet users,9273543,25198821,2025,36.8,2024
+73,GR,Greece,Internet users,8984092,10413962,2025,86.3,2024
+74,HU,Hungary,Internet users,8922368,9514251,2025,93.8,2024
+75,SY,Syrian Arab Republic,Internet users,8652018,25620427,2025,33.8,2018
+76,BY,Belarus,Internet users,8564620,9085991,2025,94.3,2024
+77,AT,Austria,Internet users,8464671,9208163,2025,91.9,2025
+78,CU,Cuba,Internet users,7708212,10937203,2025,70.5,2024
+79,MZ,Mozambique,Internet users,7314216,35631653,2025,20.5,2024
+80,YE,"Yemen, Rep.",Internet users,7306668,41773878,2025,17.5,2019
+81,ZW,Zimbabwe,Internet users,7058785,16950795,2025,41.6,2024
+82,AF,Afghanistan,Internet users,7056709,43844111,2025,16.1,2024
+83,BF,Burkina Faso,Internet users,6801719,24074580,2025,28.3,2024
+84,KG,Kyrgyz Republic,Internet users,6757719,7343064,2025,92.0,2024
+85,HN,Honduras,Internet users,6451926,11005850,2025,58.6,2024
+86,MG,Madagascar,Internet users,6115271,32740678,2025,18.7,2024
+87,LY,Libya,Internet users,6112621,7458555,2025,82.0,2024
+88,TJ,Tajikistan,Internet users,6018285,10786734,2025,55.8,2024
+89,DK,Denmark,Internet users,5995296,6009169,2025,99.8,2024
+90,RS,Serbia,Internet users,5742990,6549143,2025,87.7,2024
+91,PY,Paraguay,Internet users,5721133,7013078,2025,81.6,2024
+92,HT,Haiti,Internet users,5698423,11906095,2025,47.9,2024
+93,SO,"Somalia, Fed. Rep.",Internet users,5491573,19654739,2025,27.9,2024
+94,IE,Ireland,Internet users,5330130,5484367,2025,97.2,2024
+95,BG,Bulgaria,Internet users,5303546,6433302,2025,82.4,2024
+96,FI,Finland,Internet users,5292068,5646436,2025,93.7,2024
+97,OM,Oman,Internet users,5233789,5494691,2025,95.3,2024
+98,LA,Lao PDR,Internet users,5164143,7873046,2025,65.6,2024
+99,BJ,Benin,Internet users,5034516,14814460,2025,34.0,2024
+100,GN,Guinea,Internet users,5028918,15099727,2025,33.3,2024
+101,KW,Kuwait,Internet users,4865298,4865298,2025,100,2025
+102,SK,Slovak Republic,Internet users,4862961,5413813,2025,89.8,2024
+103,LB,Lebanon,Internet users,4716622,5849421,2025,80.6,2024
+104,PS,West Bank and Gaza,Internet users,4690212,5413596,2025,86.6,2023
+105,RW,Rwanda,Internet users,4618961,14569341,2025,31.7,2024
+106,UG,Uganda,Internet users,4598861,51384894,2025,8.9,2024
+107,CR,Costa Rica,Internet users,4491836,5152950,2025,87.2,2024
+108,NE,Niger,Internet users,4343344,27917831,2025,15.6,2024
+109,NI,Nicaragua,Internet users,4302290,7007502,2025,61.4,2024
+110,SV,El Salvador,Internet users,4231639,6365503,2025,66.5,2024
+111,MW,Malawi,Internet users,4212531,22216120,2025,19.0,2024
+112,ZM,Zambia,Internet users,3747491,21913874,2025,17.1,2024
+113,TG,Togo,Internet users,3392248,8591626,2025,39.5,2024
+114,PA,Panama,Internet users,3326522,4571189,2025,72.8,2024
+115,GE,Georgia,Internet users,3298115,3935766,2025,83.8,2024
+116,HR,Croatia,Internet users,3241759,3876200,2025,83.6,2024
+117,UY,Uruguay,Internet users,3113611,3384688,2025,92.0,2024
+118,CG,"Congo, Rep.",Internet users,3064000,6484437,2025,47.3,2024
+119,MN,Mongolia,Internet users,3038038,3568978,2025,85.1,2024
+120,QA,Qatar,Internet users,2915309,2972215,2025,98.1,2024
+121,PR,Puerto Rico (US),Internet users,2780099,3184835,2025,87.3,2022
+122,BA,Bosnia and Herzegovina,Internet users,2703650,3140095,2025,86.1,2024
+123,TD,Chad,Internet users,2652116,21003705,2025,12.6,2024
+124,LT,Lithuania,Internet users,2575664,2888774,2025,89.2,2024
+125,JM,Jamaica,Internet users,2556453,2837077,2025,90.1,2024
+126,AM,Armenia,Internet users,2510700,3086700,2025,81.3,2024
+127,MR,Mauritania,Internet users,2433204,5315065,2025,45.8,2024
+128,SL,Sierra Leone,Internet users,2214209,8819794,2025,25.1,2024
+129,PG,Papua New Guinea,Internet users,2024658,10762817,2025,18.8,2024
+130,AL,Albania,Internet users,2017441,2349580,2025,85.9,2024
+131,NA,Namibia,Internet users,2006452,3092816,2025,64.9,2024
+132,SI,Slovenia,Internet users,1934158,2130986,2025,90.8,2024
+133,LR,Liberia,Internet users,1847374,5731206,2025,32.2,2024
+134,MD,Moldova,Internet users,1826311,2360527,2025,77.4,2024
+135,GA,Gabon,Internet users,1782022,2593130,2025,68.7,2024
+136,LV,Latvia,Internet users,1713036,1847785,2025,92.7,2024
+137,MK,North Macedonia,Internet users,1695266,1820909,2025,93.1,2025
+138,BH,Bahrain,Internet users,1600366,1600366,2025,100,2024
+139,BW,Botswana,Internet users,1472182,2562122,2025,57.5,2024
+140,XK,Kosovo,Internet users,1410405,1576876,2025,89.4,2018
+141,GM,"Gambia, The",Internet users,1396775,2822093,2025,49.5,2024
+142,TM,Turkmenistan,Internet users,1370653,7618847,2025,18.0,2016
+143,EE,Estonia,Internet users,1260408,1366475,2025,92.2,2024
+144,BI,Burundi,Internet users,1236964,14390003,2025,8.6,2024
+145,CY,Cyprus,Internet users,1228209,1370754,2025,89.6,2024
+146,GQ,Equatorial Guinea,Internet users,1227013,1938431,2025,63.3,2024
+147,LS,Lesotho,Internet users,1224122,2363325,2025,51.8,2024
+148,TT,Trinidad and Tobago,Internet users,1123753,1367764,2025,82.2,2024
+149,MU,Mauritius,Internet users,911760,1243741,2025,73.3,2024
+150,SS,South Sudan,Internet users,813114,12188788,2025,6.7,2019
+151,SZ,Eswatini,Internet users,796453,1256174,2025,63.4,2024
+152,DJ,Djibouti,Internet users,773188,1184076,2025,65.3,2024
+153,CF,Central African Republic,Internet users,759868,5513282,2025,13.8,2024
+154,BT,Bhutan,Internet users,727190,796682,2025,91.3,2024
+155,FJ,Fiji,Internet users,697114,933154,2025,74.7,2024
+156,GY,Guyana,Internet users,693875,835986,2025,83.0,2024
+157,LU,Luxembourg,Internet users,680986,686970,2025,99.1,2025
+158,GW,Guinea-Bissau,Internet users,669847,2249515,2025,29.8,2024
+159,MO,"Macao SAR, China",Internet users,616119,685900,2025,89.8,2024
+160,SR,Suriname,Internet users,559228,639850,2025,87.4,2023
+161,ME,Montenegro,Internet users,553853,623129,2025,88.9,2024
+162,MT,Malta,Internet users,544111,579704,2025,93.9,2024
+163,ER,Eritrea,Internet users,517583,3607003,2025,14.3,2020
+164,TL,Timor-Leste,Internet users,497076,1418517,2025,35.0,2021
+165,MV,Maldives,Internet users,451495,529676,2025,85.2,2024
+166,BN,Brunei Darussalam,Internet users,449067,466330,2025,96.3,2024
+167,CV,Cabo Verde,Internet users,394098,527326,2025,74.7,2024
+168,IS,Iceland,Internet users,385376,392404,2025,98.2,2024
+169,BS,"Bahamas, The",Internet users,372695,403033,2025,92.5,2024
+170,BZ,Belize,Internet users,338363,422924,2025,80.0,2024
+171,KM,Comoros,Internet users,287079,882847,2025,32.5,2024
+172,SB,Solomon Islands,Internet users,243548,838645,2025,29.0,2024
+173,NC,New Caledonia,Internet users,242190,295333,2025,82.0,2017
+174,PF,French Polynesia,Internet users,205363,282465,2025,72.7,2017
+175,BB,Barbados,Internet users,198866,282623,2025,70.4,2024
+176,ST,Sao Tome and Principe,Internet users,142032,240254,2025,59.1,2024
+177,GU,Guam,Internet users,136053,168999,2025,80.5,2017
+178,LC,St. Lucia,Internet users,122870,180149,2025,68.2,2024
+179,KI,Kiribati,Internet users,122075,136488,2025,89.4,2024
+180,SC,Seychelles,Internet users,107779,122730,2025,87.8,2024
+181,CW,Curacao,Internet users,106457,156263,2025,68.1,2017
+182,AW,Aruba,Internet users,105706,108785,2025,97.2,2017
+183,GD,Grenada,Internet users,82301,117303,2025,70.2,2024
+184,AD,Andorra,Internet users,78259,82904,2025,94.4,2024
+185,VC,St. Vincent and the Grenadines,Internet users,76132,99924,2025,76.2,2024
+186,VU,Vanuatu,Internet users,74914,335169,2025,22.4,2015
+187,TO,Tonga,Internet users,69965,103742,2025,67.4,2024
+188,AG,Antigua and Barbuda,Internet users,68518,94209,2025,72.7,2024
+189,VI,Virgin Islands (U.S.),Internet users,66818,103792,2025,64.4,2017
+190,BM,Bermuda,Internet users,63502,64555,2025,98.4,2017
+191,KY,Cayman Islands,Internet users,61484,75844,2025,81.1,2017
+192,DM,Dominica,Internet users,54045,65871,2025,82.0,2024
+193,FO,Faroe Islands,Internet users,53572,54900,2025,97.6,2017
+194,WS,Samoa,Internet users,46492,219306,2025,21.2,2014
+195,FM,"Micronesia, Fed. Sts.",Internet users,44931,113683,2025,39.5,2024
+196,LI,Liechtenstein,Internet users,40311,41024,2025,98.3,2024
+197,GL,Greenland,Internet users,39487,56831,2025,69.5,2017
+198,MC,Monaco,Internet users,37974,38341,2025,99.0,2024
+199,GI,Gibraltar,Internet users,37896,40126,2025,94.4,2016
+200,KN,St. Kitts and Nevis,Internet users,36075,46922,2025,76.9,2024
+201,SM,San Marino,Internet users,33205,34109,2025,97.4,2024
+202,VG,British Virgin Islands,Internet users,30873,39732,2025,77.7,2017
+203,MH,Marshall Islands,Internet users,23915,36282,2025,65.9,2024
+204,PW,Palau,Internet users,14823,17663,2025,83.9,2024
+205,NR,Naoero,Internet users,9982,12025,2025,83.0,2024
+206,TV,Tuvalu,Internet users,3341,9492,2025,35.2,2017
+207,AS,American Samoa,no Internet-use figure: last,,46029,2025,,
+208,JG,Channel Islands,no Internet-use figure: last,,168466,2025,,
+209,IM,Isle of Man,no Internet-use figure: last,,84118,2025,,
+210,KP,"Korea, Dem. People's Rep.",no Internet-use figure: last,,26571036,2025,,
+211,MP,Northern Mariana Islands,no Internet-use figure: last,,43541,2025,,
+212,SX,Sint Maarten (Dutch part),no Internet-use figure: last,,43923,2025,,
+213,MF,St. Martin (French part),no Internet-use figure: last,,24941,2025,,
+214,TC,Turks and Caicos Islands,no Internet-use figure: last,,46855,2025,,
+,RU,Russian Federation,"not supported: serious human rights abuses including occupation, genocide, and ethnic cleansing",135426285,143513328,2025,94.4,2024
+,AE,United Arab Emirates,"not supported: serious human rights abuses including occupation, genocide, and ethnic cleansing",11513149,11513149,2025,100,2024
+,IL,Israel,"not supported: serious human rights abuses including occupation, genocide, and ethnic cleansing",8926530,10122800,2025,88.2,2024
