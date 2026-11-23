@@ -105,6 +105,34 @@ EXTRA = {'TW': {'name': 'Taiwan', 'population': 23365274, 'population_year': 202
 SUBNATIONAL = ['US', 'CN', 'IN', 'BR', 'ID', 'PK', 'MX', 'NG', 'DE', 'CA', 'AR', 'ES', 'AU', 'CH']
 
 
+# More search names (Bryce, 2026-11-23): abbreviations (one may name several countries: ROC, SAR), names in the country's own
+# languages and scripts, and outdated names. Three-letter codes come from the World Bank's list.
+ALIASES_MORE = {
+    'US': 'US', 'GB': 'United Kingdom of Great Britain and Northern Ireland; GBR', 'CN': '中国; 中國; Zhonghua', 'JP': '日本', 'KR': '한국; 대한민국; Daehan Minguk',
+    'KP': '조선; Choson; Joseon', 'TW': '台灣; 臺灣; 台湾; 中華民國; Zhonghua Minguo', 'HK': '香港; Heung Gong; SAR', 'MO': '澳門; 澳门; Ou Mun; SAR', 'IN': 'भारत; Republic of India',
+    'PK': 'پاکستان; West Pakistan', 'BD': 'বাংলাদেশ; East Pakistan; East Bengal', 'RU': 'Россия; RF; Soviet Union; USSR', 'UA': 'Україна; Ukrayina; the Ukraine', 'BY': 'Беларусь; White Russia',
+    'EG': 'مصر; Masr', 'SA': 'السعودية; Al Saudiyah; Kingdom of Saudi Arabia', 'AE': 'الإمارات; Al Imarat; Trucial States', 'IQ': 'العراق; Al Iraq; Mesopotamia',
+    'SY': 'سوريا; Suriyah; SAR', 'JO': 'الأردن; Al Urdun; Transjordan', 'LB': 'لبنان; Lubnan', 'MA': 'المغرب; Al Maghrib', 'DZ': 'الجزائر; Al Jazair', 'TN': 'تونس', 'LY': 'ليبيا; Libiya',
+    'SD': 'السودان', 'YE': 'اليمن; Al Yaman', 'OM': 'عمان', 'QA': 'قطر', 'KW': 'الكويت', 'BH': 'البحرين', 'PS': 'فلسطين; ישראל; Yisrael; Holy Land', 'GR': 'Ελλάδα; Hellenic Republic',
+    'CY': 'Κύπρος; Kıbrıs', 'TH': 'ประเทศไทย; Prathet Thai', 'VN': 'Việt Nam', 'KH': 'កម្ពុជា', 'LA': 'ລາວ; Lao P.D.R.', 'MM': 'မြန်မာ; Myanma', 'NP': 'नेपाल', 'LK': 'ශ්‍රී ලංකා; இலங்கை; Ilankai',
+    'AF': 'افغانستان', 'KZ': 'Қазақстан; Qazaqstan', 'UZ': 'Oʻzbekiston; Ozbekiston', 'KG': 'Кыргызстан', 'TJ': 'Тоҷикистон; Tojikiston', 'TM': 'Türkmenistan; Turkmenia', 'MN': 'Монгол; Mongol Uls',
+    'GE': 'საქართველო', 'AM': 'Հայաստան', 'AZ': 'Azərbaycan; Azerbaycan', 'ET': 'ኢትዮጵያ; Ityopya', 'ER': 'ኤርትራ; Ertra', 'SO': 'Soomaaliya', 'MG': 'Madagasikara; Malagasy Republic',
+    'CZ': 'Česko; Česká republika; Czechoslovakia; Bohemia', 'SK': 'Slovensko; Czechoslovakia', 'RO': 'România', 'BG': 'България; Bulgariya', 'RS': 'Србија; Yugoslavia', 'BA': 'Bosna i Hercegovina',
+    'MK': 'Северна Македонија; Severna Makedonija', 'LU': 'Lëtzebuerg; Luxemburg', 'MD': 'Republica Moldova', 'PE': 'Perú', 'HT': 'Haïti; Ayiti', 'DO': 'República Dominicana; DR; Dom Rep',
+    'PA': 'Panamá', 'FJ': 'Viti', 'PW': 'Belau', 'MH': 'RMI', 'MV': 'Dhivehi Raajje; Maldive Islands', 'BT': 'Druk Yul', 'GQ': 'Guinea Ecuatorial',
+    'CF': 'Centrafrique; République centrafricaine; Ubangi-Shari', 'CM': 'Cameroun; Kamerun', 'TD': 'Tchad', 'SN': 'Sénégal', 'BJ': 'Bénin', 'GN': 'Guinée; Guinea-Conakry', 'ML': 'French Sudan',
+    'CD': 'République démocratique du Congo; RDC; Democratic Republic of Congo; D.R.C.; Belgian Congo; Congo Free State', 'CG': 'ROC; République du Congo; French Congo; Middle Congo',
+    'KM': 'Comores; Komori', 'MR': 'Mauritanie; موريتانيا', 'MU': 'Maurice', 'MZ': 'Moçambique', 'ZA': 'Suid-Afrika; Mzansi; Republic of South Africa', 'SZ': 'eSwatini; Kingdom of Eswatini',
+    'GH': 'Gold Coast', 'TZ': 'Tanganyika; Zanzibar', 'MW': 'Nyasaland', 'BW': 'Bechuanaland', 'LS': 'Basutoland', 'ZM': 'Northern Rhodesia', 'ZW': 'Southern Rhodesia', 'NA': 'South West Africa; Namibië',
+    'BZ': 'British Honduras', 'GY': 'British Guiana', 'SR': 'Dutch Guiana; Surinam', 'VU': 'New Hebrides', 'TV': 'Ellice Islands', 'KI': 'Gilbert Islands', 'WS': 'Western Samoa; Sāmoa',
+    'MY': 'Malaya', 'EH': 'Spanish Sahara; الصحراء الغربية; Sahara Occidental', 'VC': 'SVG', 'KN': 'SKN', 'TT': 'T&T; TnT', 'PH': 'Republic of the Philippines',
+    'ID': 'Dutch East Indies; Republik Indonesia', 'TR': 'Republic of Türkiye; Ottoman Empire', 'IR': 'ایران; Islamic Republic', 'TL': 'Timor Lorosae; Portuguese Timor', 'BN': 'Negara Brunei Darussalam',
+    'TG': 'Togoland', 'BF': 'Burkina', 'CV': 'Cape Verde Islands', 'ST': 'Sao Tome and Principe; STP', 'GW': 'Guiné-Bissau; Portuguese Guinea', 'AO': 'Portuguese West Africa', 'DJ': 'French Somaliland; Jabuuti',
+    'IS': 'Island', 'AT': 'Republik Österreich', 'DE': 'BRD; West Germany', 'ES': 'Reino de España', 'PT': 'República Portuguesa', 'IE': 'Eire; Irish Republic',
+    'X-ART': 'Արցախ; NKR', 'X-TRN': 'Приднестровье; Pridnestrovian Moldavian Republic', 'XK': 'Republic of Kosovo; Kosovë', 'SS': 'Republic of South Sudan',
+    'AG': 'Antigua & Barbuda', 'BS': 'Commonwealth of the Bahamas', 'NR': 'Pleasant Island', 'TO': 'Friendly Islands', 'AD': 'Andorre', 'MC': 'Múnegu',
+}
+
 # Countries placed at the head of their group, ahead of the group's order by Internet users (Bryce, 2026-11-23: Norway leads the
 # presets, for a friend in Norway to try Horizon).
 TIER_HEAD = {'NO': 'placed first among the presets (Bryce)'}
@@ -179,7 +207,8 @@ def main():
     os.makedirs(f'{H}/output', exist_ok=True)
     for r in rows:  # every other spelling a search accepts: the listed ones, the World Bank's forms, and the territories counted in the row
         ms = [m for m in countries if m == r['iso2'] or MERGE.get(m) == r['iso2']]
-        al = [a for m in [r['iso2']] + ms for a in ALIASES.get(m, '').split('; ') if a]
+        al = [a for m in [r['iso2']] + ms for d in (ALIASES, ALIASES_MORE) for a in d.get(m, '').split('; ') if a]
+        al += [countries[m]['id'] for m in ms if len(countries[m].get('id', '')) == 3]
         al += [x for m in ms for x in (countries[m]['name'], countries[m].get('wb', '')) if x]
         r['aliases'] = '; '.join(dict.fromkeys(a for a in al if a != r['country']))
     cols = ['order', 'iso2', 'country', 'basis', 'internet_users', 'population', 'population_year', 'internet_share_pct', 'internet_year', 'includes', 'subnational_order', 'note', 'aliases']

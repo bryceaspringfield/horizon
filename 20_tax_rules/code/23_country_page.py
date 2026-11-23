@@ -21,12 +21,21 @@ nth = lambda v: '' if v == '' else v + ('th' if v[-2:] in ('11', '12', '13') els
 import re, unicodedata
 def norm(t):
     """Lower case, accents dropped, punctuation as spaces: the form the filter compares in."""
-    t = ''.join(c for c in unicodedata.normalize('NFD', t) if not unicodedata.combining(c)).lower()
-    return re.sub(r'[^a-z0-9]+', ' ', t).strip()
+    t = ''.join(c for c in unicodedata.normalize('NFD', t) if not unicodedata.category(c).startswith('M')).lower()
+    return re.sub(r'[\W_]+', ' ', t).strip()
 def keys(r):
     """Every spelling of a row for the filter: each as typed with spaces and run together ("u s a" and "usa"), joined by bars."""
     names = [r['country'], r['iso2'] if len(r['iso2']) == 2 else ''] + r['aliases'].split('; ') + r['includes'].split('; ')
-    forms = dict.fromkeys(f for x in names if x for f in (norm(x), norm(x).replace(' ', '')))
+    spell = set()
+    for x in names:
+        v = norm(x)
+        if not v: continue
+        # Saint and St, with and without "and" and "the": every such form of a name is accepted
+        vs = {v, re.sub(r'\bsaint\b', 'st', v), re.sub(r'\bst\b', 'saint', v)}
+        vs |= {re.sub(r'\band\b', ' ', w) for w in vs}
+        vs |= {re.sub(r'\bthe\b', ' ', w) for w in vs}
+        spell |= {' '.join(w.split()) for w in vs}
+    forms = dict.fromkeys(f for v in sorted(spell) for f in (v, v.replace(' ', '')))
     return '|' + '|'.join(forms) + '|'
 n = lambda v: f'{int(v):,}' if v != '' else ''
 tr = ''.join(
@@ -49,15 +58,20 @@ th{position:sticky;top:0;background:var(--panel);cursor:pointer;font-size:13px;c
 </style></head><body><main>
 <h1>Horizon: the order in which each country's tax system is added</h1>
 <p>A dependency is counted in its host country, where it becomes a choice among the country's states, provinces, and territories.</p>
-<p>Internet users = total population (World Bank indicator SP.POP.TOTL) times individuals using the Internet as a percentage of the population (IT.NET.USER.ZS), each at its newest year with a value. __N__ countries and territories; those with no Internet-use figure come last. Built __DATE__. A click on a column heading sorts by the column. The search box accepts other names and spellings (UK, Holland, Burma, DRC, Türkiye) and the territories counted in a country (Puerto Rico).</p>
+<p>Internet users = total population (World Bank indicator SP.POP.TOTL) times individuals using the Internet as a percentage of the population (IT.NET.USER.ZS), each at its newest year with a value. __N__ countries and territories; those with no Internet-use figure come last. Built __DATE__. A click on a column heading sorts by the column. The search box accepts abbreviations (UK, DRC, UAE), names in a country's own language (Deutschland, 日本), older names (Burma, Zaire), and any punctuation, spacing, or accents and the territories counted in a country (Puerto Rico).</p>
 <div class="bar"><input id="q" type="search" placeholder="Find a country, by any name or spelling"></div>
 <div class="wrap"><table id="t"><thead><tr><th class=r>Order</th><th class=r title="Rank by Internet users alone, with no country placed ahead">Rank by users</th><th>Country</th><th>Code</th><th>Why here</th><th class=r>Internet users</th><th class=r>Population</th><th class=r title="The order in which the country's state and province taxes are added">Build order for state and province taxes</th><th>Counted in the country, and notes</th></tr></thead><tbody>__ROWS__</tbody></table></div>
 <h2>State and province taxes</h2>
 <p>The column "Build order for state and province taxes" is a place in line, and it is no count of states. The United States is 1st, meaning the taxes of all 50 states, the District of Columbia, and the territories are built before any other country's regional taxes. The large federations follow by Internet users.</p>
 </main><script>
 const tb = document.querySelector('#t tbody'), rows = [...tb.rows];
-const norm = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-document.getElementById('q').addEventListener('input', e => { const v = norm(e.target.value), c = v.replace(/ /g, ''); for (const r of rows) r.hidden = v !== '' && !r.dataset.s.includes(v) && !r.dataset.s.includes(c); });
+const norm = t => t.normalize('NFD').replace(/\\p{M}/gu, '').toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, ' ').trim();
+const rank = (s, v, c) => s.includes('|' + v + '|') || s.includes('|' + c + '|') ? 0 : s.includes('|' + v) || s.includes('|' + c) ? 1 : s.includes(v) || s.includes(c) ? 2 : 9;
+document.getElementById('q').addEventListener('input', e => {
+  const v = norm(e.target.value), c = v.replace(/ /g, '');
+  for (const r of rows) { r._k = v === '' ? 0 : rank(r.dataset.s, v, c); r.hidden = r._k === 9; }
+  [...rows].sort((a, b) => a._k - b._k || +a.cells[0].textContent - +b.cells[0].textContent).forEach(r => tb.appendChild(r));
+});
 const val = (r, i) => { const c = r.cells[i]; return c.dataset.v !== undefined ? +c.dataset.v : (isNaN(+c.textContent) || c.textContent === '' ? c.textContent : +c.textContent); };
 const sortBy = (i, d) => { rows.sort((a, b) => { const x = val(a, i), y = val(b, i); return (x > y ? 1 : x < y ? -1 : 0) * d; }); rows.forEach(r => tb.appendChild(r)); };
 let last = -1, dir = 1;
