@@ -46,7 +46,7 @@ Asked by Bryce on 2026-11-23, in the order to build.
 
 ## Simplified models to finish (Bryce, 2026-11-23)
 - Quebec's other credits (living alone, age, retirement income); Ontario's $575 reduction for each child.
-- Netherlands: box 1 rates and credits from the state pension age; box 2.
+- Netherlands: box 2 (substantial shareholdings).
 - Spain: every region's own income tax scale and wealth tax allowance in place of the reference scale.
 - UK: the April 2027 rise in savings rates (2 points).
 - Tax strategy: several targets at once (bracket, IRMAA, ACA, an income ceiling) with constraints, in place of one shield.

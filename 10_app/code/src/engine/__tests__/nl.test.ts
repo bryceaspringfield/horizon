@@ -18,3 +18,12 @@ describe('Dutch income tax, 2026', () => {
     expect(nlBox3(0, 159357)).toBeCloseTo(0.36 * 0.06 * 100000, 2);
   });
 });
+
+import { nlBox1 } from '../nl';
+describe('Dutch tax from the state pension age', () => {
+  it('uses 17.85% in the first bracket and the elderly credit', () => {
+    const t = 20000 * 0.1785 - 1556 - 2067;
+    expect(nlBox1(20000, 0, true)).toBeCloseTo(Math.max(0, t), 2);
+    expect(nlBox1(30000, 0, true)).toBeCloseTo(30000 * 0.1785 - (1556 - 0.03195 * 264) - 2067, 2);
+  });
+});
