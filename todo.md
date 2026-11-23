@@ -42,3 +42,12 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Spain: regional personal minimums and deductions, and regional wealth tax allowances (the regions' own income tax scales are in).
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)
+
+## From ProjectionLab 5 ("Meet the New ProjectionLab", Nov 20, 2026)
+- A character editor: each person's avatar, icon, or silhouette, shown on the household and timeline.
+- Relatives outside the plan with their own accounts, passing to named heirs in the plan at their death (inheritances linked to accounts).
+- Named heirs of the estate, each with a share, and what each receives.
+- Balance history pasted from a spreadsheet (dates and amounts in columns), beside the CSV import.
+- A searchable chart library: every chart in one place, found by name, with more or less detail.
+- A feedback page in the navigation.
+
