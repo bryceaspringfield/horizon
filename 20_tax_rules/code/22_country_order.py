@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
-"""The order in which Horizon adds each country's tax system (Bryce, 2026-11-23): the United States first, then the countries
-ProjectionLab supports, in its tiers (full rules; income and wealth tax estimates; adjustable presets; from its help page
-"Plan in other countries", updated Nov 18, 2026), then every other country by Internet users, most first. Three countries are not supported (EXCLUDED below).
+"""The order in which Horizon adds each country's tax system (Bryce, 2026-11-23):
+  1. the United States;
+  2. the countries ProjectionLab supports, in its tiers (full rules; income and wealth tax estimates; adjustable presets; from its
+     help page "Plan in other countries", updated Nov 18, 2026);
+  3. Mexico and Argentina (Bryce's personal interest);
+  4. every other country by Internet users, most first.
+A dependency is part of its host country (MERGE: the US Virgin Islands in the United States, Hong Kong in China), where it becomes a
+choice among the country's states, provinces, and territories; its people and Internet users count in the host's figures. Israel and
+the West Bank and Gaza are one row, "Occupied Palestine" (Bryce's wording), in Israel's ProjectionLab tier.
+
+Within a country, state and province taxes are added in the same order (SUBNATIONAL): the United States first, then the large
+federations by Internet users.
 
 Internet users = total population (World Bank indicator SP.POP.TOTL) x individuals using the Internet, % of population
 (IT.NET.USER.ZS, which the World Bank takes from the ITU), each at its newest year with a value. Aggregates (regions, income
@@ -22,13 +31,20 @@ PL = [('US', 'the United States, first'),
       ('CA', 'ProjectionLab: full rules'), ('GB', 'ProjectionLab: full rules'), ('AU', 'ProjectionLab: full rules'),
       ('ES', 'ProjectionLab: tax estimates'), ('NL', 'ProjectionLab: tax estimates'),
       ('DE', 'ProjectionLab: preset'), ('CH', 'ProjectionLab: preset'), ('NO', 'ProjectionLab: preset'), ('BE', 'ProjectionLab: preset'),
-      ('NZ', 'ProjectionLab: preset'), ('IL', 'ProjectionLab: preset'), ('SG', 'ProjectionLab: preset'), ('BR', 'ProjectionLab: preset'),
-      ('CN', 'ProjectionLab: preset'), ('HK', 'ProjectionLab: preset')]
-# Not supported (Bryce, 2026-11-23): "I will not support these due to serious human rights abuses including occupation, genocide,
-# and ethnic cleansing." They keep a row, with no order, and Horizon builds no tax system for them.
-EXCLUDED = {'IL': 'Israel', 'AE': 'the United Arab Emirates', 'RU': 'Russia'}
-EXCLUDED_WHY = 'not supported: serious human rights abuses including occupation, genocide, and ethnic cleansing'
-PL = [x for x in PL if x[0] not in EXCLUDED]
+      ('NZ', 'ProjectionLab: preset'), ('PS', 'ProjectionLab: preset (Israel)'), ('SG', 'ProjectionLab: preset'), ('BR', 'ProjectionLab: preset'),
+      ('CN', 'ProjectionLab: preset (China and Hong Kong)')]
+PRIORITY = [('MX', "Bryce's personal interest"), ('AR', "Bryce's personal interest")]
+# A dependency or special region, and the country it is part of here. The World Bank lists each as an economy of its own.
+MERGE = {'AS': 'US', 'GU': 'US', 'MP': 'US', 'PR': 'US', 'VI': 'US',
+         'HK': 'CN', 'MO': 'CN',
+         'BM': 'GB', 'VG': 'GB', 'KY': 'GB', 'GI': 'GB', 'TC': 'GB', 'IM': 'GB', 'JG': 'GB',
+         'AW': 'NL', 'CW': 'NL', 'SX': 'NL',
+         'PF': 'FR', 'NC': 'FR', 'MF': 'FR',
+         'GL': 'DK', 'FO': 'DK',
+         'IL': 'PS'}
+RENAME = {'PS': 'Occupied Palestine'}
+# Countries whose states or provinces levy or shape taxes of their own, in the order their subnational rules are added.
+SUBNATIONAL = ['US', 'CN', 'IN', 'BR', 'ID', 'PK', 'MX', 'NG', 'DE', 'CA', 'AR', 'ES', 'AU', 'CH']
 
 
 def fetch(path, name):
@@ -58,27 +74,36 @@ def main():
     countries = {c['iso2Code']: c for c in fetch('country', 'worldbank_countries') if c['region']['value'] != 'Aggregates'}
     pop = newest(fetch('country/all/indicator/SP.POP.TOTL?date=2015:2026', 'worldbank_SP.POP.TOTL'))
     net = newest(fetch('country/all/indicator/IT.NET.USER.ZS?date=2010:2026', 'worldbank_IT.NET.USER.ZS'))
+    unknown = [k for k in list(MERGE) + list(MERGE.values()) + [x[0] for x in PL + PRIORITY] + SUBNATIONAL if k not in countries]
+    assert not unknown, unknown
+    groups = {}
+    for iso in countries:
+        groups.setdefault(MERGE.get(iso, iso), []).append(iso)
     rows = []
-    for iso, c in countries.items():
-        p, n = pop.get(iso), net.get(iso)
-        rows.append({'iso2': iso, 'country': c['name'], 'population': int(p[0]) if p else '', 'population_year': p[1] if p else '',
-                     'internet_share_pct': round(n[0], 1) if n else '', 'internet_year': n[1] if n else '',
-                     'internet_users': int(p[0] * n[0] / 100) if p and n else ''})
-    first = {iso: (i, why) for i, (iso, why) in enumerate(PL)}
-    rows.sort(key=lambda r: (r['iso2'] in EXCLUDED, first.get(r['iso2'], (len(PL),))[0], -(r['internet_users'] or 0), r['country']))
+    for host, members in groups.items():
+        members.sort(key=lambda m: (m != host, countries[m]['name']))
+        p = sum(pop[m][0] for m in members if m in pop)
+        users = sum(pop[m][0] * net[m][0] / 100 for m in members if m in pop and m in net)
+        # the share online of the members with both figures, and the host's own data years
+        covered = sum(pop[m][0] for m in members if m in pop and m in net)
+        rows.append({'iso2': host, 'country': RENAME.get(host, countries[host]['name']),
+                     'includes': '; '.join(countries[m]['name'] for m in members if m != host or host in RENAME),
+                     'population': int(p) if p else '', 'population_year': pop[host][1] if host in pop else '',
+                     'internet_share_pct': round(100 * users / covered, 1) if covered else '', 'internet_year': net[host][1] if host in net else '',
+                     'internet_users': int(users) if covered else '',
+                     'subnational_order': SUBNATIONAL.index(host) + 1 if host in SUBNATIONAL else ''})
+    first = {iso: (i, why) for i, (iso, why) in enumerate(PL + PRIORITY)}
+    rows.sort(key=lambda r: (first.get(r['iso2'], (len(first),))[0], -(r['internet_users'] or 0), r['country']))
     for i, r in enumerate(rows):
-        r['order'] = '' if r['iso2'] in EXCLUDED else i + 1
-        r['basis'] = EXCLUDED_WHY if r['iso2'] in EXCLUDED else first[r['iso2']][1] if r['iso2'] in first else ('Internet users' if r['internet_users'] != '' else 'no Internet-use figure: last')
+        r['order'] = i + 1
+        r['basis'] = first[r['iso2']][1] if r['iso2'] in first else ('Internet users' if r['internet_users'] != '' else 'no Internet-use figure: last')
     os.makedirs(f'{H}/output', exist_ok=True)
-    cols = ['order', 'iso2', 'country', 'basis', 'internet_users', 'population', 'population_year', 'internet_share_pct', 'internet_year']
+    cols = ['order', 'iso2', 'country', 'basis', 'internet_users', 'population', 'population_year', 'internet_share_pct', 'internet_year', 'includes', 'subnational_order']
     with open(f'{H}/output/country_order.csv', 'w', newline='') as f:
         w = csv.DictWriter(f, cols); w.writeheader(); w.writerows({k: r[k] for k in cols} for r in rows)
-    print(len(rows), 'countries;', sum(1 for r in rows if r['internet_users'] == ''), 'without an Internet-use figure')
-    for r in rows[:40]:
-        print(r['order'], r['iso2'], r['country'], '|', r['basis'], '|', f"{r['internet_users']:,}" if r['internet_users'] != '' else '', '|', r['internet_share_pct'], r['internet_year'])
-    missing = [iso for iso in [x[0] for x in PL] + list(EXCLUDED) if iso not in countries]
-    assert not missing, missing
-    print('not supported:', [r['country'] for r in rows if r['order'] == ''])
+    print(len(rows), 'countries (of', len(countries), 'World Bank economies);', sum(1 for r in rows if r['internet_users'] == ''), 'without an Internet-use figure')
+    for r in rows[:24]:
+        print(r['order'], r['iso2'], r['country'], '|', r['basis'], '|', f"{r['internet_users']:,}" if r['internet_users'] != '' else '', '|', r['internet_share_pct'], '|', r['includes'][:70])
 
 
 if __name__ == '__main__':
