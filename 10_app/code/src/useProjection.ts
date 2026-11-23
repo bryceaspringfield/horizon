@@ -19,7 +19,7 @@ export function useProjection() {
   const real = useStore((s) => s.settings.realDollars);
   return useMemo(() => {
     // The plan with its life events applied, so the charts know the accounts and expenses the events create.
-    const plan = expandEvents(structuredClone(raw));
+    const plan = expandEvents(rolled(structuredClone(raw)));
     const proj = simulate(structuredClone(plan));
     const d = deflators(plan, proj);
     const adj = (v: number, i: number) => (real ? v / d[i] : v);
@@ -27,8 +27,14 @@ export function useProjection() {
   }, [raw, real]);
 }
 
+/** A plan set to start from the current year starts there; events keep their own years. */
+function rolled(p: Plan): Plan {
+  if (p.rollingStart) p.startYear = Math.max(p.startYear, new Date().getFullYear());
+  return p;
+}
+
 export function projectPlan(raw: Plan) {
-  const plan = expandEvents(structuredClone(raw));
+  const plan = expandEvents(rolled(structuredClone(raw)));
   const proj = simulate(structuredClone(plan));
   return { proj, d: deflators(plan, proj) };
 }

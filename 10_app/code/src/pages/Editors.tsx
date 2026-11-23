@@ -272,6 +272,7 @@ export function PeoplePage() {
           <Select label="State" value={plan.assumptions.state} options={Object.keys(statesJson).sort().map((k) => [k, k] as [string, string])}
             onChange={(v) => update((p) => { p.assumptions.state = v; })} />
           {main && main.id !== plan.id && <div className="span">
+            <Check label="Start the plan from the current year" value={!!plan.rollingStart} onChange={(v) => update((p) => { p.rollingStart = v || undefined; })} />
             <Check label={`Starting finances follow the main plan (${main.name}): its people, first year, and accounts`} value={!!plan.followsMain}
               onChange={(v) => update((p) => { p.followsMain = v; if (v) { p.people = structuredClone(main.people); p.startYear = main.startYear; p.accounts = structuredClone(main.accounts); } })} />
           </div>}

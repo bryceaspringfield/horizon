@@ -40,6 +40,8 @@ export interface Settings {
   chartRealAssets?: boolean;
   /** Show every amount as dots (for a screen someone else can see). */
   hideAmounts?: boolean;
+  /** How tables label a year: the calendar year, or the UK (April) or Australian (July) tax year that starts in it. */
+  yearAlignment?: 'calendar' | 'uk' | 'au';
   /** The plugin API (plugins.ts): on, and the key a script must pass. */
   pluginsEnabled?: boolean;
   pluginKey?: string;

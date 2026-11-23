@@ -513,6 +513,9 @@ export interface Plan {
   estate?: Estate;
   /** Free notes printed with the plan report. */
   notes?: string;
+  /** The plan starts from the current year with today's balances, as ProjectionLab's default plans do; unset, it keeps its
+   * start year (a fixed-date plan, whose recorded balances show how the forecast held up). */
+  rollingStart?: boolean;
   /** The plan's people, first year, and accounts are copied from the main plan and kept in step with it. */
   followsMain?: boolean;
 }

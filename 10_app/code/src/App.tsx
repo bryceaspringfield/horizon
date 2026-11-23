@@ -395,6 +395,7 @@ function SettingsPage() {
         <div className="grid">
           <Check label="Show amounts in today's dollars" value={settings.realDollars} onChange={(v) => setSettings({ realDollars: v })} />
           <Check label="Hide amounts (dots in place of every figure)" value={!!settings.hideAmounts} onChange={(v) => setSettings({ hideAmounts: v })} />
+          <Select label="Year alignment" value={settings.yearAlignment ?? 'calendar'} options={[['calendar', 'Calendar year'], ['uk', 'UK tax year (April)'], ['au', 'Australian tax year (July)']]} onChange={(v) => setSettings({ yearAlignment: v === 'calendar' ? undefined : v })} />
           <Check label="Enable plugins (window.horizonPluginAPI)" value={!!settings.pluginsEnabled} onChange={(v) => setSettings({ pluginsEnabled: v, pluginKey: v ? settings.pluginKey ?? crypto.randomUUID() : settings.pluginKey })} />
           {settings.pluginsEnabled && <div className="row"><span>Plugin key: <code>{settings.pluginKey}</code></span><button className="ghost" onClick={() => setSettings({ pluginKey: crypto.randomUUID() })}>New key</button></div>}
           <Select label="Theme" value={settings.theme} options={[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />

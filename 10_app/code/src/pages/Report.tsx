@@ -1,5 +1,6 @@
 // The plan report: a printable summary of the plan (its people, accounts, income, expenses, events, strategy, and
 // results), saved as a PDF through the browser's print dialog.
+import { useStore as useYearStore } from '../store';
 import { useMemo, useState } from 'react';
 import { netLegacy } from '../engine/estate';
 import { runMonteCarlo } from '../engine/montecarlo';
@@ -12,6 +13,8 @@ export function ReportPage() {
   const update = useStore((s) => s.update);
   const settings = useStore((s) => s.settings);
   const { plan, proj, adj, real } = useProjection();
+  const align = useYearStore((s) => s.settings.yearAlignment ?? 'calendar');
+  const yearLabel = (y: number) => (align === 'calendar' ? String(y) : `${y}-${String((y + 1) % 100).padStart(2, '0')}`);
   const [mc, setMc] = useState<number | null>(null);
   const legacy = useMemo(() => netLegacy(plan, proj), [plan, proj]);
   const first = proj.years[0];
@@ -65,7 +68,7 @@ export function ReportPage() {
           {rows.map((y) => {
             const i = proj.years.indexOf(y);
             const inc = Object.values(y.income).reduce((t, v) => t + v, 0) + y.socialSecurity;
-            return <tr key={y.year}><td>{y.year}</td><td>{Object.values(y.ages).join(', ')}</td><td>{money(adj(inc, i), true)}</td><td>{money(adj(y.totalExpenses, i), true)}</td>
+            return <tr key={y.year}><td>{yearLabel(y.year)}</td><td>{Object.values(y.ages).join(', ')}</td><td>{money(adj(inc, i), true)}</td><td>{money(adj(y.totalExpenses, i), true)}</td>
               <td>{money(adj(y.taxes.total, i), true)}</td><td>{money(adj(y.liquidNetWorth, i), true)}</td><td>{money(adj(y.netWorth, i), true)}</td></tr>;
           })}
         </tbody></table>
