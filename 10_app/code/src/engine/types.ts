@@ -53,9 +53,17 @@ export interface Account {
   extraPayment?: number;
   /** An account opened in a later year (a home bought later and its mortgage): zero before, its balance from then. */
   startYear?: number;
+  /** Inherited IRAs: the year inherited; the 10-year rule empties the account by the tenth year after. */
+  inheritedYear?: number;
+  /** Debts: the balance left is forgiven in this year (student loan forgiveness). */
+  forgiveYear?: number;
+  /** Assets: yearly rent (today's dollars), the share lost to vacancy, and yearly costs as a share of the rent. */
+  rent?: number;
+  vacancy?: number;
+  rentalCosts?: number;
 }
 
-export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall';
+export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu';
 
 export interface Income {
   id: string;
@@ -79,6 +87,9 @@ export interface Income {
   matchLimit?: number;
   /** Whether the income is taxed as ordinary income (a Roth-like annuity or a gift is not). */
   taxable: boolean;
+  /** RSUs: the grant vests in equal parts over these years from startYear; vested shares are taxed as wages and kept
+   * in the taxable account (their value is the basis). */
+  vestYears?: number;
 }
 
 export interface SocialSecurity {
@@ -108,11 +119,15 @@ export interface Milestone {
   id: string;
   name: string;
   /** A calendar year, or a condition the simulation tests each year. */
-  kind: 'year' | 'age' | 'financialIndependence' | 'netWorth';
+  kind: 'year' | 'age' | 'financialIndependence' | 'netWorth' | 'all';
   year?: number;
   personId?: string;
   age?: number;
   netWorth?: number;
+  /** kind 'all': reached in the first year every condition holds. */
+  conditions?: { kind: 'year' | 'age' | 'financialIndependence' | 'netWorth'; year?: number; personId?: string; age?: number; netWorth?: number }[];
+  /** People who retire when this milestone is reached, in place of their retirement age. */
+  retires?: string[];
 }
 
 export type WithdrawalStep = 'cash' | 'taxable' | 'traditional' | 'roth' | 'hsa';
@@ -136,8 +151,24 @@ export interface Strategy {
   withdrawalMethod: 'order' | 'proportional';
   /** Each year, realize taxable gains up to the top of the 0% long-term capital gains band (resetting the basis). */
   harvestZeroGains: boolean;
+  /** Keep ordinary taxable income under this limit when drawing from traditional accounts: a bracket's top rate, the
+   * first IRMAA tier, or 400% of the poverty line (the ACA credit's end); other accounts cover the rest. */
+  shield?: 'none' | 'bracket12' | 'bracket22' | 'bracket24' | 'irmaa' | 'aca';
+  /** Conversions of a set amount (today's dollars) in a set year, on top of the bracket-filling ones. */
+  manualConversions?: { year: number; amount: number }[];
+  /** 72(t) substantially equal periodic payments from the traditional accounts, penalty-free, from this year until
+   * the later of five years and age 59½ (amortization method at a 5% rate). */
+  sepp?: { enabled: boolean; startYear: number };
+  /** Backdoor Roth: the Roth IRA amount goes in through a nondeductible IRA when income passes the Roth IRA limit.
+   * Without it, the Roth IRA contribution shrinks through the IRS phase-out range. */
+  backdoorRoth?: boolean;
+  /** Mega backdoor Roth: after-tax 401(k) contributions converted to Roth, a year (today's dollars), within the
+   * 415(c) total limit less the year's deferrals and match. */
+  megaBackdoor?: number;
+  /** Leftover pay after the cash target: invest it, or pay debts down first (highest rate first). */
+  surplusTo?: 'invest' | 'debt';
   /** Retirement spending rule: the plan's expenses, or a fixed share of the portfolio, or guardrails. */
-  spending: 'expenses' | 'fixedPercent' | 'guardrails' | 'vpw';
+  spending: 'expenses' | 'fixedPercent' | 'guardrails' | 'vpw' | 'textbook';
   spendingRate: number;
   /** Safe withdrawal rate the financial independence test uses. */
   safeWithdrawalRate: number;
@@ -186,7 +217,19 @@ export type LifeEvent =
   | { id: string; kind: 'homePurchase'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; appreciation: number; closingCosts: number }
   | { id: string; kind: 'child'; name: string; year: number; yearlyCost: number; collegeYearly: number; collegeYears: number }
   | { id: string; kind: 'careerBreak'; name: string; personId: string; year: number; endYear: number }
-  | { id: string; kind: 'payChange'; name: string; personId: string; year: number; factor: number };
+  | { id: string; kind: 'payChange'; name: string; personId: string; year: number; factor: number }
+  | { id: string; kind: 'move'; name: string; year: number; state: string }
+  | { id: string; kind: 'inheritance'; name: string; year: number; amount: number; asIra: boolean }
+  | { id: string; kind: 'recurring'; name: string; year: number; amount: number; everyYears: number; endYear: number }
+  | { id: string; kind: 'rentalProperty'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; rent: number; vacancy: number; costs: number; appreciation: number };
+
+export interface Estate {
+  /** Income tax rate the heirs pay on inherited traditional accounts (withdrawn over ten years). */
+  heirsTaxRate: number;
+  /** Federal estate tax exemption a person, 2026 ($15,000,000 under the 2025 act, indexed after); the excess is taxed
+   * at 40%. */
+  exemption: number;
+}
 
 export interface Plan {
   id: string;
@@ -203,6 +246,7 @@ export interface Plan {
   deductions: Deductions;
   healthcare: Healthcare;
   events?: LifeEvent[];
+  estate?: Estate;
 }
 
 /** One year of a plan's projection. */
@@ -231,10 +275,13 @@ export interface YearResult {
     /** Medicare premiums with surcharges, and ACA premiums net of the credit, paid this year. */
     medicare: number;
     aca: number;
+    /** Federal estate tax if the last person died this year. */
+    estate?: number;
     itemized: boolean;
     deduction: number;
     total: number;
     taxableIncome: number;
+    ordinaryTaxable?: number;
     marginalRate: number;
     effectiveRate: number;
   };

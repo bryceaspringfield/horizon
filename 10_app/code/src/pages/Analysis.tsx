@@ -7,6 +7,7 @@ import { useStore, type Snapshot } from '../store';
 import { projectPlan, useProjection } from '../useProjection';
 import { Card, Chart, Num, Select, Stat, money, moneyAxis, moneyTooltip, pct } from '../ui';
 import { Icon } from '../icons';
+import { TaxYear } from './More';
 import { uid } from '../engine/defaults';
 import { fireMetrics } from '../engine/fire';
 
@@ -192,6 +193,7 @@ export function TaxesPage() {
           ],
         }} />
       </Card>
+      <TaxYear />
       <Card title="Tax rates" wide>
         <Chart height={300} option={{
           tooltip: { trigger: 'axis', valueFormatter: (v: number) => pct(v) }, legend: { top: 0 }, grid: { left: 60, right: 20, top: 40, bottom: 30 },

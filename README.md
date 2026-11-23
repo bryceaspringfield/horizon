@@ -19,18 +19,29 @@ storage; nothing is sent to a server. Export and import move it as one JSON file
 
 ## The model
 
-Each year: incomes (salary with 401(k) deferrals and employer match), Social Security by claim age with the survivor
-keeping the larger benefit, required minimum distributions, expenses and debt payments, IRA, Roth IRA, and HSA
-contributions within the year's limits, Roth conversions filling a chosen bracket, then taxes and withdrawals solved
-together in the chosen account order. Taxes: federal brackets, standard deduction (with the 65-and-over addition),
-capital gains and qualified dividends stacked on ordinary income, the net investment income tax, FICA, taxation of
-Social Security, state brackets, itemized deductions under the SALT cap, and the 10% early withdrawal penalty. Health:
-Medicare Part B and D from 65 with IRMAA surcharges on income two years back, and ACA premiums less the premium tax
-credit between retirement and 65. Social Security includes spousal and survivor benefits. Withdrawals follow a chosen
-order or come from every account in proportion, with optional 0% capital gains harvesting. Each year uses the newest
-published rules (2026 or 2027) indexed by inflation after them.
+Each year: incomes (salary with 401(k) deferrals and employer match under one limit a person, RSU vesting, rent from
+rental property, pensions), Social Security by claim age with spousal and survivor benefits, required minimum
+distributions, inherited IRAs under the 10-year rule, 72(t) SEPP payments, expenses and debt payments (extra payments,
+loan forgiveness), IRA, Roth IRA (income phase-out or backdoor), mega backdoor Roth, and HSA contributions within each
+year's limits, Roth conversions filling a chosen bracket or of set amounts, 0% gain harvesting, then taxes and
+withdrawals solved together, drawn in a chosen order or in proportion, optionally shielded under a bracket, the first
+IRMAA tier, or the ACA credit limit. Leftover pay fills a cash reserve, then goes to investing or to paying debts down.
 
-Not modeled: tax credits, the AMT, local income taxes, and state taxes on capital gains alone.
+Taxes: federal brackets, standard or itemized deductions (SALT cap), capital gains and qualified dividends stacked on
+ordinary income, NIIT, FICA, taxable Social Security, state brackets by the state of residence each year, the early
+withdrawal penalty, and the federal estate tax. Health: Medicare with IRMAA and ACA premiums less the credit. Each year
+uses the newest published rules (2026 or 2027) indexed by inflation after them.
+
+Life events: buying a home or a rental property, children (costs and college), career breaks, pay changes, moves
+between states, inheritances, and recurring purchases. Milestones can combine conditions and can trigger retirement.
+
+Results: net worth, cash flow (Sankey), taxes with a single-year bracket view, Monte Carlo (random, historical blocks,
+every historical start year), a crash stress test, FIRE metrics (lean, regular, fat, Coast FI), a strategy optimizer
+(60 combinations of conversions, withdrawals, shields, and gain harvesting, ranked by net legacy or taxes), net legacy
+after estate tax and heirs' income tax, plan comparison, a plot builder, progress tracking with CSV import, and a year
+table with CSV export.
+
+Not modeled: tax credits, the AMT, local income taxes, and state estate or capital gains taxes.
 
 ## Run it locally
 

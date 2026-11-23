@@ -17,7 +17,7 @@ H = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DIST = os.path.join(H, '10_app', 'code', 'dist')
 OUT = os.path.join(H, '99_overall', 'output', 'pages')
 PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions', 'networth',
-         'cashflow', 'taxes', 'montecarlo', 'fire', 'compare', 'progress', 'table', 'settings']
+         'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'progress', 'table', 'settings']
 
 
 def main():
@@ -47,6 +47,9 @@ def main():
                     stats = pg.inner_text('.stats')
                     print(f'  monte carlo {method}: ' + ' | '.join(stats.split('\n')[:4]))
                     pg.screenshot(path=os.path.join(OUT, f'{name}_{method}.png'), full_page=True)
+            if name == 'optimize':
+                pg.click('text=Search'); pg.wait_for_selector('text=Best strategies', timeout=120000); pg.wait_for_timeout(500)
+                print('  optimizer best: ' + pg.locator('main tbody tr').first.inner_text().replace(chr(9), ' | ')[:200])
             if name == 'compare':
                 for box in pg.query_selector_all('main input[type=checkbox]'):
                     box.check()

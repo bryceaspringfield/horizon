@@ -241,3 +241,23 @@ export function acaNetPremium(year: number, magi: number, householdSize: number,
   for (const [lo, hi, p0, p1] of a.applicable) if (ratio >= lo && ratio < hi) pct = p0 + ((p1 - p0) * (ratio - lo)) / (hi - lo);
   return Math.min(benchmark, Math.max(0, magi) * pct);
 }
+
+/** The first IRMAA tier's MAGI threshold of the newest Medicare table (2027's when the plan reaches it). */
+export function rulesTiers(status: FilingStatus): number {
+  const m = latest(health.medicare as unknown as Record<string, MedicareYear>, 9999);
+  return (status === 'mfj' ? m.tiers.mfj : m.tiers.single)[0];
+}
+
+/** 400% of the poverty line for a household, where the ACA credit ends (newest table). */
+export function acaLimit(householdSize: number): number {
+  const a = latest(health.aca as unknown as Record<string, AcaYear>, 9999);
+  return 4 * (a.povertyLine.first + a.povertyLine.each * (householdSize - 1));
+}
+
+/** Federal estate tax on an estate if the last person died this year: 40% above the exemption, two exemptions for a
+ * married couple (portability). */
+export function estateTax(estate: number, year: number, index: number, people: number): number {
+  const e = (rulesFor(year).rules as unknown as { estate: { exemption: number; rate: number } }).estate;
+  const exempt = e.exemption * index * Math.max(1, people);
+  return Math.max(0, estate - exempt) * e.rate;
+}

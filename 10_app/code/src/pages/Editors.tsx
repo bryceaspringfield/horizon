@@ -14,7 +14,7 @@ const ACCOUNT_KINDS: [AccountKind, string][] = [
   ['roth', 'Roth 401(k) / IRA'], ['hsa', 'HSA'], ['college529', '529 college savings'], ['asset', 'Asset (home, car)'], ['debt', 'Debt (mortgage, loan)'],
 ];
 const INCOME_KINDS: [IncomeKind, string][] = [
-  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['other', 'Other'],
+  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['other', 'Other'],
 ];
 const EXPENSE_KINDS: [ExpenseKind, string][] = [
   ['living', 'Living expenses'], ['housing', 'Housing'], ['healthcare', 'Healthcare'], ['education', 'Education'], ['travel', 'Travel'], ['oneTime', 'One-time'], ['other', 'Other'],
@@ -107,12 +107,16 @@ export function AccountsPage() {
                 {a.kind === 'asset' && <>
                   <Check label="Real estate (property tax, deductible mortgage interest)" value={!!a.realEstate} onChange={(v) => set((x) => { x.realEstate = v; })} />
                   <Num label="Yearly appreciation" percent value={a.appreciation ?? 0.03} onChange={(v) => set((x) => { x.appreciation = v; })} />
+                  <Num label="Yearly rent, if rented (today's $)" value={a.rent ?? 0} onChange={(v) => set((x) => { x.rent = v || undefined; })} />
+                  {!!a.rent && <Num label="Vacancy" percent value={a.vacancy ?? 0.05} onChange={(v) => set((x) => { x.vacancy = v; })} />}
+                  {!!a.rent && <Num label="Rental costs (share of rent)" percent value={a.rentalCosts ?? 0.35} onChange={(v) => set((x) => { x.rentalCosts = v; })} />}
                   <Num label="Sale year (0 for none)" value={a.saleYear ?? 0} onChange={(v) => set((x) => { x.saleYear = v || undefined; })} />
                 </>}
                 {a.kind === 'debt' && <>
                   <Num label="Interest rate" percent value={a.interestRate ?? 0} onChange={(v) => set((x) => { x.interestRate = v; })} />
                   <Num label="Yearly payment" value={a.payment ?? 0} onChange={(v) => set((x) => { x.payment = v; })} />
                   <Num label="Extra payment a year (today's $)" value={a.extraPayment ?? 0} onChange={(v) => set((x) => { x.extraPayment = v; })} />
+                  <Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
                   <PayoffYear id={a.id} />
                   <Select label="Secured by" value={a.securedBy ?? ''} options={[['', 'Nothing'], ...assets]} onChange={(v) => set((x) => { x.securedBy = v || undefined; })} />
                 </>}
@@ -151,6 +155,7 @@ export function IncomePage() {
                 <Num label="End year (0: at retirement or death)" value={x.endYear ?? 0} onChange={(v) => set((y) => { y.endYear = v || undefined; })} />
                 <Check label="Keeps pace with inflation" value={x.inflationAdjusted} onChange={(v) => set((y) => { y.inflationAdjusted = v; })} />
                 <Check label="Taxable" value={x.taxable} onChange={(v) => set((y) => { y.taxable = v; })} />
+                {x.kind === 'rsu' && <Num label="Vests over (years)" value={x.vestYears ?? 4} onChange={(v) => set((y) => { y.vestYears = v; })} />}
                 {x.kind === 'salary' && <>
                   <Num label="401(k) contribution" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />
                   <Check label="Roth 401(k)" value={!!x.contributionRoth} onChange={(v) => set((y) => { y.contributionRoth = v; })} />
@@ -221,14 +226,18 @@ export function ExpensesPage() {
   );
 }
 
-const EVENT_KINDS: [LifeEvent['kind'], string][] = [['homePurchase', 'Buy a home'], ['child', 'Have a child'], ['careerBreak', 'Career break'], ['payChange', 'Pay change']];
+const EVENT_KINDS: [LifeEvent['kind'], string][] = [['homePurchase', 'Buy a home'], ['rentalProperty', 'Buy a rental property'], ['child', 'Have a child'], ['careerBreak', 'Career break'], ['payChange', 'Pay change'], ['move', 'Move to another state'], ['inheritance', 'Inheritance'], ['recurring', 'Recurring purchase']];
 
 function newEvent(kind: LifeEvent['kind'], year: number, personId: string): LifeEvent {
   const id = uid();
   if (kind === 'homePurchase') return { id, kind, name: 'New home', year, price: 600000, downPayment: 0.2, rate: 0.065, termYears: 30, appreciation: 0.03, closingCosts: 0.03 };
   if (kind === 'child') return { id, kind, name: 'Child', year, yearlyCost: 15000, collegeYearly: 30000, collegeYears: 4 };
   if (kind === 'careerBreak') return { id, kind, name: 'Career break', personId, year, endYear: year + 1 };
-  return { id, kind, name: 'Promotion', personId, year, factor: 1.2 };
+  if (kind === 'payChange') return { id, kind, name: 'Promotion', personId, year, factor: 1.2 };
+  if (kind === 'move') return { id, kind, name: 'Move', year, state: 'TX' };
+  if (kind === 'inheritance') return { id, kind, name: 'Inheritance', year, amount: 200000, asIra: false };
+  if (kind === 'recurring') return { id, kind, name: 'New car', year, amount: 40000, everyYears: 8, endYear: year + 40 };
+  return { id, kind: 'rentalProperty', name: 'Rental', year, price: 350000, downPayment: 0.25, rate: 0.07, termYears: 30, rent: 30000, vacancy: 0.05, costs: 0.35, appreciation: 0.03 };
 }
 
 export function EventsPage() {
@@ -269,12 +278,32 @@ export function EventsPage() {
                 <Select label="Person" value={e.personId} options={people} onChange={(v) => set((x) => { if (x.kind === 'careerBreak' || x.kind === 'payChange') x.personId = v; })} />
               )}
               {e.kind === 'careerBreak' && <Num label="Back to work after" value={e.endYear} onChange={(v) => set((x) => { if (x.kind === 'careerBreak') x.endYear = v; })} />}
+              {e.kind === 'rentalProperty' && <>
+                <Num label="Price (today's $)" value={e.price} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.price = v; })} />
+                <Num label="Down payment" percent value={e.downPayment} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.downPayment = v; })} />
+                <Num label="Mortgage rate" percent value={e.rate} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.rate = v; })} />
+                <Num label="Term (years)" value={e.termYears} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.termYears = v; })} />
+                <Num label="Yearly rent (today's $)" value={e.rent} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.rent = v; })} />
+                <Num label="Vacancy" percent value={e.vacancy} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.vacancy = v; })} />
+                <Num label="Costs (share of rent)" percent value={e.costs} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.costs = v; })} />
+                <Num label="Yearly appreciation" percent value={e.appreciation} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.appreciation = v; })} />
+              </>}
+              {e.kind === 'move' && <Select label="New state" value={e.state} options={Object.keys(statesJson).sort().map((k) => [k, k] as [string, string])} onChange={(v) => set((x) => { if (x.kind === 'move') x.state = v; })} />}
+              {e.kind === 'inheritance' && <>
+                <Num label="Amount (today's $)" value={e.amount} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.amount = v; })} />
+                <Check label="As an inherited IRA (10-year rule)" value={e.asIra} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.asIra = v; })} />
+              </>}
+              {e.kind === 'recurring' && <>
+                <Num label="Amount (today's $)" value={e.amount} onChange={(v) => set((x) => { if (x.kind === 'recurring') x.amount = v; })} />
+                <Num label="Every (years)" value={e.everyYears} onChange={(v) => set((x) => { if (x.kind === 'recurring') x.everyYears = v; })} />
+                <Num label="Last year" value={e.endYear} onChange={(v) => set((x) => { if (x.kind === 'recurring') x.endYear = v; })} />
+              </>}
               {e.kind === 'payChange' && <Num label="Pay from then on (× current)" step={0.05} value={e.factor} onChange={(v) => set((x) => { if (x.kind === 'payChange') x.factor = v; })} />}
             </>
           );
         }}
       />
-      <p className="muted">A home purchase adds the home, its mortgage (payment from the rate and term), the down payment and closing costs, and property tax; a child adds yearly costs to 18 and college after, paid first from a 529 account if you have one; a career break stops that person's pay; a pay change scales it from that year on.</p>
+      <p className="muted">A home purchase adds the home, its mortgage (payment from the rate and term), the down payment and closing costs, and property tax; a child adds yearly costs to 18 and college after, paid first from a 529 account if you have one; a career break stops that person's pay; a pay change scales it from that year on; a rental adds the property, its mortgage, and net rent as taxable income; a move changes the state income tax from that year; an inheritance arrives as cash, or as an inherited IRA emptied over ten years as taxable income; a recurring purchase repeats every few years.</p>
     </Card>
   );
 }
@@ -295,13 +324,35 @@ export function MilestonesPage() {
           return (
             <>
               <Text label="Name" value={m.name} onChange={(v) => set((y) => { y.name = v; })} />
-              <Select label="When" value={m.kind} options={[['year', 'A year'], ['age', 'An age'], ['financialIndependence', 'Financial independence'], ['netWorth', 'A net worth']]} onChange={(v) => set((y) => { y.kind = v; })} />
+              <Select label="When" value={m.kind} options={[['year', 'A year'], ['age', 'An age'], ['financialIndependence', 'Financial independence'], ['netWorth', 'A net worth'], ['all', 'All of several conditions']]} onChange={(v) => set((y) => { y.kind = v; })} />
               {m.kind === 'year' && <Num label="Year" value={m.year} onChange={(v) => set((y) => { y.year = v; })} />}
               {m.kind === 'age' && <>
                 <Select label="Person" value={m.personId ?? plan.people[0].id} options={plan.people.map((p) => [p.id, p.name] as [string, string])} onChange={(v) => set((y) => { y.personId = v; })} />
                 <Num label="Age" value={m.age} onChange={(v) => set((y) => { y.age = v; })} />
               </>}
               {m.kind === 'netWorth' && <Num label="Net worth (today's $)" value={m.netWorth} onChange={(v) => set((y) => { y.netWorth = v; })} />}
+              {m.kind === 'all' && <div className="span">
+                {(m.conditions ?? []).map((c, j) => (
+                  <div key={j} className="row">
+                    <Select label="Condition" value={c.kind} options={[['year', 'From a year'], ['age', 'From an age'], ['financialIndependence', 'Once financially independent'], ['netWorth', 'Net worth at least']]}
+                      onChange={(v) => set((y) => { y.conditions![j] = { kind: v, personId: plan.people[0].id }; })} />
+                    {c.kind === 'year' && <Num label="Year" value={c.year} onChange={(v) => set((y) => { y.conditions![j].year = v; })} />}
+                    {c.kind === 'age' && <>
+                      <Select label="Person" value={c.personId ?? plan.people[0].id} options={plan.people.map((p) => [p.id, p.name] as [string, string])} onChange={(v) => set((y) => { y.conditions![j].personId = v; })} />
+                      <Num label="Age" value={c.age} onChange={(v) => set((y) => { y.conditions![j].age = v; })} />
+                    </>}
+                    {c.kind === 'netWorth' && <Num label="Net worth (today's $)" value={c.netWorth} onChange={(v) => set((y) => { y.conditions![j].netWorth = v; })} />}
+                    <button className="ghost danger" onClick={() => set((y) => { y.conditions!.splice(j, 1); })}>Remove</button>
+                  </div>
+                ))}
+                <button className="ghost" onClick={() => set((y) => { (y.conditions ??= []).push({ kind: 'age', personId: plan.people[0].id, age: 55 }); })}>+ Condition</button>
+              </div>}
+              <div className="span">
+                {plan.people.map((p) => (
+                  <Check key={p.id} label={`${p.name} retires when this is reached`} value={(m.retires ?? []).includes(p.id)}
+                    onChange={(v) => set((y) => { y.retires = v ? [...(y.retires ?? []), p.id] : (y.retires ?? []).filter((x) => x !== p.id); })} />
+                ))}
+              </div>
             </>
           );
         }}
@@ -329,6 +380,9 @@ export function StrategyPage() {
           <Num label="Traditional IRA a year" value={s.iraContribution} onChange={(v) => update((p) => { p.strategy.iraContribution = v; })} />
           <Num label="Roth IRA a year" value={s.rothIraContribution} onChange={(v) => update((p) => { p.strategy.rothIraContribution = v; })} />
           <Num label="HSA a year" value={s.hsaContribution} onChange={(v) => update((p) => { p.strategy.hsaContribution = v; })} />
+          <Check label="Backdoor Roth (no income limit on the Roth IRA)" value={!!s.backdoorRoth} onChange={(v) => update((p) => { p.strategy.backdoorRoth = v; })} />
+          <Num label="Mega backdoor Roth a year" value={s.megaBackdoor ?? 0} onChange={(v) => update((p) => { p.strategy.megaBackdoor = v; })} />
+          <Select label="Leftover pay goes to" value={s.surplusTo ?? 'invest'} options={[['invest', 'Investing (taxable account)'], ['debt', 'Paying debts down first']]} onChange={(v) => update((p) => { p.strategy.surplusTo = v; })} />
         </div>
         <p className="muted">Each contribution is capped at the year's IRS limit, catch-up included. Pay left after expenses and contributions fills the cash target, then goes to the taxable account.</p>
       </Card>
@@ -347,10 +401,12 @@ export function StrategyPage() {
         <div className="grid">
           <Select label="How to draw" value={s.withdrawalMethod ?? 'order'} options={[['order', 'In the order above'], ['proportional', 'In proportion to balances']]}
             onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />
+          <Select label="Shield withdrawals under" value={s.shield ?? 'none'} options={[['none', 'No limit'], ['bracket12', 'The 12% bracket'], ['bracket22', 'The 22% bracket'], ['bracket24', 'The 24% bracket'], ['irmaa', 'The first IRMAA tier'], ['aca', 'The ACA credit limit (400% FPL)']]}
+            onChange={(v) => update((p) => { p.strategy.shield = v; })} />
           <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />
-          <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)']]}
+          <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)'], ['textbook', 'Textbook rule (a share of the first year, then with inflation)']]}
             onChange={(v) => update((p) => { p.strategy.spending = v; })} />
-          {(s.spending === 'fixedPercent' || s.spending === 'guardrails') && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
+          {(s.spending === 'fixedPercent' || s.spending === 'guardrails' || s.spending === 'textbook') && <Num label="Withdrawal rate" percent value={s.spendingRate} onChange={(v) => update((p) => { p.strategy.spendingRate = v; })} />}
           <Num label="Safe withdrawal rate (FI test)" percent value={s.safeWithdrawalRate} onChange={(v) => update((p) => { p.strategy.safeWithdrawalRate = v; })} />
         </div>
       </Card>
@@ -371,6 +427,20 @@ export function StrategyPage() {
             onChange={(v) => update((p) => { p.strategy.rothConversionBracket = Number(v); })} />
           <Num label="From year" value={s.rothConversionStart ?? plan.startYear} onChange={(v) => update((p) => { p.strategy.rothConversionStart = v; })} />
           <Num label="To year" value={s.rothConversionEnd ?? plan.startYear + 30} onChange={(v) => update((p) => { p.strategy.rothConversionEnd = v; })} />
+        </div>
+        <div className="grid" style={{ marginTop: 10 }}>
+          {(s.manualConversions ?? []).map((m, i) => (
+            <div key={i} className="row">
+              <Num label="Convert in year" value={m.year} onChange={(v) => update((p) => { p.strategy.manualConversions![i].year = v; })} />
+              <Num label="Amount (today's $)" value={m.amount} onChange={(v) => update((p) => { p.strategy.manualConversions![i].amount = v; })} />
+              <button className="ghost danger" onClick={() => update((p) => { p.strategy.manualConversions!.splice(i, 1); })}>Remove</button>
+            </div>
+          ))}
+          <div><button className="ghost" onClick={() => update((p) => { (p.strategy.manualConversions ??= []).push({ year: p.startYear + 5, amount: 50000 }); })}>+ A conversion in a set year</button></div>
+        </div>
+        <div className="grid" style={{ marginTop: 10 }}>
+          <Check label="72(t) SEPP withdrawals before 59½ (no penalty)" value={!!s.sepp?.enabled} onChange={(v) => update((p) => { p.strategy.sepp = { startYear: p.startYear + 10, ...p.strategy.sepp, enabled: v }; })} />
+          {s.sepp?.enabled && <Num label="SEPP from year" value={s.sepp.startYear} onChange={(v) => update((p) => { p.strategy.sepp!.startYear = v; })} />}
         </div>
         <p className="muted">Each year in the window, traditional balances move to Roth until ordinary taxable income reaches the top of the chosen bracket ({pct(s.rothConversionBracket, 0)}).</p>
       </Card>

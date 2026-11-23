@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage, TaxHealthPage, EventsPage } from './pages/Editors';
 import { Icon } from './icons';
+import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
 import { useActivePlan, useStore } from './store';
 import { Card, Check, Select } from './ui';
@@ -57,6 +58,9 @@ const PAGES = {
   taxes: ['Taxes', TaxesPage],
   montecarlo: ['Monte Carlo', MonteCarloPage],
   fire: ['FIRE metrics', FirePage],
+  optimize: ['Optimizer', OptimizePage],
+  estate: ['Estate', EstatePage],
+  plot: ['Plot builder', PlotPage],
   compare: ['Compare plans', ComparePage],
   progress: ['Progress', ProgressPage],
   table: ['Year table', TablePage],
@@ -66,7 +70,7 @@ type PageKey = keyof typeof PAGES;
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
   ['Your plan', ['people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
-  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'compare', 'table']],
+  ['Results', ['networth', 'cashflow', 'taxes', 'montecarlo', 'fire', 'optimize', 'estate', 'compare', 'plot', 'table']],
   ['Tracking', ['progress', 'settings']],
 ];
 
