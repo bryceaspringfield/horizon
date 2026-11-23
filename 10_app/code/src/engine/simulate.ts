@@ -6,6 +6,7 @@
 // raises the tax, which needs more withdrawal) in a few passes. A surplus fills the cash target and the rest goes to
 // the first taxable account. Balances then earn the year's returns, a taxable account's dividends are taxed in the
 // same year, assets appreciate and are sold in their sale year, and debts accrue interest.
+import { adoptionCost, birthCost, weddingCost } from './lifeCosts';
 import { assumptionAt } from './assumptions';
 import { resolve, shareOfYear, yearOf } from './dates';
 import { cardRewards, cardable, categoryOf, type SpendCategory } from './cards';
@@ -83,6 +84,16 @@ export function expandEvents(plan: Plan): Plan {
         securedBy: assetId, startYear: e.year });
       plan.expenses.push({ id: 'ev_down_' + e.id, name: e.name + ': down payment and closing', kind: 'oneTime',
         amount: e.price * (e.downPayment + e.closingCosts), startYear: e.year, growth: 0 });
+    } else if (e.kind === 'wedding' || e.kind === 'birth' || e.kind === 'adoption') {
+      // a one-time cost on the event's date: the estimate from engine/lifeCosts.ts unless the user set the cost
+      const est = e.kind === 'wedding' ? weddingCost(e) : e.kind === 'birth' ? birthCost(e.cover, e.cesarean) : adoptionCost(e.route);
+      const cost = e.cost ?? est;
+      if (cost > 0) plan.expenses.push({ id: 'ev_once_' + e.id, name: e.name, kind: 'oneTime', amount: cost, startYear: e.year, growth: 0, ...(e.date ? { start: { kind: 'date', date: e.date } } : {}) });
+      if (e.kind !== 'wedding') {
+        plan.expenses.push({ id: 'ev_child_' + e.id, name: e.name + ': child costs', kind: 'other', amount: e.yearlyCost, startYear: e.year, endYear: e.year + 17, growth: 0 });
+        if (e.collegeYearly > 0) plan.expenses.push({ id: 'ev_college_' + e.id, name: e.name + ': college', kind: 'education',
+          amount: e.collegeYearly, startYear: e.year + 18, endYear: e.year + 17 + e.collegeYears, growth: 0.02, fundedBy: plan.accounts.find((x) => x.kind === 'college529')?.id });
+      }
     } else if (e.kind === 'child') {
       plan.expenses.push({ id: 'ev_child_' + e.id, name: e.name + ': child costs', kind: 'other', amount: e.yearlyCost, startYear: e.year, endYear: e.year + 17, growth: 0 });
       if (e.collegeYearly > 0) plan.expenses.push({ id: 'ev_college_' + e.id, name: e.name + ': college', kind: 'education',
@@ -217,7 +228,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     for (const e of plan.events ?? []) if (e.kind === 'move' && e.year <= y && e.year > at) { lt = e.local; at = e.year; }
     return lt;
   };
-  const childEvents = (plan.events ?? []).filter((e) => e.kind === 'child');
+  const childEvents = (plan.events ?? []).filter((e) => e.kind === 'child' || e.kind === 'birth' || e.kind === 'adoption');
   const separations = (plan.events ?? []).flatMap((e) => (e.kind === 'separation' ? [e] : []));
   /** People who left the household in a separation: their incomes and benefits leave the plan. */
   const departed = new Set<string>();
@@ -537,6 +548,12 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         state.balance[e.fundedBy] -= take;
         withdrawals[e.fundedBy] = (withdrawals[e.fundedBy] ?? 0) + take;
         amt -= take;
+      }
+      // the share someone outside the plan pays, over each stretch's part of the year
+      if (e.paidBy?.length) {
+        let covered = 0;
+        for (const b of e.paidBy) covered += Math.min(1, Math.max(0, b.share)) * shareOfYear(y, yearOf(b.from), b.to ? yearOf(b.to) : Infinity);
+        amt *= Math.max(0, 1 - covered);
       }
       expenses[e.id] = amt;
       totalExpenses += amt;

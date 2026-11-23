@@ -58,3 +58,15 @@ describe('an expense as a share of income', () => {
     expect(y.expenses.dues).toBeGreaterThan(0);
   });
 });
+
+describe('an expense paid by someone else', () => {
+  it('charges nothing while others pay all, half while they pay half, and all after they stop', () => {
+    const plan = examplePlan(2026);
+    plan.expenses.push({ id: 'food', name: 'Food', kind: 'living', amount: 6000, growth: 0, startYear: 2026,
+      paidBy: [{ from: '2026-01-01', to: '2027-01-01', share: 1, who: 'Parents' }, { from: '2027-01-01', to: '2028-01-01', share: 0.5 }] } as never);
+    const ys = simulate(plan).years;
+    expect(ys[0].expenses.food).toBeCloseTo(0, 0);
+    expect(ys[1].expenses.food / ys[2].expenses.food).toBeCloseTo(0.5 * (1 + plan.assumptions.inflation) / (1 + plan.assumptions.inflation), 1);
+    expect(ys[2].expenses.food).toBeGreaterThan(5000);
+  });
+});

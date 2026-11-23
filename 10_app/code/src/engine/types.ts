@@ -18,6 +18,10 @@ export interface Person {
   race?: 'all' | 'hispanic' | 'aian' | 'asian' | 'black' | 'white';
   conditions?: string[];
   ownLife?: boolean;
+  /** Food (engine/food.ts): the USDA food plan level, the diet, and whether someone outside the plan pays for the food. */
+  foodPlan?: import('./food').FoodPlan;
+  diet?: import('./food').Diet;
+  foodPaidByOthers?: boolean;
 }
 
 export type AccountKind =
@@ -226,6 +230,9 @@ export interface Expense {
    * when the repayment arrives (0: the same year). The repayment is untaxed; the card's cash back on the spending stays. */
   reimbursedShare?: number;
   reimbursedAfterYears?: number;
+  /** Stretches during which someone outside the plan pays all or part of this expense (parents, an employer, a partner
+   * outside the plan): each from a date to an optional end date (none: for good), the share they pay, and who. */
+  paidBy?: { from: string; to?: string; share: number; who?: string }[];
   /** Paid through a workplace health or dependent-care FSA: the amount (up to the year's limit) leaves taxable pay. */
   fsa?: boolean;
   /** A share of income in place of a fixed amount (dues, tithes, giving goals): of pay (salary and self-employment) or
@@ -416,6 +423,9 @@ export interface Assumptions {
 export type LifeEvent = { date?: string; endDate?: string } & (
   | { id: string; kind: 'homePurchase'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; appreciation: number; closingCosts: number }
   | { id: string; kind: 'child'; name: string; year: number; yearlyCost: number; collegeYearly: number; collegeYears: number }
+  | { id: string; kind: 'birth'; name: string; year: number; cover: import('./lifeCosts').BirthCover; cesarean: boolean; cost?: number; yearlyCost: number; collegeYearly: number; collegeYears: number }
+  | { id: string; kind: 'adoption'; name: string; year: number; route: import('./lifeCosts').AdoptionRoute; cost?: number; yearlyCost: number; collegeYearly: number; collegeYears: number }
+  | { id: string; kind: 'wedding'; name: string; year: number; style: import('./lifeCosts').WeddingStyle; guests: number; days: number; locations: number; destination: import('./lifeCosts').Destination; cost?: number }
   | { id: string; kind: 'careerBreak'; name: string; personId: string; year: number; endYear: number }
   | { id: string; kind: 'payChange'; name: string; personId: string; year: number; factor: number }
   | { id: string; kind: 'move'; name: string; year: number; state: string; local?: LocalTax }

@@ -2,6 +2,7 @@
 // the essentials checklist, whose missing items are added to the plan at a starting estimate in one tap.
 import { useState } from 'react';
 import { uid } from '../engine/defaults';
+import { groceriesYearly } from '../engine/food';
 import { ESSENTIALS, essentialExpense, missingEssentials } from '../engine/essentials';
 import type { ExpenseKind } from '../engine/types';
 import { useStore } from '../store';
@@ -31,9 +32,12 @@ export function BudgetPage() {
   const takeHome = (gross - taxes) / 12;
   const kinds = [...byKind.entries()].sort((a, b) => b[1] - a[1]);
   const missing = missingEssentials(plan);
+  const groceries = groceriesYearly(plan.people.map((q) => ({ age: plan.startYear - q.birthYear, sex: q.sex, plan: q.foodPlan, paidByOthers: q.foodPaidByOthers })));
   const add = (key: string) => {
     const x = ESSENTIALS.find((k) => k.key === key)!;
-    update((p) => { p.expenses.push(essentialExpense(x, p.startYear, 'e' + uid())); });
+    // groceries from each person's USDA food plan (engine/food.ts); the rest at their starting estimate
+    const amount = key === 'groceries' ? groceries : x.yearly;
+    update((p) => { p.expenses.push({ ...essentialExpense(x, p.startYear, 'e' + uid()), amount }); });
   };
   return (
     <>
@@ -69,7 +73,7 @@ export function BudgetPage() {
               <li key={x.key} className={gap ? 'gap' : 'ok'}>
                 <span className="mark">{gap ? '!' : '✓'}</span>
                 <span className="what"><b>{x.name}</b><small>{gap ? x.note : 'In the plan'}</small></span>
-                {gap && <button onClick={() => add(x.key)}>+ Add{x.yearly ? ` at ${money(x.yearly / 12)} a month` : ''}</button>}
+                {gap && <button onClick={() => add(x.key)}>+ Add{(x.key === 'groceries' ? groceries : x.yearly) ? ` at ${money((x.key === 'groceries' ? groceries : x.yearly) / 12)} a month` : ''}</button>}
               </li>
             );
           })}

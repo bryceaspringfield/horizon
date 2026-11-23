@@ -13,6 +13,8 @@ import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
 import { MARKET, consensus } from '../engine/assumptions';
 import { CONDITIONS, RACES, expectedDeathDate } from '../engine/lifespan';
+import { DIETS, FOOD_PLANS } from '../engine/food';
+import { ADOPTION_ROUTES, ADOPTION_SOURCE, BIRTH_SOURCE, WEDDING_SOURCES, WEDDING_STYLES, adoptionCost, birthCost, weddingCost } from '../engine/lifeCosts';
 import { SPEND_CATEGORIES, categoryOf, type RewardRate, type SpendCategory } from '../engine/cards';
 
 const ACCOUNT_KINDS: [AccountKind, string][] = [
@@ -176,6 +178,27 @@ function StepsEditor({ steps, nominal, onChange }: { steps?: Step[]; nominal?: b
   );
 }
 
+/** Stretches when someone else pays all or part of an expense: from a date, to a date or for good, the share, and who. */
+function PaidByEditor({ list, start, onChange }: { list?: { from: string; to?: string; share: number; who?: string }[]; start: number; onChange: (l: { from: string; to?: string; share: number; who?: string }[]) => void }) {
+  const ps = list ?? [];
+  const put = (j: number, f: (x: (typeof ps)[number]) => (typeof ps)[number]) => onChange(ps.map((x, k) => (k === j ? f(x) : x)));
+  return (
+    <div className="span steps">
+      {!!ps.length && <strong>Paid by someone else</strong>}
+      {ps.map((b, j) => (
+        <div key={j} className="row">
+          <Text label="Who pays" value={b.who ?? ''} onChange={(v) => put(j, (x) => ({ ...x, who: v || undefined }))} />
+          <Num label="Share they pay" percent value={b.share} onChange={(v) => put(j, (x) => ({ ...x, share: Math.max(0, Math.min(1, v)) }))} />
+          <label className="field"><span>From</span><div className="input"><input type="date" value={b.from} onChange={(e) => e.target.value && put(j, (x) => ({ ...x, from: e.target.value }))} /></div></label>
+          <label className="field"><span>Until (blank: for good)</span><div className="input"><input type="date" value={b.to ?? ''} onChange={(e) => put(j, (x) => ({ ...x, to: e.target.value || undefined }))} /></div></label>
+          <button className="ghost danger" onClick={() => onChange(ps.filter((_, k) => k !== j))}>Remove</button>
+        </div>
+      ))}
+      <button className="ghost" onClick={() => onChange([...ps, { from: start + '-01-01', share: 1 }])}>+ Paid by someone else</button>
+    </div>
+  );
+}
+
 /** A salary's paycheck deductions other than retirement contributions, each with its tax treatment. */
 function DeductionsEditor({ list, onChange }: { list?: PayDeduction[]; onChange: (d: PayDeduction[]) => void }) {
   const ds = list ?? [];
@@ -264,6 +287,9 @@ export function PeoplePage() {
                   return <button type="button" key={c.key} title={c.source} className={on ? 'on' : ''} onClick={() => update((p) => { const q = p.people[i]; q.conditions = on ? (q.conditions ?? []).filter((k) => k !== c.key) : [...(q.conditions ?? []), c.key]; lifeFill(q); })}>{c.label}</button>;
                 })}
               </div></div>
+              <Select label="Food spending" value={person.foodPlan ?? 'moderate'} options={FOOD_PLANS} onChange={(v) => update((p) => { p.people[i].foodPlan = v; })} />
+              <Select label="Diet" value={person.diet ?? 'omnivore'} options={DIETS} onChange={(v) => update((p) => { p.people[i].diet = v; })} />
+              <Check label="Food paid by someone else" value={!!person.foodPaidByOthers} onChange={(v) => update((p) => { p.people[i].foodPaidByOthers = v || undefined; })} />
               <Check label="Set my own plan-to age" value={!!person.ownLife} onChange={(v) => update((p) => { p.people[i].ownLife = v || undefined; lifeFill(p.people[i]); })} />
               {!person.ownLife && <div className="field"><span>Expected death</span><div className="muted">{lifeOf(person).date} (age {lifeOf(person).age.toFixed(1)})</div></div>}
               {plan.assumptions.planTo && plan.assumptions.planTo.mode !== 'person' && <Check label="Own plan-to age" value={!!person.ownPlanTo} onChange={(v) => update((p) => { p.people[i].ownPlanTo = v || undefined; })} />}
@@ -536,6 +562,7 @@ export function ExpensesPage() {
               <Num label="As a share of income (0: a fixed amount)" percent value={x.incomeShare ?? 0} onChange={(v) => set((y) => { y.incomeShare = v || undefined; })} />
               {!!x.incomeShare && <Select label="Share of" value={x.incomeBasis ?? 'pay'} options={[['pay', 'Pay'], ['all', 'All income']]} onChange={(v) => set((y) => { y.incomeBasis = v; })} />}
               <Select label="Card spending category" value={categoryOf(x)} options={SPEND_CATEGORIES.map(([k, l]) => [k, l] as [SpendCategory, string])} onChange={(v) => set((y) => { y.spendCategory = v; })} />
+              <PaidByEditor list={x.paidBy} start={x.startYear} onChange={(l) => set((y) => { y.paidBy = l.length ? l : undefined; })} />
               <Num label="Paid back to you" percent value={x.reimbursedShare ?? 0} onChange={(v) => set((y) => { y.reimbursedShare = v ? Math.min(1, v) : undefined; })} />
               {!!x.reimbursedShare && <Num label="Paid back after (years; 0 the same year)" value={x.reimbursedAfterYears ?? 0} onChange={(v) => set((y) => { y.reimbursedAfterYears = Math.max(0, v); })} />}
               {(x.kind === 'healthcare' || x.kind === 'childcare') && <Check label="Paid through a workplace FSA" value={!!x.fsa} onChange={(v) => set((y) => { y.fsa = v || undefined; })} />}
@@ -556,12 +583,15 @@ export function ExpensesPage() {
   );
 }
 
-const EVENT_KINDS: [LifeEvent['kind'], string][] = [['homePurchase', 'Buy a home'], ['rentalProperty', 'Buy a rental property'], ['child', 'Have a child'], ['careerBreak', 'Career break'], ['payChange', 'Pay change'], ['move', 'Move to another state'], ['inheritance', 'Inheritance'], ['recurring', 'Recurring purchase'], ['separation', 'Separation or divorce']];
+const EVENT_KINDS: [LifeEvent['kind'], string][] = [['wedding', 'Wedding'], ['birth', 'Pregnancy and birth'], ['adoption', 'Adoption'], ['homePurchase', 'Buy a home'], ['rentalProperty', 'Buy a rental property'], ['child', 'Have a child'], ['careerBreak', 'Career break'], ['payChange', 'Pay change'], ['move', 'Move to another state'], ['inheritance', 'Inheritance'], ['recurring', 'Recurring purchase'], ['separation', 'Separation or divorce']];
 
 function newEvent(kind: LifeEvent['kind'], year: number, personId: string): LifeEvent {
   const id = uid();
   if (kind === 'homePurchase') return { id, kind, name: 'New home', year, price: 600000, downPayment: 0.2, rate: 0.065, termYears: 30, appreciation: 0.03, closingCosts: 0.03 };
   if (kind === 'child') return { id, kind, name: 'Child', year, yearlyCost: 15000, collegeYearly: 30000, collegeYears: 4 };
+  if (kind === 'wedding') return { id, kind, name: 'Wedding', year, style: 'midsize', guests: 0, days: 1, locations: 1, destination: 'home' };
+  if (kind === 'birth') return { id, kind, name: 'Baby', year, cover: 'employer', cesarean: false, yearlyCost: 0, collegeYearly: 0, collegeYears: 4 };
+  if (kind === 'adoption') return { id, kind, name: 'Adoption', year, route: 'foster', yearlyCost: 0, collegeYearly: 0, collegeYears: 4 };
   if (kind === 'careerBreak') return { id, kind, name: 'Career break', personId, year, endYear: year + 1 };
   if (kind === 'payChange') return { id, kind, name: 'Promotion', personId, year, factor: 1.2 };
   if (kind === 'move') return { id, kind, name: 'Move', year, state: 'TX' };
@@ -601,10 +631,30 @@ export function EventsPage() {
                 <Num label="Term (years)" value={e.termYears} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.termYears = v; })} />
                 <Num label="Yearly appreciation" percent value={e.appreciation} onChange={(v) => set((x) => { if (x.kind === 'homePurchase') x.appreciation = v; })} />
               </>}
-              {e.kind === 'child' && <>
-                <Num label="Yearly cost to 18 (today's $)" value={e.yearlyCost} onChange={(v) => set((x) => { if (x.kind === 'child') x.yearlyCost = v; })} />
-                <Num label="College a year (today's $)" value={e.collegeYearly} onChange={(v) => set((x) => { if (x.kind === 'child') x.collegeYearly = v; })} />
-                <Num label="College years" value={e.collegeYears} onChange={(v) => set((x) => { if (x.kind === 'child') x.collegeYears = v; })} />
+              {e.kind === 'wedding' && <>
+                <Select label="Style" value={e.style} options={WEDDING_STYLES} onChange={(v) => set((x) => { if (x.kind === 'wedding') x.style = v; })} />
+                <Num label="Guests (0: the average for the style)" value={e.guests} onChange={(v) => set((x) => { if (x.kind === 'wedding') x.guests = Math.max(0, Math.round(v)); })} />
+                <Num label="Days" value={e.days} onChange={(v) => set((x) => { if (x.kind === 'wedding') x.days = Math.max(1, Math.round(v)); })} />
+                <Num label="Locations" value={e.locations} onChange={(v) => set((x) => { if (x.kind === 'wedding') x.locations = Math.max(1, Math.round(v)); })} />
+                <Select label="Where" value={e.destination} options={[['home', 'Near home'], ['domestic', 'A destination in the US'], ['international', 'Abroad']]} onChange={(v) => set((x) => { if (x.kind === 'wedding') x.destination = v; })} />
+                <Num label="Cost (0: the estimate)" value={e.cost ?? 0} hint={WEDDING_SOURCES.join(' ')} onChange={(v) => set((x) => { if (x.kind === 'wedding') x.cost = v || undefined; })} />
+                <div className="field"><span>Estimate</span><div className="muted">{money(weddingCost(e))}</div></div>
+              </>}
+              {e.kind === 'birth' && <>
+                <Select label="Coverage" value={e.cover} options={[['employer', 'Employer or marketplace insurance'], ['medicaid', 'Medicaid'], ['uninsured', 'No insurance']]} onChange={(v) => set((x) => { if (x.kind === 'birth') x.cover = v; })} />
+                <Check label="Cesarean" value={e.cesarean} onChange={(v) => set((x) => { if (x.kind === 'birth') x.cesarean = v; })} />
+                <Num label="Cost (0: the estimate)" value={e.cost ?? 0} hint={BIRTH_SOURCE} onChange={(v) => set((x) => { if (x.kind === 'birth') x.cost = v || undefined; })} />
+                <div className="field"><span>Estimate</span><div className="muted">{money(birthCost(e.cover, e.cesarean))} out of pocket</div></div>
+              </>}
+              {e.kind === 'adoption' && <>
+                <Select label="Route" value={e.route} options={ADOPTION_ROUTES} onChange={(v) => set((x) => { if (x.kind === 'adoption') x.route = v; })} />
+                <Num label="Cost (0: the estimate)" value={e.cost ?? 0} hint={ADOPTION_SOURCE} onChange={(v) => set((x) => { if (x.kind === 'adoption') x.cost = v || undefined; })} />
+                <div className="field"><span>Estimate</span><div className="muted">{money(adoptionCost(e.route))}</div></div>
+              </>}
+              {(e.kind === 'child' || e.kind === 'birth' || e.kind === 'adoption') && <>
+                <Num label="Yearly cost to 18 (today's $)" value={e.yearlyCost} onChange={(v) => set((x) => { if (x.kind === 'child' || x.kind === 'birth' || x.kind === 'adoption') x.yearlyCost = v; })} />
+                <Num label="College a year (today's $)" value={e.collegeYearly} onChange={(v) => set((x) => { if (x.kind === 'child' || x.kind === 'birth' || x.kind === 'adoption') x.collegeYearly = v; })} />
+                <Num label="College years" value={e.collegeYears} onChange={(v) => set((x) => { if (x.kind === 'child' || x.kind === 'birth' || x.kind === 'adoption') x.collegeYears = v; })} />
               </>}
               {(e.kind === 'careerBreak' || e.kind === 'payChange') && (
                 <Select label="Person" value={e.personId} options={people} onChange={(v) => set((x) => { if (x.kind === 'careerBreak' || x.kind === 'payChange') x.personId = v; })} />
