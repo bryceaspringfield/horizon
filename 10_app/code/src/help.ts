@@ -343,4 +343,11 @@ export const HELP: Record<string, string> = {
   "Effective rate's income includes non-taxable sale proceeds": "Count the untaxed part of what an asset sale brings in as income in the effective tax rate.",
   "No private hospital cover (Medicare levy surcharge)": "Without private hospital cover, incomes over $105,000 single or $210,000 for a family pay an extra 1% to 1.5% Medicare levy surcharge.",
   "From a substantial shareholding (box 2)": "Dividends and gains from a company you own 5% or more of, taxed in box 2 at 24.5% to \u20ac68,843 and 31% above.",
+  "Also hold under": "More limits to respect at the same time; each year the tightest one caps traditional withdrawals.",
+  "Income ceiling (AGI, today's $; 0 for none)": "A cap on adjusted gross income, in today's dollars, held alongside the other targets.",
+  "12% bracket": "Hold traditional withdrawals under this limit too.",
+  "22% bracket": "Hold traditional withdrawals under this limit too.",
+  "24% bracket": "Hold traditional withdrawals under this limit too.",
+  "IRMAA tier 1": "Hold traditional withdrawals under this limit too.",
+  "ACA limit": "Hold traditional withdrawals under this limit too.",
 };

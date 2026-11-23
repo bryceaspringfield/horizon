@@ -885,8 +885,15 @@ export function StrategyPage({ focus }: { focus?: StrategyFocus } = {}) {
             onChange={(v) => update((p) => { p.strategy.withdrawalMethod = v; })} />}
           {show('tax', 'drawdown') && <Select label="Shield withdrawals under" value={s.shield ?? 'none'} options={[['none', 'No limit'], ['bracket12', 'The 12% bracket'], ['bracket22', 'The 22% bracket'], ['bracket24', 'The 24% bracket'], ['irmaa', 'The first IRMAA tier'], ['aca', 'The ACA credit limit (400% FPL)']]}
             onChange={(v) => update((p) => { p.strategy.shield = v; })} />}
-          {show('tax', 'drawdown') && s.shield && s.shield !== 'none' && <Num label="Shield from year (0 for the start)" value={s.shieldFrom ?? 0} onChange={(v) => update((p) => { p.strategy.shieldFrom = v || undefined; })} />}
-          {show('tax', 'drawdown') && s.shield && s.shield !== 'none' && <Num label="Shield until year (0 for the end)" value={s.shieldTo ?? 0} onChange={(v) => update((p) => { p.strategy.shieldTo = v || undefined; })} />}
+          {show('tax', 'drawdown') && <div className="span row">
+            <span>Also hold under</span>
+            {([['bracket12', '12% bracket'], ['bracket22', '22% bracket'], ['bracket24', '24% bracket'], ['irmaa', 'IRMAA tier 1'], ['aca', 'ACA limit']] as const).map(([k, l]) => (
+              <Check key={k} label={l} value={!!s.shields?.includes(k)} onChange={(v) => update((p) => { const cur = new Set(p.strategy.shields ?? []); if (v) cur.add(k); else cur.delete(k); p.strategy.shields = cur.size ? [...cur] : undefined; })} />
+            ))}
+          </div>}
+          {show('tax', 'drawdown') && <Num label="Income ceiling (AGI, today's $; 0 for none)" value={s.incomeCeiling ?? 0} onChange={(v) => update((p) => { p.strategy.incomeCeiling = v > 0 ? v : undefined; })} />}
+          {show('tax', 'drawdown') && ((s.shield && s.shield !== 'none') || !!s.shields?.length || !!s.incomeCeiling) && <Num label="Shield from year (0 for the start)" value={s.shieldFrom ?? 0} onChange={(v) => update((p) => { p.strategy.shieldFrom = v || undefined; })} />}
+          {show('tax', 'drawdown') && ((s.shield && s.shield !== 'none') || !!s.shields?.length || !!s.incomeCeiling) && <Num label="Shield until year (0 for the end)" value={s.shieldTo ?? 0} onChange={(v) => update((p) => { p.strategy.shieldTo = v || undefined; })} />}
           {show('tax', 'drawdown') && s.shield === 'aca' && <Num label="Keep income under this multiple of the poverty line" value={s.fplMultiple ?? 4} onChange={(v) => update((p) => { p.strategy.fplMultiple = v > 0 ? v : undefined; })} />}
           {show('harvest', 'tax') && <Check label="Realize gains in the 0% capital gains band each year" value={!!s.harvestZeroGains} onChange={(v) => update((p) => { p.strategy.harvestZeroGains = v; })} />}
           {show('drawdown', 'flex') && <Select label="Spending rule" value={s.spending} options={[['expenses', 'The plan\'s expenses'], ['fixedPercent', 'Fixed share of the portfolio'], ['guardrails', 'Guardrails (±10% when the rate drifts 20%)'], ['vpw', 'Variable percentage (spend down by the plan end)'], ['textbook', 'Textbook rule (a share of the first year, then with inflation)'], ['cape', 'CAPE-based (more when stocks are cheap)']]}

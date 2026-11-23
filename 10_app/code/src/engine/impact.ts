@@ -10,7 +10,7 @@ export type ImpactFocus = 'tax' | 'flex' | 'roth' | 'drawdown' | 'harvest';
 export function withoutStrategy(plan: Plan, focus: ImpactFocus): Plan {
   const p = structuredClone(plan), s = p.strategy;
   const offRoth = () => { s.autoRoth = undefined; s.rothConversionBracket = 0; s.manualConversions = []; };
-  const offShield = () => { s.shield = 'none'; };
+  const offShield = () => { s.shield = 'none'; s.shields = undefined; s.incomeCeiling = undefined; };
   const offHarvest = () => { s.harvestZeroGains = false; };
   if (focus === 'roth') offRoth();
   if (focus === 'drawdown') offShield();

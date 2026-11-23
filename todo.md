@@ -48,7 +48,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Quebec's other credits (living alone, age, retirement income); Ontario's $575 reduction for each child.
 - Spain: every region's own income tax scale and wealth tax allowance in place of the reference scale.
 - UK: the April 2027 rise in savings rates (2 points).
-- Tax strategy: several targets at once (bracket, IRMAA, ACA, an income ceiling) with constraints, in place of one shield.
 
 ## From the live ProjectionLab app (signed in 2026-11-23; captures in 99_overall/output/pl_live/)
 

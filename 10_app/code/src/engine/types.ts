@@ -339,6 +339,9 @@ export interface Strategy {
   /** Shield 'aca': the multiple of the poverty line to keep income under (4 where unset; 1.38 for Medicaid, 2.5 for
    * cost-sharing reductions). */
   fplMultiple?: number;
+  /** More shielding targets held together with shield (the tightest applies), and a ceiling on AGI in today's dollars. */
+  shields?: ('bracket12' | 'bracket22' | 'bracket24' | 'irmaa' | 'aca')[];
+  incomeCeiling?: number;
   /** Withdrawal shielding only in these years (the whole plan where unset). */
   shieldFrom?: number;
   shieldTo?: number;

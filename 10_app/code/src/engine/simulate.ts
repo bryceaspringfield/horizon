@@ -967,13 +967,16 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     /** Traditional money which still fits under the shield's limit this year, given what was drawn so far. */
     function shieldRoom(drawnNow: number): number {
       const t = computeTaxNow(fromTrad + drawnNow, gains, early);
-      const sh = s.shield!;
-      if (sh.startsWith('bracket')) return Math.max(0, bracketTop(Number(sh.slice(7)) / 100, status, y, ri) - t.ordinaryTaxable);
-      if (sh === 'irmaa') {
-        const tiers = rulesTiers(status);
-        return Math.max(0, tiers * ri - t.agi);
+      // every target at once (ProjectionLab's tax strategy): the room is the tightest of them
+      const targets = [...new Set([s.shield, ...(s.shields ?? [])].filter((x): x is NonNullable<typeof x> => !!x && x !== 'none'))];
+      let room = Infinity;
+      for (const sh of targets) {
+        if (sh.startsWith('bracket')) room = Math.min(room, bracketTop(Number(sh.slice(7)) / 100, status, y, ri) - t.ordinaryTaxable);
+        else if (sh === 'irmaa') room = Math.min(room, rulesTiers(status) * ri - t.agi);
+        else if (sh === 'aca') room = Math.min(room, acaLimit(alive.length, s.fplMultiple ?? 4) * ri - t.agi);
       }
-      return Math.max(0, acaLimit(alive.length, s.fplMultiple ?? 4) * ri - t.agi);
+      if (s.incomeCeiling) room = Math.min(room, s.incomeCeiling * ri - t.agi);
+      return Math.max(0, room);
     }
 
     function withdraw(need: number) {
@@ -1013,7 +1016,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
           if (left <= 0) break;
           let avail = state.balance[x.id];
           if (step === 'cash') avail = Math.max(0, avail);
-          if (step === 'traditional' && s.shield && s.shield !== 'none' && y >= (s.shieldFrom ?? -Infinity) && y <= (s.shieldTo ?? Infinity)) avail = Math.min(avail, shieldRoom(traditional));
+          if (step === 'traditional' && ((s.shield && s.shield !== 'none') || s.shields?.length || s.incomeCeiling) && y >= (s.shieldFrom ?? -Infinity) && y <= (s.shieldTo ?? Infinity)) avail = Math.min(avail, shieldRoom(traditional));
           const take = Math.min(left, avail);
           if (take <= 0) continue;
           state.balance[x.id] -= take;

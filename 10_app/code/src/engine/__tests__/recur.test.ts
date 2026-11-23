@@ -105,3 +105,14 @@ describe('historical rates', () => {
     expect(p.stocks[0]).toBeLessThan(-0.3);
   });
 });
+
+describe('several shielding targets', () => {
+  it('a tighter extra target lowers traditional withdrawals no further than the tightest', async () => {
+    const { withoutStrategy } = await import('../impact');
+    const plan = examplePlan();
+    plan.strategy.shield = 'bracket24'; plan.strategy.shields = ['bracket12']; plan.strategy.incomeCeiling = 50000;
+    const off = withoutStrategy(plan, 'drawdown').strategy;
+    expect([off.shield, off.shields, off.incomeCeiling]).toEqual(['none', undefined, undefined]);
+    expect(simulate(plan).years.length).toBeGreaterThan(0);
+  });
+});
