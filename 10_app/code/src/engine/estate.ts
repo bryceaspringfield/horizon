@@ -13,6 +13,11 @@ export interface Legacy {
   heirsIncomeTax: number;
   stateEstateTax: number;
   stateInheritanceTax: number;
+  /** Settlement costs (estate settings) and their sum with every tax: the estate drag. */
+  liquidation: number;
+  admin: number;
+  gainsTax: number;
+  estateDrag: number;
   /** Left to charity (Metrics: charity share). */
   charity: number;
   /** The state of residence at the last death. */
@@ -43,7 +48,14 @@ export function netLegacy(plan: Plan, proj: Projection): Legacy {
   const since2026 = k * Math.pow(1 + plan.assumptions.inflation, plan.startYear - 2026);
   const stEstate = stateEstateTax(state, gross - charity, since2026, couple);
   const stInherit = stateInheritanceTax(state, Math.max(0, gross - charity - tax - stEstate), plan.estate?.heirs ?? 'children', plan.estate?.heirCount ?? 2);
-  const net = gross - charity - tax - stEstate - stInherit - heirs;
-  return { year: last.year, grossEstate: gross, estateTax: tax, heirsIncomeTax: heirs, stateEstateTax: stEstate,
+  // settlement costs: selling real assets, administration, and gains tax on taxable accounts without a stepped-up basis
+  const es = plan.estate;
+  const liquidation = Math.max(0, byKind.asset ?? 0) * (es?.liquidationShare ?? 0);
+  const admin = Math.max(0, gross) * (es?.adminShare ?? 0);
+  const unrealized = plan.accounts.filter((a) => a.kind === 'taxable').reduce((t, a) => t + Math.max(0, (last.balances[a.id] ?? 0) - (last.basis?.[a.id] ?? 0)), 0);
+  const gainsTax = es?.steppedUp === false ? unrealized * (es.gainsRate ?? 0.15) : 0;
+  const costs = liquidation + admin + gainsTax;
+  const net = gross - charity - tax - stEstate - stInherit - heirs - costs;
+  return { liquidation, admin, gainsTax, estateDrag: tax + stEstate + stInherit + heirs + costs, year: last.year, grossEstate: gross, estateTax: tax, heirsIncomeTax: heirs, stateEstateTax: stEstate,
     stateInheritanceTax: stInherit, state, charity, netLegacy: net, netLegacyReal: net / k, byKind };
 }

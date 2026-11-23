@@ -315,4 +315,8 @@ export const HELP: Record<string, string> = {
   "Year alignment": "How the report labels each year: the calendar year, or the UK tax year from April or the Australian tax year from July that starts in it (2026-27).",
   "Church tax": "Members of a church that levies tax pay 8% of income tax in Bavaria and Baden-Wuerttemberg and 9% elsewhere, also on investment income.",
   "No children (care insurance surcharge)": "Employees aged 23 or more without children pay 0.6% more of their pay for care insurance.",
+  "Liquidation cost of real assets": "The share of real assets' value lost in selling them to settle the estate: agents' fees, closing costs, and discounts.",
+  "Administrative costs": "Probate, legal, and executor costs, as a share of the gross estate.",
+  "Stepped-up basis for heirs": "Heirs inherit taxable accounts at their value at death, so the gains so far are never taxed. Turn it off to charge capital gains tax on those gains.",
+  "Heirs' capital gains rate": "The rate heirs pay on the unrealized gains of taxable accounts when the basis does not step up.",
 };

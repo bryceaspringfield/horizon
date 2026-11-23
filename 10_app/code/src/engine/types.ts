@@ -492,6 +492,12 @@ export interface Estate {
   /** Who inherits, for state inheritance taxes (children and grandchildren, siblings, or others), and how many. */
   heirs?: 'children' | 'siblings' | 'others';
   heirCount?: number;
+  /** Costs of settling the estate: selling real assets (a share of their value), administration (a share of the gross
+   * estate), and, without a stepped-up basis, capital gains tax on taxable accounts' unrealized gains at this rate. */
+  liquidationShare?: number;
+  adminShare?: number;
+  steppedUp?: boolean;
+  gainsRate?: number;
 }
 
 export interface Plan {
@@ -528,6 +534,8 @@ export interface YearResult {
   year: number;
   ages: Record<string, number>;
   balances: Record<string, number>;
+  /** Taxable accounts' cost basis at the year's end. */
+  basis?: Record<string, number>;
   netWorth: number;
   liquidNetWorth: number;
   income: Record<string, number>;

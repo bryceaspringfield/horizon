@@ -5,7 +5,7 @@ import { optimize, type Candidate } from '../engine/optimize';
 import { rulesFor } from '../engine/tax';
 import { useActivePlan, useStore } from '../store';
 import { useProjection } from '../useProjection';
-import { Card, Chart, Num, Select, Stat, money, moneyAxis, moneyTooltip, pct } from '../ui';
+import { Card, Chart, Check, Num, Select, Stat, money, moneyAxis, moneyTooltip, pct } from '../ui';
 
 export function EstatePage() {
   const { plan, proj } = useProjection();
@@ -21,6 +21,8 @@ export function EstatePage() {
         <Stat icon="taxes" label="Federal estate tax" value={money(l.estateTax, true)} sub="40% above the exemption" />
         <Stat icon="taxes" label={`${l.state} estate and inheritance tax`} value={money(l.stateEstateTax + l.stateInheritanceTax, true)} sub={l.stateEstateTax + l.stateInheritanceTax > 0 ? `${money(l.stateEstateTax, true)} estate, ${money(l.stateInheritanceTax, true)} inheritance` : 'none in this state'} />
         <Stat icon="taxes" label="Heirs' income tax" value={money(l.heirsIncomeTax, true)} sub="on inherited traditional accounts and HSAs" />
+        {l.liquidation + l.admin + l.gainsTax > 0 && <Stat icon="coins" label="Settlement costs" value={money(l.liquidation + l.admin + l.gainsTax, true)} sub="liquidation, administration, and gains tax" />}
+        <Stat icon="taxes" label="Estate drag" value={money(l.estateDrag, true)} sub={l.grossEstate > 0 ? pct(l.estateDrag / l.grossEstate) + ' of the gross estate' : undefined} />
         <Stat icon="flag" label="Net legacy" value={money(l.netLegacy, true)} sub={`${money(l.netLegacyReal, true)} in today's dollars`} tone="good" />
       </div>
       <Card title="Estate assumptions">
@@ -28,6 +30,10 @@ export function EstatePage() {
           <Num label="Heirs' income tax rate" percent value={e.heirsTaxRate} onChange={(v) => update((p) => { p.estate = { ...e, heirsTaxRate: v }; })} />
           <Select label="Heirs are" value={e.heirs ?? 'children'} options={[['children', 'Children or grandchildren'], ['siblings', 'Siblings'], ['others', 'Others (nieces, friends)']]} onChange={(v) => update((p) => { p.estate = { ...e, heirs: v }; })} />
           <Num label="Number of heirs" value={e.heirCount ?? 2} onChange={(v) => update((p) => { p.estate = { ...e, heirCount: Math.max(1, v) }; })} />
+          <Num label="Liquidation cost of real assets" percent value={e.liquidationShare ?? 0} onChange={(v) => update((p) => { p.estate = { ...e, liquidationShare: Math.max(0, v) || undefined }; })} />
+          <Num label="Administrative costs" percent value={e.adminShare ?? 0} onChange={(v) => update((p) => { p.estate = { ...e, adminShare: Math.max(0, v) || undefined }; })} />
+          <Check label="Stepped-up basis for heirs" value={e.steppedUp !== false} onChange={(v) => update((p) => { p.estate = { ...e, steppedUp: v ? undefined : false }; })} />
+          {e.steppedUp === false && <Num label="Heirs' capital gains rate" percent value={e.gainsRate ?? 0.15} onChange={(v) => update((p) => { p.estate = { ...e, gainsRate: v }; })} />}
         </div>
       </Card>
       <Card title="Estate tax if the estate passed in each year (future dollars)">
