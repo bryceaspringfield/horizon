@@ -19,7 +19,7 @@ import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWort
 import { useActivePlan, useDark, useStore, useUndo } from './store';
 import { Card, Check, Select, setAmountsHidden, setShownCurrency } from './ui';
 import { planCurrency } from './engine/currency';
-import { examplePlan } from './engine/defaults';
+import { emptyPlan, examplePlan } from './engine/defaults';
 import { exportProjectionLab } from './engine/projectionlab';
 import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, moveToDevice, moveToServer, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
 import { install, installed, useInstallOffer } from './install';
@@ -414,7 +414,8 @@ function SettingsPage() {
           <label className="button">Import<input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importAll(e.target.files[0])} /></label>
           <ProjectionLabButton ghost />
           <button className="ghost" onClick={() => { if (confirm('Run the setup again? The plan it builds replaces every plan here. Export a backup first to keep them.')) setSettings({ setupDone: false }); }}>Run the setup again</button>
-          <button className="danger" onClick={() => { if (confirm('Replace every plan and snapshot with the example plan?')) useStore.getState().importAll({ plans: [examplePlan()], snapshots: [], settings }); }}>Reset</button>
+          <button className="danger" onClick={() => { if (confirm('Delete every plan and recorded balance and start from one empty plan?')) useStore.getState().importAll({ plans: [emptyPlan()], snapshots: [], settings: { ...settings, mainPlanId: undefined } }); }}>Start over from scratch</button>
+          <button className="ghost danger" onClick={() => { if (confirm('Replace every plan and snapshot with the example plan?')) useStore.getState().importAll({ plans: [examplePlan()], snapshots: [], settings }); }}>Replace with the example plan</button>
         </div>
       </Card>
     </>
