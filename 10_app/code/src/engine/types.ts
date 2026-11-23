@@ -197,6 +197,12 @@ export interface Healthcare {
   acaBenchmark: number;
 }
 
+export interface LocalTax {
+  kind: 'none' | 'nyc' | 'wages' | 'income';
+  rate?: number;
+  name?: string;
+}
+
 export interface Assumptions {
   inflation: number;
   /** Nominal yearly return and volatility of each asset class. */
@@ -208,6 +214,8 @@ export interface Assumptions {
   dividendYield: number;
   state: string;
   filingStatus: FilingStatus;
+  /** Local income tax where you live now (a move event can change it). */
+  local?: LocalTax;
   /** Stress test: stocks fall by this share in this year, in every projection and simulation path. */
   crash?: { enabled: boolean; year: number; drop: number };
 }
@@ -218,7 +226,7 @@ export type LifeEvent =
   | { id: string; kind: 'child'; name: string; year: number; yearlyCost: number; collegeYearly: number; collegeYears: number }
   | { id: string; kind: 'careerBreak'; name: string; personId: string; year: number; endYear: number }
   | { id: string; kind: 'payChange'; name: string; personId: string; year: number; factor: number }
-  | { id: string; kind: 'move'; name: string; year: number; state: string }
+  | { id: string; kind: 'move'; name: string; year: number; state: string; local?: LocalTax }
   | { id: string; kind: 'inheritance'; name: string; year: number; amount: number; asIra: boolean }
   | { id: string; kind: 'recurring'; name: string; year: number; amount: number; everyYears: number; endYear: number }
   | { id: string; kind: 'rentalProperty'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; rent: number; vacancy: number; costs: number; appreciation: number };
@@ -275,6 +283,9 @@ export interface YearResult {
     /** Medicare premiums with surcharges, and ACA premiums net of the credit, paid this year. */
     medicare: number;
     aca: number;
+    credits?: number;
+    amt?: number;
+    local?: number;
     /** Federal estate tax if the last person died this year. */
     estate?: number;
     itemized: boolean;

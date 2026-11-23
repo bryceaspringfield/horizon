@@ -26,20 +26,29 @@ def check(name, ok, detail=''):
 
 
 def main():
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
-    handler = functools.partial(type('Quiet', (http.server.SimpleHTTPRequestHandler,), {'log_message': lambda *a: None}), directory=DIST)
+    class SPA(http.server.SimpleHTTPRequestHandler):
+        # Unknown paths get index.html, as GitHub Pages serves 404.html (a copy of it).
+        def send_head(self):
+            path = self.translate_path(self.path.split('?')[0])
+            if not os.path.exists(path):
+                self.path = '/index.html'
+            return super().send_head()
+        def log_message(self, *a):
+            pass
+    handler = functools.partial(SPA, directory=DIST)
+
     srv = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
-    url = f'http://127.0.0.1:{srv.server_address[1]}/index.html'
+    url = f'http://127.0.0.1:{srv.server_address[1]}/'
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page()
         errors = []
         pg.on('pageerror', lambda e: errors.append(str(e)))
-        pg.goto(url + '#people'); pg.wait_for_timeout(1500)
+        pg.goto(url + 'people'); pg.wait_for_timeout(1500)
         name = pg.locator('main input').first
         name.fill('Secret Plan Zeta'); pg.wait_for_timeout(500)
-        pg.goto(url + '#settings'); pg.reload(); pg.wait_for_timeout(1500)
+        pg.goto(url + 'settings'); pg.reload(); pg.wait_for_timeout(1500)
         pw = pg.locator('.lockbox input[type=password]')
         pw.nth(0).fill('correct horse 42'); pw.nth(1).fill('correct horse 42')
         pg.click('text=Protect with a password'); pg.wait_for_timeout(3000)
@@ -56,7 +65,7 @@ def main():
         pg.click('.login button[type=submit]'); pg.wait_for_selector('nav .brand', timeout=30000)
         check('right password opens the app', pg.locator('nav .brand').count() == 1)
         check('the plan survived', 'Secret Plan Zeta' in pg.inner_text('.planmenu select'))
-        pg.goto(url + '#dashboard'); pg.reload(); pg.wait_for_timeout(3000)
+        pg.goto(url); pg.reload(); pg.wait_for_timeout(3000)
         check('remembered device skips the login', pg.locator('nav .brand').count() == 1)
         pg.evaluate("localStorage.removeItem('horizon-key')"); pg.reload(); pg.wait_for_timeout(1500)
         check('without the remembered key, the login returns', pg.locator('text=Enter your password').count() == 1)

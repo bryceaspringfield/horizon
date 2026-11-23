@@ -22,10 +22,19 @@ PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'events', 'mil
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=DIST)
+    class SPA(http.server.SimpleHTTPRequestHandler):
+        # Unknown paths get index.html, as GitHub Pages serves 404.html (a copy of it).
+        def send_head(self):
+            path = self.translate_path(self.path.split('?')[0])
+            if not os.path.exists(path):
+                self.path = '/index.html'
+            return super().send_head()
+        def log_message(self, *a):
+            pass
+    handler = functools.partial(SPA, directory=DIST)
     srv = http.server.ThreadingHTTPServer(('127.0.0.1', 0), handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
-    url = f'http://127.0.0.1:{srv.server_address[1]}/index.html'
+    url = f'http://127.0.0.1:{srv.server_address[1]}/'
     bad = 0
     with sync_playwright() as p:
         b = p.chromium.launch()
@@ -35,7 +44,7 @@ def main():
         pg.on('pageerror', lambda e: errors.append(str(e)))
         for name in PAGES:
             errors.clear()
-            pg.goto(f'{url}#{name}')
+            pg.goto(f'{url}{name}')
             pg.reload()
             pg.wait_for_timeout(3500)
             if name == 'montecarlo':
@@ -61,26 +70,33 @@ def main():
                 print('   ERROR', e[:300])
             bad += len(errors)
             pg.screenshot(path=os.path.join(OUT, f'{name}.png'), full_page=True)
+        # Tab links are plain paths, and the lock button shows on every page.
+        pg.goto(url); pg.wait_for_timeout(1500)
+        hrefs = pg.eval_on_selector_all('nav a', 'as => as.map(a => a.getAttribute("href"))')
+        hashed = [h for h in hrefs if not h or '#' in h]
+        lockbtn = pg.locator('.topbar .pill:has-text("Set a password")').count()
+        print(f'tab links: {len(hrefs)}, with # or empty: {len(hashed)}; e.g. {hrefs[1:4]}; lock button: {lockbtn}')
+        bad += len(hashed) + (0 if lockbtn == 1 else 1)
         # Phone width: no page may scroll sideways, and the menu drawer opens and leads to a page.
         ph = b.new_page(viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
         perr = []
         ph.on('pageerror', lambda e: perr.append(str(e)))
         wide = []
         for name in PAGES:
-            ph.goto(f'{url}#{name}'); ph.reload(); ph.wait_for_timeout(1500)
+            ph.goto(f'{url}{name}'); ph.reload(); ph.wait_for_timeout(1500)
             over = ph.evaluate('document.documentElement.scrollWidth - window.innerWidth')
             if over > 2:
                 wide.append(f'{name} (+{over}px)')
             if name in ('dashboard', 'accounts', 'cashflow', 'montecarlo', 'fire', 'events'):
                 ph.screenshot(path=os.path.join(OUT, f'phone_{name}.png'), full_page=True)
-        ph.goto(f'{url}#dashboard'); ph.reload(); ph.wait_for_timeout(1500)
+        ph.goto(f'{url}'); ph.reload(); ph.wait_for_timeout(1500)
         ph.click('.mobilebar button'); ph.wait_for_timeout(500)
         ph.screenshot(path=os.path.join(OUT, 'phone_menu.png'))
         ph.click('nav a:has-text("Taxes and health")'); ph.wait_for_timeout(800)
         drawer_ok = 'Taxes and health' in ph.inner_text('main h2')
         print(f'phone: {len(perr)} errors; pages wider than the screen: {", ".join(wide) or "none"}; menu drawer leads to a page: {drawer_ok}')
         bad += len(perr) + len(wide) + (0 if drawer_ok else 1)
-        print('dashboard stats:', pg.goto(f'{url}#dashboard') and '', end='')
+        print('dashboard stats:', pg.goto(f'{url}') and '', end='')
         pg.reload(); pg.wait_for_timeout(1200)
         print(' | '.join(pg.inner_text('.stats').split('\n')))
         b.close()

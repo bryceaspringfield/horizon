@@ -27,8 +27,11 @@ year's limits, Roth conversions filling a chosen bracket or of set amounts, 0% g
 withdrawals solved together, drawn in a chosen order or in proportion, optionally shielded under a bracket, the first
 IRMAA tier, or the ACA credit limit. Leftover pay fills a cash reserve, then goes to investing or to paying debts down.
 
-Taxes: federal brackets, standard or itemized deductions (SALT cap), capital gains and qualified dividends stacked on
-ordinary income, NIIT, FICA, taxable Social Security, state brackets by the state of residence each year, the early
+Taxes: federal brackets, standard or itemized deductions (SALT cap) and the 2025-2028 deduction for people 65 and over,
+capital gains and qualified dividends stacked on ordinary income, the AMT, NIIT, FICA, taxable Social Security, credits
+(child tax credit with its refundable part, the $500 credit for other dependents, the American Opportunity credit, the
+saver's credit, and the earned income credit), state brackets by the state of residence each year, Washington's capital
+gains tax, local income taxes (New York City's brackets, or a flat rate on wages or income with city presets), the early
 withdrawal penalty, and the federal estate tax. Health: Medicare with IRMAA and ACA premiums less the credit. Each year
 uses the newest published rules (2026 or 2027) indexed by inflation after them.
 
@@ -41,7 +44,7 @@ every historical start year), a crash stress test, FIRE metrics (lean, regular, 
 after estate tax and heirs' income tax, plan comparison, a plot builder, progress tracking with CSV import, and a year
 table with CSV export.
 
-Not modeled: tax credits, the AMT, local income taxes, and state estate or capital gains taxes.
+Not modeled: state estate and inheritance taxes, and non-US tax systems (both in `todo.md`).
 
 ## Run it locally
 

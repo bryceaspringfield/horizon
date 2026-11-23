@@ -181,5 +181,118 @@
   "floor": 10000,
   "phaseDownRate": 0.3,
   "after2029": 10000
+ },
+ "local": {
+  "_source": "NYC resident rates are statutory (NY Tax Law 1304; unchanged since 2017). The flat city rates are each city's resident rate as published for 2025 and are editable in the app: check your city's current rate.",
+  "nyc": {
+   "single": [
+    [
+     0,
+     0.03078
+    ],
+    [
+     12000,
+     0.03762
+    ],
+    [
+     25000,
+     0.03819
+    ],
+    [
+     50000,
+     0.03876
+    ]
+   ],
+   "mfj": [
+    [
+     0,
+     0.03078
+    ],
+    [
+     21600,
+     0.03762
+    ],
+    [
+     45000,
+     0.03819
+    ],
+    [
+     90000,
+     0.03876
+    ]
+   ],
+   "hoh": [
+    [
+     0,
+     0.03078
+    ],
+    [
+     14400,
+     0.03762
+    ],
+    [
+     30000,
+     0.03819
+    ],
+    [
+     60000,
+     0.03876
+    ]
+   ]
+  },
+  "presets": [
+   [
+    "Philadelphia (wage tax, residents)",
+    0.0374,
+    "wages"
+   ],
+   [
+    "Detroit (residents)",
+    0.024,
+    "wages"
+   ],
+   [
+    "Columbus, OH",
+    0.025,
+    "wages"
+   ],
+   [
+    "Cleveland, OH",
+    0.025,
+    "wages"
+   ],
+   [
+    "Cincinnati, OH",
+    0.018,
+    "wages"
+   ],
+   [
+    "Kansas City, MO (earnings tax)",
+    0.01,
+    "wages"
+   ],
+   [
+    "St. Louis, MO (earnings tax)",
+    0.01,
+    "wages"
+   ],
+   [
+    "Baltimore City, MD (county tax)",
+    0.032,
+    "income"
+   ],
+   [
+    "Montgomery County, MD",
+    0.032,
+    "income"
+   ]
+  ]
+ },
+ "waCapitalGains": {
+  "_source": "Washington RCW 82.87 as amended in 2025: 7% on long-term capital gains above the standard deduction ($278,000 for 2025, indexed), plus 2.9% on gains above $1,000,000; retirement accounts and real estate are exempt.",
+  "exemption2025": 278000,
+  "rate": 0.07,
+  "surchargeAbove": 1000000,
+  "surcharge": 0.029
  }
 }

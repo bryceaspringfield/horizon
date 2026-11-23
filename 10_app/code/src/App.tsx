@@ -67,6 +67,24 @@ const PAGES = {
   settings: ['Settings and data', SettingsPage],
 } as const;
 type PageKey = keyof typeof PAGES;
+
+/** The app's base path: /horizon/ on GitHub Pages, / when served locally. */
+const BASE = (() => {
+  const b = import.meta.env.BASE_URL;
+  if (b.startsWith('/')) return b.endsWith('/') ? b : b + '/';
+  // A relative base (local builds): the folder the app was opened from.
+  const keys = Object.keys(PAGES);
+  const parts = location.pathname.split('/');
+  if (keys.includes(parts[parts.length - 1])) parts.pop(); else parts[parts.length - 1] = '';
+  return parts.join('/').replace(/\/index\.html$/, '/') || '/';
+})();
+
+function pageFromUrl(): PageKey {
+  const hash = location.hash.slice(1);
+  if (hash in PAGES) return hash as PageKey;
+  const last = location.pathname.replace(/\/$/, '').split('/').pop() ?? '';
+  return (last in PAGES ? last : 'dashboard') as PageKey;
+}
 const GROUPS: [string, PageKey[]][] = [
   ['', ['dashboard']],
   ['Your plan', ['people', 'accounts', 'income', 'expenses', 'events', 'milestones', 'strategy', 'taxhealth', 'assumptions']],
@@ -75,16 +93,28 @@ const GROUPS: [string, PageKey[]][] = [
 ];
 
 export default function App() {
-  const [page, setPage] = useState<PageKey>(() => (location.hash.slice(1) as PageKey) in PAGES ? (location.hash.slice(1) as PageKey) : 'dashboard');
+  const [page, setPage] = useState<PageKey>(pageFromUrl);
   const theme = useStore((s) => s.settings.theme);
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
-  useEffect(() => { location.hash = page; }, [page]);
+  // Addresses are paths under the app's base (/horizon/taxes); an old #taxes link is turned into its path.
+  useEffect(() => {
+    const want = BASE + (page === 'dashboard' ? '' : page);
+    if (location.pathname !== want || location.hash) history.replaceState(null, '', want);
+  }, []);
+  useEffect(() => {
+    const back = () => setPage(pageFromUrl());
+    window.addEventListener('popstate', back);
+    return () => window.removeEventListener('popstate', back);
+  }, []);
   const [title, Page] = PAGES[page];
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const plan = useActivePlan();
   const [menu, setMenu] = useState(false);
-  const go = (k: PageKey) => { setPage(k); setMenu(false); window.scrollTo(0, 0); };
+  const go = (k: PageKey) => {
+    history.pushState(null, '', BASE + (k === 'dashboard' ? '' : k));
+    setPage(k); setMenu(false); window.scrollTo(0, 0);
+  };
   return (
     <div className={'app' + (menu ? ' menu-open' : '')}>
       <div className="mobilebar">
@@ -100,7 +130,8 @@ export default function App() {
           <div key={g} className="group">
             {g && <div className="glabel">{g}</div>}
             {keys.map((k) => (
-              <a key={k} className={k === page ? 'on' : ''} onClick={() => go(k)}>
+              <a key={k} href={BASE + (k === 'dashboard' ? '' : k)} className={k === page ? 'on' : ''}
+                onClick={(e) => { if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return; e.preventDefault(); go(k); }}>
                 <Icon name={k} />{PAGES[k][0]}
               </a>
             ))}
@@ -117,11 +148,21 @@ export default function App() {
             <span className={'pill' + (settings.realDollars ? ' on' : '')} onClick={() => setSettings({ realDollars: !settings.realDollars })}>
               {settings.realDollars ? "Today's dollars" : 'Future dollars'}
             </span>
+            <span className="pill" onClick={() => (hasVault() ? lock() : go('settings'))} title={hasVault() ? 'Lock the app now' : 'Protect your plans with a password'}>
+              <Icon name="lock" size={15} />{hasVault() ? 'Lock' : 'Set a password'}
+            </span>
             <span className="pill" onClick={() => setSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}>
               <Icon name={settings.theme === 'dark' ? 'sun' : 'moon'} size={15} />
             </span>
           </div>
         </div>
+        {page === 'dashboard' && !hasVault() && !settings.dismissedLockTip && (
+          <section className="card tip">
+            <Icon name="shield" size={20} />
+            <div><b>Your plans are saved in this browser, unencrypted.</b> Set a password to encrypt them and ask for it each time Horizon opens.</div>
+            <div className="row"><button onClick={() => go('settings')}>Set a password</button><button className="ghost" onClick={() => setSettings({ dismissedLockTip: true })}>Not now</button></div>
+          </section>
+        )}
         <Page />
       </main>
     </div>

@@ -188,7 +188,10 @@ export function TaxesPage() {
             { name: 'State', type: 'bar', stack: 't', data: s((t) => t.state) },
             { name: 'Payroll (FICA)', type: 'bar', stack: 't', data: s((t) => t.fica) },
             { name: 'Early withdrawal penalty', type: 'bar', stack: 't', data: s((t) => t.penalty) },
+            { name: 'AMT', type: 'bar', stack: 't', data: s((t) => t.amt ?? 0) },
+            { name: 'Local', type: 'bar', stack: 't', data: s((t) => t.local ?? 0) },
             { name: 'Medicare premiums', type: 'bar', stack: 't', data: s((t) => t.medicare) },
+            { name: 'Credits (negative)', type: 'bar', stack: 'c', data: s((t) => -(t.credits ?? 0)) },
             { name: 'ACA premiums', type: 'bar', stack: 't', data: s((t) => t.aca) },
           ],
         }} />

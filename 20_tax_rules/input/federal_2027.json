@@ -1,5 +1,5 @@
 {
- "_source": "Hand-entered 2026-11-22 from rp-26-35.pdf (2027 brackets 2.01, capital gains 2.03, standard deduction and aged addition 2.15), n-26-66.pdf (retirement limits), rp-26-24.pdf (HSA), and SSA's cbb.html and bendpoints.html (2027 wage base and bend points). Statutory amounts as in 2026; the Roth IRA phase-out ranges keep their 2026 widths ($10,000 joint, $15,000 other). 415(c) total limit and estate basic exclusion from n-26-66.pdf and rp-26-35.pdf section 3.44.",
+ "_source": "Hand-entered 2026-11-22 from rp-26-35.pdf (2027 brackets 2.01, capital gains 2.03, standard deduction and aged addition 2.15), n-26-66.pdf (retirement limits), rp-26-24.pdf (HSA), and SSA's cbb.html and bendpoints.html (2027 wage base and bend points). Statutory amounts as in 2026; the Roth IRA phase-out ranges keep their 2026 widths ($10,000 joint, $15,000 other). 415(c) total limit and estate basic exclusion from n-26-66.pdf and rp-26-35.pdf section 3.44. Credits and AMT: child tax credit, earned income credit, and AMT from rp-26-35.pdf 3.05, 3.06, 3.11; saver's credit tiers from n-26-66.pdf; statutory: child credit phase-out ($400,000/$200,000, $50 per $1,000), $500 other-dependent credit, American Opportunity credit, the 2025-2028 deduction of $6,000 a person 65 or over (6% phase-out above $150,000/$75,000), and the 50% AMT exemption phase-out from 2026.",
  "year": 2027,
  "brackets": {
   "mfj": [
@@ -278,5 +278,128 @@
  "estate": {
   "exemption": 15480000,
   "rate": 0.4
+ },
+ "credits": {
+  "childTaxCredit_phaseOut": {
+   "mfj": 400000,
+   "single": 200000,
+   "hoh": 200000,
+   "per1000": 50
+  },
+  "otherDependentCredit": 500,
+  "aotc": {
+   "max": 2500,
+   "firstTier": 2000,
+   "refundableShare": 0.4,
+   "phaseOut": {
+    "mfj": [
+     160000,
+     180000
+    ],
+    "single": [
+     80000,
+     90000
+    ],
+    "hoh": [
+     80000,
+     90000
+    ]
+   }
+  },
+  "seniorDeduction": {
+   "amount": 6000,
+   "years": [
+    2025,
+    2028
+   ],
+   "phaseStart": {
+    "mfj": 150000,
+    "single": 75000,
+    "hoh": 75000
+   },
+   "rate": 0.06
+  },
+  "saversCreditRates": [
+   0.5,
+   0.2,
+   0.1
+  ],
+  "saversCreditPerPerson": 2000,
+  "ctc": 2300,
+  "ctcRefundable": 1800,
+  "eitc": {
+   "earnedAmount": [
+    8960,
+    13450,
+    18880,
+    18880
+   ],
+   "max": [
+    685,
+    4573,
+    7552,
+    8496
+   ],
+   "phaseStart": {
+    "mfj": [
+     18730,
+     32170,
+     32170,
+     32170
+    ],
+    "single": [
+     11210,
+     24660,
+     24660,
+     24660
+    ]
+   },
+   "phaseEnd": {
+    "mfj": [
+     27684,
+     60787,
+     68029,
+     72512
+    ],
+    "single": [
+     20164,
+     53277,
+     60519,
+     65002
+    ]
+   },
+   "investmentLimit": 12600
+  },
+  "saversTiers": {
+   "mfj": [
+    50000,
+    54000,
+    83000
+   ],
+   "hoh": [
+    37500,
+    40500,
+    62250
+   ],
+   "single": [
+    25000,
+    27000,
+    41500
+   ]
+  }
+ },
+ "amt": {
+  "exemption": {
+   "mfj": 144700,
+   "single": 93000,
+   "hoh": 93000
+  },
+  "rate28Above": 252500,
+  "phaseStart": {
+   "mfj": 1031900,
+   "single": 515950,
+   "hoh": 515950
+  },
+  "phaseRate": 0.5
  }
 }

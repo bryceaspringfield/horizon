@@ -1,7 +1,8 @@
 // The pages where the plan is entered: people, accounts, income, Social Security, expenses, milestones, the strategy,
 // and the assumptions.
 import { uid } from '../engine/defaults';
-import type { Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, LifeEvent, Milestone, WithdrawalStep } from '../engine/types';
+import healthJson from '../data/healthcare.json';
+import type { LocalTax, Account, AccountKind, Expense, ExpenseKind, Income, IncomeKind, LifeEvent, Milestone, WithdrawalStep } from '../engine/types';
 import { estimatePia } from '../engine/retirement';
 import { useProjection } from '../useProjection';
 import statesJson from '../data/states.json';
@@ -288,7 +289,10 @@ export function EventsPage() {
                 <Num label="Costs (share of rent)" percent value={e.costs} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.costs = v; })} />
                 <Num label="Yearly appreciation" percent value={e.appreciation} onChange={(v) => set((x) => { if (x.kind === 'rentalProperty') x.appreciation = v; })} />
               </>}
-              {e.kind === 'move' && <Select label="New state" value={e.state} options={Object.keys(statesJson).sort().map((k) => [k, k] as [string, string])} onChange={(v) => set((x) => { if (x.kind === 'move') x.state = v; })} />}
+              {e.kind === 'move' && <>
+                <Select label="New state" value={e.state} options={Object.keys(statesJson).sort().map((k) => [k, k] as [string, string])} onChange={(v) => set((x) => { if (x.kind === 'move') x.state = v; })} />
+                <div className="span"><LocalTaxFields value={e.local} onChange={(v) => set((x) => { if (x.kind === 'move') x.local = v; })} /></div>
+              </>}
               {e.kind === 'inheritance' && <>
                 <Num label="Amount (today's $)" value={e.amount} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.amount = v; })} />
                 <Check label="As an inherited IRA (10-year rule)" value={e.asIra} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.asIra = v; })} />
@@ -448,6 +452,22 @@ export function StrategyPage() {
   );
 }
 
+function LocalTaxFields({ value, onChange }: { value?: LocalTax; onChange: (v: LocalTax) => void }) {
+  const v = value ?? { kind: 'none' as const };
+  const presets = healthJson.local.presets as [string, number, 'wages' | 'income'][];
+  return (
+    <div className="grid">
+      <Select label="Local tax" value={v.kind} options={[['none', 'None'], ['nyc', 'New York City (resident brackets)'], ['wages', 'A flat rate on wages'], ['income', 'A flat rate on taxable income']]}
+        onChange={(k) => onChange({ ...v, kind: k })} />
+      {(v.kind === 'wages' || v.kind === 'income') && <>
+        <Select label="Preset" value={v.name ?? ''} options={[['', 'Custom'], ...presets.map(([n]) => [n, n] as [string, string])]}
+          onChange={(n) => { const pr = presets.find((x) => x[0] === n); onChange(pr ? { kind: pr[2], rate: pr[1], name: pr[0] } : { ...v, name: undefined }); }} />
+        <Num label="Rate" percent step={0.01} value={v.rate ?? 0} onChange={(r) => onChange({ ...v, rate: r })} />
+      </>}
+    </div>
+  );
+}
+
 export function TaxHealthPage() {
   const plan = useActivePlan();
   const update = useUpdate();
@@ -461,6 +481,10 @@ export function TaxHealthPage() {
           <Num label="Charitable giving a year (today's $)" value={d.charity} onChange={(v) => update((p) => { p.deductions.charity = v; })} />
         </div>
         <p className="muted">Itemized deductions add mortgage interest on debts secured by real estate, charity, and state income and property taxes up to the SALT cap ($40,400 in 2026, rising 1% a year to 2029, falling by 30% of income above $505,000 to a $10,000 floor, and $10,000 from 2030). Property tax and charity also count as spending.</p>
+      </Card>
+      <Card title="Local income tax">
+        <LocalTaxFields value={plan.assumptions.local} onChange={(v) => update((p) => { p.assumptions.local = v; })} />
+        <p className="muted">New York City uses its resident brackets (3.078% to 3.876%). The city presets are each city's 2025 resident rate; check your city's current rate and edit it. A move event can set the local tax of the new place.</p>
       </Card>
       <Card title="Health insurance">
         <div className="grid">

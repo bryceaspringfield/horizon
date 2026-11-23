@@ -158,6 +158,13 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     for (const e of plan.events ?? []) if (e.kind === 'move' && e.year <= y && e.year > at) { st = e.state; at = e.year; }
     return st;
   };
+  /** The local income tax in a year: the plan's, or the last move's (none when the move names none). */
+  const localIn = (y: number) => {
+    let lt = a.local, at = -Infinity;
+    for (const e of plan.events ?? []) if (e.kind === 'move' && e.year <= y && e.year > at) { lt = e.local; at = e.year; }
+    return lt;
+  };
+  const childEvents = (plan.events ?? []).filter((e) => e.kind === 'child');
   /** People retired by a milestone reached in an earlier year. */
   const retiredBy = new Set<string>();
   let seppAmount = 0;
@@ -185,6 +192,16 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     const isAlive = (id: string) => alive.some((p) => p.id === id);
     const working = (id: string) => isAlive(id) && ages[id] < (s.retirementAge[id] ?? 200) && !retiredBy.has(id);
     const residence = stateIn(y);
+    // Dependents from the child events: under 17 for the child tax credit, 17 to 18 and college students for the
+    // $500 credit, and the first four college years for the American Opportunity credit.
+    let kids = 0, otherDeps = 0, students = 0;
+    for (const c of childEvents) {
+      if (c.kind !== 'child') continue;
+      const age = y - c.year;
+      if (age >= 0 && age < 17) kids++;
+      else if (age >= 17 && age < 18) otherDeps++;
+      else if (age >= 18 && age < 18 + c.collegeYears && c.collegeYearly > 0) { otherDeps++; if (age < 22) students++; }
+    }
     const grow = (amount: number, growth: number, inflationAdjusted = true) =>
       amount * (inflationAdjusted ? index : 1) * Math.pow(1 + growth, y - plan.startYear);
 
@@ -421,7 +438,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     }
 
     // Voluntary contributions while the owner works.
-    let voluntary = 0;
+    let voluntary = 0, iraIn = 0, rothIn = 0;
     const firstWorker = alive.find((p) => working(p.id));
     if (firstWorker) {
       const age = ages[firstWorker.id];
@@ -438,8 +455,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const hsa = Math.min(s.hsaContribution * index, hsaCap);
       const tIra = plan401(firstWorker.id, false), rIra = plan401(firstWorker.id, true);
       const hsaAcc = accounts.find((x) => x.kind === 'hsa');
-      if (tIra && ira > 0) { deposit(tIra.id, ira); preTax += ira; voluntary += ira; }
-      if (rIra && roth > 0) { deposit(rIra.id, roth); voluntary += roth; }
+      if (tIra && ira > 0) { deposit(tIra.id, ira); preTax += ira; voluntary += ira; iraIn = ira; }
+      if (rIra && roth > 0) { deposit(rIra.id, roth); voluntary += roth; rothIn = roth; }
       if (hsaAcc && hsa > 0) { deposit(hsaAcc.id, hsa); preTax += hsa; voluntary += hsa; }
       // Mega backdoor Roth: after-tax 401(k) money converted to Roth, within the 415(c) total less deferrals and match.
       if (s.megaBackdoor && rIra) {
@@ -465,7 +482,9 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr,
         interest, qualifiedDividends: qualified, longTermGains: g + harvested, socialSecurity: ssTotal, preTaxDeductions: preTax,
         earlyWithdrawals: e, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
-        itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax });
+        itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
+        children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
+        saverContributions: alive.map((p) => (deferredBy[p.id] ?? 0) + (p.id === firstWorker?.id ? iraIn + rothIn : 0)) });
     }
     let harvested = 0;
     // Roth conversion up to the chosen bracket's top.
@@ -703,6 +722,9 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         penalty: tax.penalty,
         medicare,
         aca,
+        credits: tax.credits,
+        amt: tax.amt,
+        local: tax.local,
         estate: estateTax(netWorth, y, ri, alive.length),
         itemized: tax.itemized,
         deduction: tax.deduction,

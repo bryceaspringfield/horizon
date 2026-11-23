@@ -17,3 +17,4 @@
 | 20_tax_rules/input/poverty-guidelines.html | https://aspe.hhs.gov/topics/poverty-economic-mobility/poverty-guidelines | 2026 HHS poverty guidelines (the ACA credit for 2027 coverage uses them); the 2025 guidelines (for 2026 coverage, $15,650 and $5,500 a person) were entered from the January 2025 Federal Register notice, not downloaded |
 | 20_tax_rules/input/n-26-66.pdf | https://www.irs.gov/pub/irs-drop/n-26-66.pdf | 2027 retirement plan limits: 401(k) $25,500, catch-up $8,500 and $11,750 at 60-63, IRA $7,500 and $1,100, Roth IRA phase-out starts (Notice 2026-66) |
 | 20_tax_rules/input/rp-26-24.pdf | https://www.irs.gov/pub/irs-drop/rp-26-24.pdf | 2027 HSA limits, $4,500 and $9,000 (Rev. Proc. 2026-24) |
+| 20_tax_rules/input/n-25-67.pdf | https://www.irs.gov/pub/irs-drop/n-25-67.pdf | 2026 retirement limits notice: saver's credit income tiers (Notice 2025-67) |

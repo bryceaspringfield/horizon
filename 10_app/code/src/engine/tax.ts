@@ -45,6 +45,15 @@ export interface TaxInput {
   /** Property tax, which joins state income tax under the SALT cap. */
   propertyTax?: number;
   itemize?: boolean;
+  /** Children under 17 (child tax credit), other dependents (the $500 credit), and students in their first four
+   * years of college (American Opportunity credit). */
+  children?: number;
+  otherDependents?: number;
+  collegeStudents?: number;
+  /** Each person's contributions which count for the saver's credit (deferrals and IRA). */
+  saverContributions?: number[];
+  /** Local income tax: New York City's brackets, or a flat rate on wages or on taxable income. */
+  local?: { kind: 'none' | 'nyc' | 'wages' | 'income'; rate?: number };
 }
 
 export interface TaxResult {
@@ -63,6 +72,11 @@ export interface TaxResult {
   agi: number;
   deduction: number;
   itemized: boolean;
+  /** Credits applied (nonrefundable up to the income tax, plus refundable parts). */
+  credits: number;
+  amt: number;
+  local: number;
+  seniorDeduction: number;
 }
 
 const scale = (brackets: number[][], k: number): Bracket[] => brackets.map(([t, r]) => [t * k, r]);
@@ -175,7 +189,12 @@ export function computeTax(t: TaxInput): TaxResult {
     if (total > standard) { deduction = total; itemized = true; }
   }
 
-  const taxableIncome = Math.max(0, agi - deduction);
+  // The deduction of $6,000 a person 65 or over (2025-2028), phased out at 6% of income above the threshold; it is
+  // taken with either the standard or the itemized deduction.
+  const sd = r.credits.seniorDeduction;
+  const senior = t.year >= sd.years[0] && t.year <= sd.years[1]
+    ? Math.max(0, sd.amount * t.over65 - sd.rate * Math.max(0, agi - sd.phaseStart[t.status])) : 0;
+  const taxableIncome = Math.max(0, agi - deduction - senior);
   const ordinaryTaxable = Math.max(0, taxableIncome - preferential);
   const ordinaryTax = bracketTax(ordinaryTaxable, ordinaryBrackets);
   // Gains stack on top of ordinary income: each slice is taxed at the rate of the band it lands in.
@@ -187,14 +206,76 @@ export function computeTax(t: TaxInput): TaxResult {
   const ficaTax = fica(t.wages, t.selfEmployment, t.status, t.year, k);
   const penalty = t.earlyWithdrawals * r.earlyWithdrawalPenalty;
 
-  const total = ordinaryTax + capitalGains + niit + ficaTax + state + penalty;
+  // Alternative minimum tax: income with the standard deduction (or state and local taxes) added back, less the
+  // exemption (phased out at 50% above its threshold), at 26% and 28% on ordinary income and the capital gains rates
+  // on gains; owed where the tentative tax exceeds the regular tax.
+  const am = r.amt;
+  const amti = agi - (itemized ? deduction - Math.min(state + (t.propertyTax ?? 0), saltCap(t.year, agi)) : 0);
+  const exemption = Math.max(0, am.exemption[t.status] * k - am.phaseRate * Math.max(0, amti - am.phaseStart[t.status] * k));
+  const amtBase = Math.max(0, amti - exemption);
+  const amtPref = Math.min(preferential, amtBase);
+  const amtOrd = amtBase - amtPref;
+  const brk = am.rate28Above * k;
+  const tentative = Math.min(amtOrd, brk) * 0.26 + Math.max(0, amtOrd - brk) * 0.28
+    + bracketTax(amtOrd + amtPref, gainBrackets) - bracketTax(amtOrd, gainBrackets);
+  const amt = Math.max(0, tentative - (ordinaryTax + capitalGains));
+
+  // Credits. Nonrefundable ones reduce income tax to zero at most; the refundable parts can go beyond it.
+  const c = r.credits;
+  const kids = t.children ?? 0, others = t.otherDependents ?? 0, students = t.collegeStudents ?? 0;
+  const ctcPhase = Math.ceil(Math.max(0, agi - c.childTaxCredit_phaseOut[t.status]) / 1000) * c.childTaxCredit_phaseOut.per1000;
+  const ctcTotal = Math.max(0, kids * c.ctc * k + others * c.otherDependentCredit - ctcPhase);
+  const [aLo, aHi] = c.aotc.phaseOut[t.status];
+  const aotcEach = c.aotc.max * Math.max(0, Math.min(1, (aHi - agi) / (aHi - aLo)));
+  const aotc = students * aotcEach;
+  const tiers = (c.saversTiers as Record<string, number[]>)[t.status] ?? c.saversTiers.single;
+  const saverRate = agi <= tiers[0] * k ? c.saversCreditRates[0] : agi <= tiers[1] * k ? c.saversCreditRates[1] : agi <= tiers[2] * k ? c.saversCreditRates[2] : 0;
+  const saver = saverRate * (t.saverContributions ?? []).reduce((sum, x) => sum + Math.min(x, c.saversCreditPerPerson), 0);
+  const incomeTax = ordinaryTax + capitalGains + amt;
+  const nonrefundablePool = ctcTotal + aotc * (1 - c.aotc.refundableShare) + saver;
+  const nonrefundable = Math.min(incomeTax, nonrefundablePool);
+  // The refundable child credit: up to the refundable amount a child, 15% of earned income above $2,500.
+  const earned = t.wages + t.selfEmployment;
+  const ctcLeft = Math.max(0, Math.min(ctcTotal, ctcTotal - Math.max(0, nonrefundable - aotc * (1 - c.aotc.refundableShare) - saver)));
+  const actc = Math.min(ctcLeft, kids * c.ctcRefundable * k, 0.15 * Math.max(0, earned - 2500));
+  // The earned income credit, by the number of qualifying children (up to three).
+  const e = c.eitc, n = Math.min(3, kids + students);
+  const statusKey = t.status === 'mfj' ? 'mfj' : 'single';
+  let eitc = 0;
+  if (preferential + t.interest <= e.investmentLimit * k && earned > 0) {
+    const phaseIn = Math.min(1, earned / (e.earnedAmount[n] * k)) * e.max[n] * k;
+    const x = Math.max(agi, earned), lo = e.phaseStart[statusKey][n] * k, hi = e.phaseEnd[statusKey][n] * k;
+    const phaseOut = x <= lo ? e.max[n] * k : Math.max(0, e.max[n] * k * (hi - x) / (hi - lo));
+    eitc = Math.max(0, Math.min(phaseIn, phaseOut));
+  }
+  const credits = nonrefundable + actc + aotc * c.aotc.refundableShare + eitc;
+
+  // Local income tax.
+  let local = 0;
+  const lt = t.local;
+  if (lt?.kind === 'nyc') {
+    const nyc = (health.local.nyc as Record<string, number[][]>)[t.status];
+    local = bracketTax(taxableIncome, scale(nyc, k));
+  } else if (lt?.kind === 'wages') local = (lt.rate ?? 0) * (t.wages + t.selfEmployment);
+  else if (lt?.kind === 'income') local = (lt.rate ?? 0) * taxableIncome;
+
+  // Washington's capital gains tax: long-term gains above the indexed exemption, 7%, plus 2.9% above $1 million.
+  let waGains = 0;
+  if (t.state === 'WA' && t.longTermGains > 0) {
+    const w = health.waCapitalGains;
+    const ex = w.exemption2025 * k * Math.pow(1.025, Math.max(0, rulesFor(t.year).year - 2025));
+    const g = Math.max(0, t.longTermGains - ex);
+    waGains = g * w.rate + Math.max(0, t.longTermGains - w.surchargeAbove) * w.surcharge;
+  }
+
+  const total = ordinaryTax + capitalGains + amt + niit + ficaTax + state + waGains + local + penalty - credits;
   const gross = t.wages + t.selfEmployment + t.otherOrdinary + t.interest + preferential + t.socialSecurity;
   return {
     federal: ordinaryTax,
     capitalGains,
     niit,
     fica: ficaTax,
-    state,
+    state: state + waGains,
     penalty,
     total,
     taxableIncome,
@@ -205,6 +286,10 @@ export function computeTax(t: TaxInput): TaxResult {
     agi,
     deduction,
     itemized,
+    credits,
+    amt,
+    local,
+    seniorDeduction: senior,
   };
 }
 

@@ -176,3 +176,6 @@ button.icon { padding: 6px; }
   .grid { grid-template-columns: 1fr; }
   .gauge .ring { width: 130px; height: 130px; } .gauge .ring > div { width: 102px; height: 102px; font-size: 26px; }
 }
+.pill svg { flex: none; }
+.card.tip { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: linear-gradient(135deg, var(--accent-soft), var(--panel)); }
+.card.tip > div:nth-child(2) { flex: 1; min-width: 220px; }

@@ -19,6 +19,7 @@ export interface Settings {
   theme: 'light' | 'dark';
   mcTrials: number;
   mcMethod: 'normal' | 'historicalBlocks' | 'backtest';
+  dismissedLockTip?: boolean;
 }
 
 interface AppState {
