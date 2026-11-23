@@ -420,6 +420,8 @@ export interface Assumptions {
   taxModel?: { kind: 'us' | 'flat'; rate: number };
   /** A yearly change of Social Security benefits beside inflation (-0.005: cost-of-living raises half a point under inflation). */
   benefitCola?: number;
+  /** Social Security follows SSA's announced COLAs for the years they are known (on unless set false). */
+  announcedCola?: boolean;
   /** The share of taxable accounts' dividends which are qualified (taxed at capital gains rates); the rest is ordinary. 1 where unset. */
   qualifiedDividendShare?: number;
   /** Exchange-rate assumptions by foreign currency: units of the plan's currency for one unit today, and the rate's

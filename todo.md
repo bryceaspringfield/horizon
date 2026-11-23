@@ -34,7 +34,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Shared costs: memberships a household can share (Amazon Prime household, family plans of streaming and phone), with the saving of one shared plan over separate ones.
 
 ## Pay and benefits follow-ups (Bryce, 2026-11-23)
-- Social Security COLA from SSA's announcements: the announced rate for each year it is known (2.8% for 2026), the plan's inflation after; refreshed when SSA announces the next (October).
 - Medicare premiums withheld from the Social Security check: the check shown net of Part B (and Part D where withheld), the premiums still counted once.
 
 ## Households and prefilled costs (Bryce, 2026-11-23)

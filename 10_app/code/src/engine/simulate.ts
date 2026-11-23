@@ -16,6 +16,8 @@ import { benefitAtClaim, rmdStartAge, spousalAtClaim } from './retirement';
 import type { Step, Account, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
 
 const ONE_TIME = new Set(['windfall', 'accountBonus', 'settlement']);
+/** SSA's announced cost-of-living adjustments, by the year they take effect (ssa.gov, Oct 2025 and Oct 14, 2026). */
+export const SS_COLA: Record<number, number> = { 2026: 0.028, 2027: 0.036 };
 const LIQUID: Account['kind'][] = ['cash', 'taxable', 'traditional', 'roth', 'hsa', 'college529'];
 
 interface State {
@@ -196,6 +198,8 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
   const opening: Record<string, number> = {};
   for (const x of accounts) if (x.startYear && x.startYear > plan.startYear) { opening[x.id] = state.balance[x.id]; state.balance[x.id] = 0; }
   let index = 1; // cumulative inflation since the start year
+  // Social Security's own index: SSA's announced COLA for each year one is known, the plan's inflation after
+  let ssIndex = 1;
   let depletionYear: number | null = null;
   let fiYear: number | null = null;
   const reached = new Set<string>();
@@ -448,11 +452,11 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         // SSDI: unreduced, from the end of the 5-month waiting period after onset; prorated in the first year
         const from = yearOf(ss.ssdiOnset) + 5 / 12;
         const sh = shareOfYear(y, from, Infinity);
-        if (sh > 0) ssByPerson[ss.ownerId] = ss.pia * 12 * sh * index * Math.pow(1 + (a.benefitCola ?? 0), y - plan.startYear);
+        if (sh > 0) ssByPerson[ss.ownerId] = ss.pia * 12 * sh * ssIndex * Math.pow(1 + (a.benefitCola ?? 0), y - plan.startYear);
         continue;
       }
       const claimYear = p.birthYear + ss.claimAge;
-      if (y >= claimYear) ssByPerson[ss.ownerId] = benefitAtClaim(ss.pia, ss.claimAge) * 12 * index * Math.pow(1 + (a.benefitCola ?? 0), y - plan.startYear);
+      if (y >= claimYear) ssByPerson[ss.ownerId] = benefitAtClaim(ss.pia, ss.claimAge) * 12 * ssIndex * Math.pow(1 + (a.benefitCola ?? 0), y - plan.startYear);
     }
     // A spouse receives the larger of the own benefit and half the partner's PIA (reduced for an early claim), once
     // both have claimed.
@@ -1117,6 +1121,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     });
     magiBy[y] = tax.agi;
     index *= 1 + path.inflation[i];
+    ssIndex *= 1 + (a.announcedCola === false ? path.inflation[i] : SS_COLA[y + 1] ?? path.inflation[i]);
   }
 
   const last = years[years.length - 1];

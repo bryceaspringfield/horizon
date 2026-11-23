@@ -1011,6 +1011,7 @@ export function AssumptionsPage() {
         <Num label="Stock-bond correlation" step={0.05} value={a.correlation} onChange={(v) => update((p) => { p.assumptions.correlation = v; })} />
         <Num label="Dividend yield" percent value={a.dividendYield} onChange={(v) => update((p) => { p.assumptions.dividendYield = v; })} />
         <Num label="Qualified share of dividends" percent value={a.qualifiedDividendShare ?? 1} hint="Qualified dividends are taxed at capital gains rates; the rest is ordinary income." onChange={(v) => update((p) => { p.assumptions.qualifiedDividendShare = Math.max(0, Math.min(1, v)); })} />
+        <Check label="Use SSA's announced COLAs (2.8% for 2026, 3.6% for 2027)" value={a.announcedCola !== false} onChange={(v) => update((p) => { p.assumptions.announcedCola = v ? undefined : false; })} />
         <Num label="Social Security raises beside inflation" percent step={0.1} value={a.benefitCola ?? 0} hint="0 keeps benefits level with inflation; -0.5 has them lose half a point a year." onChange={(v) => update((p) => { p.assumptions.benefitCola = v || undefined; })} />
       </div>
       <div className="grid" style={{ marginTop: 14 }}>
