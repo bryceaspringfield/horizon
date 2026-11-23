@@ -641,13 +641,22 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     // chosen share, and raised while it sits above where it began by the chosen share (all in today's dollars).
     let flexChange = 0;
     const discretionary = plan.expenses.reduce((t, e) => t + (expenses[e.id] ?? 0) * (e.discretionary ?? 0), 0);
-    if (s.flex?.enabled) {
+    if (s.flex?.enabled && y >= (s.flex.from ?? -Infinity) && y <= (s.flex.to ?? Infinity)) {
       const realPortfolio = liquid(state, accounts, y, (id) => ages[id]) / index;
       flexHigh = Math.max(flexHigh ?? realPortfolio, realPortfolio); flexStart ??= realPortfolio;
-      const factor = realPortfolio < flexHigh * (1 - s.flex.drop) ? 1 - s.flex.cut
+      const down = flexHigh > 0 ? 1 - realPortfolio / flexHigh : 0;
+      const rules = [{ drop: s.flex.drop, cut: s.flex.cut }, ...(s.flex.rules ?? [])].sort((p2, q2) => p2.drop - q2.drop);
+      let cut = 0;
+      if (s.flex.interpolate) {
+        // in a line from no cut at no drop through each rule's point, held past the last
+        let px = 0, py = 0;
+        for (const r of rules) { if (down <= r.drop) { cut = py + (r.cut - py) * (down - px) / Math.max(1e-9, r.drop - px); break; } px = r.drop; py = r.cut; cut = r.cut; }
+      } else for (const r of rules) if (down > r.drop) cut = r.cut;
+      const factor = cut > 0 ? 1 - cut
         : s.flex.boost && realPortfolio > flexStart * (1 + (s.flex.rise ?? 0.25)) ? 1 + s.flex.boost : 1;
+      const share = (e: { discretionary?: number }) => (s.flex!.scope === 'all' ? 1 : e.discretionary ?? 0);
       if (factor !== 1) for (const e of plan.expenses) {
-        const d = (expenses[e.id] ?? 0) * (e.discretionary ?? 0) * (factor - 1);
+        const d = (expenses[e.id] ?? 0) * share(e) * (factor - 1);
         if (d) { expenses[e.id] += d; totalExpenses += d; flexChange += d; }
       }
     }

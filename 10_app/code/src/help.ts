@@ -319,4 +319,10 @@ export const HELP: Record<string, string> = {
   "Administrative costs": "Probate, legal, and executor costs, as a share of the gross estate.",
   "Stepped-up basis for heirs": "Heirs inherit taxable accounts at their value at death, so the gains so far are never taxed. Turn it off to charge capital gains tax on those gains.",
   "Heirs' capital gains rate": "The rate heirs pay on the unrealized gains of taxable accounts when the basis does not step up.",
+  "Further rule: when under its high by": "A deeper drop from the portfolio's high that calls for a larger cut.",
+  "cut by": "The share of spending cut once this rule's drop is met.",
+  "Between rules": "Step applies each rule's cut once its drop is met; interpolate grows the cut in a straight line from one rule to the next.",
+  "Flex applies to": "Cut only the discretionary share of each expense, or all spending.",
+  "Flex from year (0 for the start)": "The first year the rules apply.",
+  "Flex until year (0 for the end)": "The last year the rules apply.",
 };

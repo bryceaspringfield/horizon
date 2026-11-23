@@ -369,7 +369,12 @@ export interface Strategy {
   qcd?: boolean;
   /** Flexible spending: while the portfolio (today's dollars) sits this share under its high, the discretionary share of every
    * expense is cut by `cut`; while it sits `rise` above where it began, discretionary spending is raised by `boost`. */
-  flex?: { enabled: boolean; drop: number; cut: number; rise?: number; boost?: number };
+  flex?: { enabled: boolean; drop: number; cut: number; rise?: number; boost?: number;
+    /** More rules (ProjectionLab's): when the portfolio is down by drop from its high, cut by cut; the deepest rule met applies,
+     * or, interpolated, the cut grows in a line between rules. */
+    rules?: { drop: number; cut: number }[]; interpolate?: boolean;
+    /** The years the rules apply in (the whole plan where unset), and whether all spending flexes or the discretionary share. */
+    from?: number; to?: number; scope?: 'discretionary' | 'all' };
   /** Count real assets (a home, net of its mortgage) in the financial independence test and the net worth milestones. */
   fiCountsRealAssets?: boolean;
 }
