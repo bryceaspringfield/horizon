@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { AccountsPage, AssumptionsPage, ExpensesPage, IncomePage, MilestonesPage, PeoplePage, StrategyPage, TaxHealthPage, EventsPage } from './pages/Editors';
 import { TermsPage } from './pages/Terms';
 import { Setup } from './pages/Setup';
+import { ImportReportCard, ProjectionLabButton } from './pages/ImportPL';
 import { Icon } from './icons';
 import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { ReportPage } from './pages/Report';
 import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
 import { useActivePlan, useDark, useStore } from './store';
-import { Card, Check, Select } from './ui';
+import { Card, Check, Select, setShownCurrency } from './ui';
+import { planCurrency } from './engine/currency';
 import { examplePlan } from './engine/defaults';
 import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, moveToDevice, moveToServer, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
 import { install, installed, useInstallOffer } from './install';
@@ -227,6 +229,7 @@ export default function App() {
   const settings = useStore((s) => s.settings);
   const setSettings = useStore((s) => s.setSettings);
   const plan = useActivePlan();
+  setShownCurrency(planCurrency(plan));
   const [menu, setMenu] = useState(false);
   const go = (k: PageKey) => {
     history.pushState(null, '', BASE + (k === 'dashboard' ? '' : k));
@@ -264,7 +267,7 @@ export default function App() {
           </div>
           <div className="row">
             <span className={'pill' + (settings.realDollars ? ' on' : '')} onClick={() => setSettings({ realDollars: !settings.realDollars })}>
-              {settings.realDollars ? "Today's dollars" : 'Future dollars'}
+              {planCurrency(plan) === 'USD' ? (settings.realDollars ? "Today's dollars" : 'Future dollars') : (settings.realDollars ? "Today's money" : 'Future money')}
             </span>
             {signedIn() ? <>
               <span className={'pill' + (sync === 'conflict' || sync === 'signedOut' ? ' warn' : '')} title="Sync with your account" onClick={() => go('settings')}>{SYNC_LABEL[sync]}</span>
@@ -291,6 +294,7 @@ export default function App() {
             <div className="row"><button onClick={() => go('settings')}>Set a password</button><button className="ghost" onClick={() => setSettings({ dismissedLockTip: true })}>Not now</button></div>
           </section>
         )}
+        <ImportReportCard />
         <Page />
       </main>
     </div>
@@ -365,6 +369,7 @@ function SettingsPage() {
           <button onClick={() => exportAll(true)}>Export encrypted backup</button>
           <button className="ghost" onClick={() => exportAll(false)}>Export unencrypted</button>
           <label className="button">Import<input type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importAll(e.target.files[0])} /></label>
+          <ProjectionLabButton ghost />
           <button className="ghost" onClick={() => { if (confirm('Run the setup again? The plan it builds replaces every plan here. Export a backup first to keep them.')) setSettings({ setupDone: false }); }}>Run the setup again</button>
           <button className="danger" onClick={() => { if (confirm('Replace every plan and snapshot with the example plan?')) useStore.getState().importAll({ plans: [examplePlan()], snapshots: [], settings }); }}>Reset</button>
         </div>

@@ -65,6 +65,8 @@ export interface Account {
   customReturn?: number;
   /** Taxable accounts: dividends and interest paid out to cash each year in place of being reinvested. */
   dividendsPaidOut?: boolean;
+  /** The currency the balance is held in (ISO 4217), where it differs from the plan's (engine/currency.ts). */
+  currency?: string;
 }
 
 /** An amount which changes from a year on: the new yearly amount, in the item's own dollars. */
@@ -107,6 +109,8 @@ export interface Income {
   /** Self-employment: a specified service business (law, health, consulting...), whose QBI deduction ends above the
    * phase-in range; other businesses here phase out too, since a sole owner has no W-2 wages or property to count. */
   serviceBusiness?: boolean;
+  /** The currency the amounts are in, where it differs from the plan's. */
+  currency?: string;
 }
 
 export interface SocialSecurity {
@@ -132,6 +136,8 @@ export interface Expense {
   fundedBy?: string;
   steps?: Step[];
   nominal?: boolean;
+  /** The currency the amounts are in, where it differs from the plan's. */
+  currency?: string;
 }
 
 export interface Milestone {
@@ -257,6 +263,9 @@ export interface Assumptions {
   crash?: { enabled: boolean; year: number; drop: number };
   /** The tax model: United States rules, or one flat rate on all income in place of every income and payroll tax. */
   taxModel?: { kind: 'us' | 'flat'; rate: number };
+  /** Exchange-rate assumptions by foreign currency: units of the plan's currency for one unit today, and the rate's
+   * yearly change (0.02: the foreign currency gains 2% a year on the plan's). */
+  fx?: Record<string, { rate: number; drift: number }>;
 }
 
 /** Life events which change the plan from their year: buying a home, a child, a career break, or a pay change. */
@@ -285,6 +294,8 @@ export interface Estate {
 export interface Plan {
   id: string;
   name: string;
+  /** The currency every result is shown in (ISO 4217); US dollars where unset. */
+  currency?: string;
   startYear: number;
   people: Person[];
   accounts: Account[];

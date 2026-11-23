@@ -6,6 +6,7 @@
 // raises the tax, which needs more withdrawal) in a few passes. A surplus fills the cash target and the rest goes to
 // the first taxable account. Balances then earn the year's returns, a taxable account's dividends are taxed in the
 // same year, assets appreciate and are sold in their sale year, and debts accrue interest.
+import { convertCurrencies } from './currency';
 import { acaLimit, acaNetPremium, bracketTop, computeTax, estateTax, medicarePremium, rules, rulesFor, rulesTiers, zeroGainsTop } from './tax';
 import { benefitAtClaim, rmdStartAge, spousalAtClaim } from './retirement';
 import type { Account, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
@@ -48,6 +49,7 @@ export function loanPayment(principal: number, rate: number, years: number): num
 
 /** Turns a plan's life events into the accounts and expenses they create (a home and its mortgage, a child's costs). */
 export function expandEvents(plan: Plan): Plan {
+  convertCurrencies(plan);
   for (const e of plan.events ?? []) {
     // Applied once: a plan already expanded keeps its accounts and expenses.
     const made = (id: string) => id.startsWith('ev_') && id.endsWith('_' + e.id);

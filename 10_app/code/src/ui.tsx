@@ -3,9 +3,12 @@ import ReactECharts from 'echarts-for-react';
 import type { ReactNode } from 'react';
 import { useDark } from './store';
 import { Icon } from './icons';
+import { formatMoney } from './engine/currency';
 
-export const money = (v: number, compact = false) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0, notation: compact ? 'compact' : 'standard' }).format(v || 0);
+// Every amount on screen is in the active plan's currency; App sets it before the pages render.
+let shownCurrency = 'USD';
+export const setShownCurrency = (code: string) => { shownCurrency = code; };
+export const money = (v: number, compact = false) => formatMoney(v, shownCurrency, compact);
 export const pct = (v: number, d = 1) => `${((v || 0) * 100).toFixed(d)}%`;
 
 export function Card({ title, children, actions, wide }: { title?: string; children: ReactNode; actions?: ReactNode; wide?: boolean }) {

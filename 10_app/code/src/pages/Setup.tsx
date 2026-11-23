@@ -8,6 +8,7 @@ import type { FilingStatus, Plan } from '../engine/types';
 import { Icon } from '../icons';
 import { useStore } from '../store';
 import { Check, Num, Select, Text } from '../ui';
+import { ProjectionLabButton } from './ImportPL';
 
 const STEPS = ['About you', 'Income and retirement', 'Savings and investments', 'Home and debts', 'Spending and saving', 'Review'];
 const money = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
@@ -138,6 +139,7 @@ export function Setup() {
           <button type="submit">{last ? 'Create my plan' : 'Next'}</button>
         </div>
         <button type="button" className="ghost" onClick={() => finish(examplePlan(), false)}>Skip the setup and explore an example plan</button>
+        <ProjectionLabButton replace ghost />
         <p className="muted small">Horizon is an educational calculator, and it gives no financial advice.</p>
       </form>
     </div>

@@ -8,6 +8,7 @@ import { useProjection } from '../useProjection';
 import statesJson from '../data/states.json';
 import { useActivePlan, useStore } from '../store';
 import { Card, Check, ListEditor, Num, Select, Text, money, pct } from '../ui';
+import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../engine/currency';
 import { benefitAtClaim } from '../engine/retirement';
 
 const ACCOUNT_KINDS: [AccountKind, string][] = [
@@ -20,6 +21,49 @@ const INCOME_KINDS: [IncomeKind, string][] = [
 const EXPENSE_KINDS: [ExpenseKind, string][] = [
   ['living', 'Living expenses'], ['housing', 'Housing'], ['healthcare', 'Healthcare'], ['education', 'Education'], ['travel', 'Travel'], ['oneTime', 'One-time'], ['other', 'Other'],
 ];
+
+/** The currency of one account, income, or expense: the plan's by default. Choosing another adds its exchange rate to
+ *  the Assumptions page, at 1 until set. */
+function CurrencySelect({ value, onChange }: { value: string | undefined; onChange: (v: string | undefined) => void }) {
+  const home = planCurrency(useActivePlan());
+  const update = useUpdate();
+  const options: [string, string][] = [[home, `${home} (the plan's currency)`], ...CURRENCIES.filter(([c]) => c !== home).map(([c, n]) => [c, `${c}: ${n}`] as [string, string])];
+  if (value && !options.some(([c]) => c === value)) options.push([value, value]);
+  return <Select label="Currency" value={value ?? home} options={options} onChange={(v) => {
+    onChange(v === home ? undefined : v);
+    if (v !== home) update((p) => { p.assumptions.fx = { [v]: { rate: 1, drift: 0 }, ...p.assumptions.fx }; });
+  }} />;
+}
+
+/** The plan's currency and the exchange-rate assumption of each foreign currency its items use. */
+function CurrencyCard() {
+  const plan = useActivePlan();
+  const update = useUpdate();
+  const home = planCurrency(plan);
+  const foreign = foreignCurrencies(plan);
+  const options: [string, string][] = CURRENCIES.map(([c, n]) => [c, `${c}: ${n}`]);
+  if (!options.some(([c]) => c === home)) options.push([home, home]);
+  return (
+    <Card title="Currency and exchange rates">
+      <div className="grid">
+        <Select label="Plan currency" value={home} options={options} onChange={(v) => update((p) => { p.currency = v === 'USD' ? undefined : v; })} />
+      </div>
+      <p className="muted">Every result is shown in the plan's currency. Changing it relabels the plan's amounts and converts none of them. An account, an income, or an expense can be held in another currency, chosen on its own page; each such currency gets an exchange rate here.</p>
+      {foreign.map((c) => {
+        const f = plan.assumptions.fx?.[c] ?? { rate: 1, drift: 0 };
+        const set = (patch: Partial<typeof f>) => update((p) => { p.assumptions.fx = { ...p.assumptions.fx, [c]: { ...f, ...patch } }; });
+        return (
+          <div className="grid" key={c}>
+            <Num label={`1 ${c} in ${home} today`} step={0.0001} value={f.rate} onChange={(v) => set({ rate: v })} />
+            <Num label={`Yearly change of ${c} in ${home}`} percent value={f.drift} onChange={(v) => set({ drift: v })} hint="Positive: the foreign currency gains on the plan's currency each year." />
+            <div className="field"><span>Example</span><div className="muted">{formatMoney(1000, c)} is {formatMoney(1000 * f.rate, home)} today</div></div>
+          </div>
+        );
+      })}
+      {foreign.length > 0 && <p className="muted small">Amounts convert at today's rate, and incomes, expenses, assets, and debts then follow the yearly change. Investment accounts convert at today's rate and follow the plan's market returns.</p>}
+    </Card>
+  );
+}
 
 function useUpdate() {
   return useStore((s) => s.update);
@@ -119,6 +163,7 @@ export function AccountsPage() {
             return (
               <>
                 <Text label="Name" value={a.name} onChange={(v) => set((x) => { x.name = v; })} />
+                <CurrencySelect value={a.currency} onChange={(v) => set((x) => { x.currency = v; })} />
                 <Select label="Type" value={a.kind} options={ACCOUNT_KINDS} onChange={(v) => set((x) => { x.kind = v; })} />
                 <Select label="Owner" value={a.ownerId} options={owner} onChange={(v) => set((x) => { x.ownerId = v; })} />
                 <Num label={a.kind === 'debt' ? 'Amount owed' : 'Balance'} value={a.balance} onChange={(v) => set((x) => { x.balance = v; })} />
@@ -177,6 +222,7 @@ export function IncomePage() {
             return (
               <>
                 <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
+                <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
                 <Select label="Type" value={x.kind} options={INCOME_KINDS} onChange={(v) => set((y) => { y.kind = v; })} />
                 <Select label="Owner" value={x.ownerId} options={owner} onChange={(v) => set((y) => { y.ownerId = v; })} />
                 <Num label={x.nominal ? 'Yearly amount (start year\'s $)' : "Yearly amount (today's $)"} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
@@ -245,6 +291,7 @@ export function ExpensesPage() {
           return (
             <>
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
+              <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
               <Select label="Type" value={x.kind} options={EXPENSE_KINDS} onChange={(v) => set((y) => { y.kind = v; })} />
               <Num label={(x.kind === 'oneTime' ? 'Amount' : 'Yearly amount') + (x.nominal ? " (that year's $)" : " (today's $)")} value={x.amount} onChange={(v) => set((y) => { y.amount = v; })} />
               <Num label={x.kind === 'oneTime' ? 'Year' : 'Start year'} value={x.startYear} onChange={(v) => set((y) => { y.startYear = v; })} />
@@ -582,6 +629,8 @@ export function AssumptionsPage() {
   const update = useUpdate();
   const a = plan.assumptions;
   return (
+    <>
+    <CurrencyCard />
     <Card title="Market and inflation assumptions">
       <div className="grid">
         <Num label="Inflation" percent value={a.inflation} onChange={(v) => update((p) => { p.assumptions.inflation = v; })} />
@@ -607,5 +656,6 @@ export function AssumptionsPage() {
       </div>
       <p className="muted">Returns are nominal yearly averages. From 1928 to 2025, the S&P 500 returned 11.9% a year on average (10.0% compounded), 10-year Treasuries 4.8%, T-bills 3.4%, and inflation averaged 3.1% (Damodaran, NYU Stern).</p>
     </Card>
+    </>
   );
 }

@@ -1,0 +1,254 @@
+{
+ "meta": {
+  "version": "4.0.0"
+ },
+ "today": {
+  "partnerStatus": "couple",
+  "yourName": "Sam",
+  "age": 40,
+  "spouseName": "Lee",
+  "spouseAge": 38,
+  "location": {
+   "country": "US",
+   "state": "co"
+  },
+  "savingsAccounts": [
+   {
+    "id": "s1",
+    "name": "Emergency fund",
+    "balance": 30000,
+    "owner": "joint"
+   }
+  ],
+  "investmentAccounts": [
+   {
+    "id": "i1",
+    "name": "Vanguard brokerage",
+    "type": "taxable",
+    "balance": 100000,
+    "costBasis": 70000,
+    "owner": "me"
+   },
+   {
+    "id": "i2",
+    "name": "Work 401k",
+    "type": "401k",
+    "balance": 250000,
+    "owner": "me"
+   },
+   {
+    "id": "i3",
+    "name": "Lee Roth",
+    "type": "roth-ira",
+    "balance": 60000,
+    "owner": "spouse"
+   },
+   {
+    "id": "i4",
+    "name": "Health savings",
+    "type": "hsa",
+    "balance": 9000,
+    "owner": "me"
+   }
+  ],
+  "assets": [
+   {
+    "id": "h1",
+    "name": "House",
+    "type": "real-estate",
+    "amount": 600000,
+    "balance": 350000,
+    "interestRate": 4.5,
+    "monthlyPayment": 2100,
+    "owner": "joint"
+   }
+  ],
+  "debts": [
+   {
+    "id": "d1",
+    "name": "Student loan",
+    "type": "student-loans",
+    "amount": 20000,
+    "interestRate": 5.5,
+    "monthlyPayment": 300
+   }
+  ]
+ },
+ "plans": [
+  {
+   "id": "pl1",
+   "name": "Base case",
+   "milestones": [
+    {
+     "id": "m1",
+     "name": "Retirement",
+     "criteria": [
+      {
+       "type": "age",
+       "value": 58
+      }
+     ]
+    },
+    {
+     "id": "m2",
+     "name": "Two million",
+     "criteria": [
+      {
+       "type": "netWorth",
+       "value": 2000000
+      }
+     ]
+    },
+    {
+     "id": "m3",
+     "name": "Odd",
+     "criteria": [
+      {
+       "type": "loanPayoff",
+       "value": "d1"
+      }
+     ]
+    }
+   ],
+   "income": {
+    "events": [
+     {
+      "id": "e1",
+      "name": "Sam salary",
+      "type": "salary",
+      "owner": "me",
+      "amount": 150000,
+      "frequency": "yearly",
+      "start": {
+       "type": "keyword",
+       "value": "now"
+      },
+      "end": {
+       "type": "milestone",
+       "value": "m1"
+      },
+      "yearlyChange": {
+       "type": "match-inflation"
+      }
+     },
+     {
+      "id": "e2",
+      "name": "Lee salary",
+      "type": "salary",
+      "owner": "spouse",
+      "amount": 4000,
+      "frequency": "biweekly",
+      "start": {
+       "type": "keyword",
+       "value": "now"
+      },
+      "end": {
+       "type": "milestone",
+       "value": "m1"
+      }
+     },
+     {
+      "id": "e3",
+      "name": "Inheritance",
+      "type": "other",
+      "owner": "me",
+      "amount": 80000,
+      "frequency": "once",
+      "start": {
+       "type": "date",
+       "value": "2035-06-01"
+      }
+     }
+    ]
+   },
+   "expenses": {
+    "events": [
+     {
+      "id": "x1",
+      "name": "Living expenses",
+      "type": "living-expenses",
+      "amount": 6000,
+      "frequency": "monthly",
+      "start": {
+       "type": "keyword",
+       "value": "now"
+      }
+     },
+     {
+      "id": "x2",
+      "name": "Mortgage payment",
+      "type": "debt",
+      "amount": 2100,
+      "frequency": "monthly"
+     },
+     {
+      "id": "x3",
+      "name": "Kitchen",
+      "type": "home-improvement",
+      "amount": 45000,
+      "frequency": "once",
+      "start": {
+       "type": "year",
+       "value": 2030
+      }
+     }
+    ]
+   },
+   "priorities": {
+    "events": [
+     {
+      "id": "p1",
+      "name": "401k",
+      "type": "401k",
+      "owner": "me",
+      "contribution": 10,
+      "contributionType": "%",
+      "employerMatch": 50,
+      "employerMatchLimit": 6
+     },
+     {
+      "id": "p2",
+      "name": "Roth IRA",
+      "type": "roth-ira",
+      "owner": "spouse",
+      "contribution": 7000,
+      "contributionType": "today$"
+     },
+     {
+      "id": "p3",
+      "name": "HSA",
+      "type": "hsa",
+      "owner": "me",
+      "contribution": 300,
+      "frequency": "monthly"
+     }
+    ]
+   },
+   "variables": {
+    "investmentReturn": 7,
+    "inflation": 3,
+    "dividendRate": 1.8,
+    "filingStatus": "married-filing-jointly"
+   }
+  },
+  {
+   "id": "pl2",
+   "name": "Retire early",
+   "income": {
+    "events": []
+   },
+   "expenses": {
+    "events": []
+   },
+   "variables": {}
+  }
+ ],
+ "progress": {
+  "data": [
+   {
+    "date": "2025-01-01",
+    "netWorth": 700000
+   }
+  ]
+ }
+}
