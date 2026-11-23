@@ -46,6 +46,9 @@ export interface Allocation {
 
 export interface Account {
   id: string;
+  /** IRAs at a broker paying a match on contributions (Robinhood 1% or 3%): the rate, and the years each match must stay
+   * in the account before it is kept (Robinhood: 5); withdrawing earlier forfeits the younger matches. */
+  providerMatch?: { rate: number; years: number };
   /** Debts and real assets: the type (ProjectionLab's lists), which sets the defaults shown when it is chosen. */
   debtType?: 'mortgage' | 'homeEquity' | 'auto' | 'student' | 'card' | 'personal' | 'medical' | 'other';
   assetType?: 'realEstate' | 'vehicle' | 'valuables' | 'other';
@@ -291,6 +294,10 @@ export interface Expense {
   /** Shared household cost: scaled by the square root of the household's size against the first year's (the OECD's
    * square-root equivalence scale: two people cost about 1.41 times one). */
   scalesWithHousehold?: boolean;
+  /** A membership shared with this many people outside the plan, splitting the amount evenly; soloPrice is what one's own
+   * plan would cost a year, for the saving shown on the Budget page. */
+  sharedWith?: number;
+  soloPrice?: number;
   /** Healthcare: the amount is the year's expected medical bills, and the plan pays them as insurance does: the
    * deductible first, then the coinsurance share, up to the out-of-pocket maximum (today's dollars). */
   coverage?: { deductible: number; coinsurance: number; oopMax: number };

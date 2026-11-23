@@ -356,4 +356,9 @@ export const HELP: Record<string, string> = {
   "Hourly rate": "Pay for each hour worked.",
   "Hours a week": "The hours you work in a usual week.",
   "Region": "Your Spanish region, whose own income tax scale is added to the state scale (Agencia Tributaria, 2025 tables).",
+  "Shared with how many others": "People outside the plan who split this cost evenly with you, as on a family streaming or phone plan or an Amazon Prime household; the plan pays its share.",
+  "Own plan would cost a year": "What a plan of your own would cost a year, to show what sharing saves.",
+  "Broker match on contributions": "Some brokers add a match to IRA contributions (Robinhood 1%, or 3% with Gold); the match is clawed back if money leaves the account too soon.",
+  "Match rate": "The share of each year's contributions the broker adds.",
+  "Years to keep each match": "How long each match must stay in the account; a withdrawal sooner forfeits the matches younger than this (Robinhood: 5 years).",
 };

@@ -383,6 +383,9 @@ export function AccountsPage() {
                 <Select label="Type" value={a.kind} options={ACCOUNT_KINDS} onChange={(v) => set((x) => { x.kind = v; })} />
                 <Select label="Owner" value={a.ownerId} options={owner} onChange={(v) => set((x) => { x.ownerId = v; })} />
                 <Num label={a.kind === 'debt' ? 'Amount owed' : 'Balance'} value={a.balance} onChange={(v) => set((x) => { x.balance = v; })} />
+                {(a.kind === 'traditional' || a.kind === 'roth') && <Check label="Broker match on contributions" value={!!a.providerMatch} onChange={(v) => set((x) => { x.providerMatch = v ? { rate: 0.01, years: 5 } : undefined; })} />}
+                {a.providerMatch && <Num label="Match rate" percent value={a.providerMatch.rate} onChange={(v) => set((x) => { x.providerMatch = { ...x.providerMatch!, rate: Math.max(0, v) }; })} />}
+                {a.providerMatch && <Num label="Years to keep each match" value={a.providerMatch.years} onChange={(v) => set((x) => { x.providerMatch = { ...x.providerMatch!, years: Math.max(0, Math.round(v)) }; })} />}
                 {a.kind === 'taxable' && <Num label="Cost basis" value={a.costBasis} onChange={(v) => set((x) => { x.costBasis = v; })} />}
                 {invested && <>
                   <Num label="Stocks" percent value={a.allocation.stocks} onChange={(v) => set((x) => { x.allocation.stocks = v; x.allocation.bonds = Math.max(0, 1 - v - x.allocation.cash); })} />
@@ -625,6 +628,8 @@ export function ExpensesPage() {
                 <Num label="Coinsurance after the deductible" percent value={x.coverage.coinsurance} onChange={(v) => set((y) => { y.coverage = { ...y.coverage!, coinsurance: v }; })} />
                 <Num label="Out-of-pocket maximum" value={x.coverage.oopMax} onChange={(v) => set((y) => { y.coverage = { ...y.coverage!, oopMax: v }; })} />
               </>}
+              <Num label="Shared with how many others" value={x.sharedWith ?? 0} onChange={(v) => set((y) => { y.sharedWith = Math.max(0, Math.round(v)) || undefined; })} />
+              {!!x.sharedWith && <Num label="Own plan would cost a year" value={x.soloPrice ?? 0} onChange={(v) => set((y) => { y.soloPrice = v > 0 ? v : undefined; })} />}
               <Check label="Shared cost: grows with the household" value={!!x.scalesWithHousehold} onChange={(v) => set((y) => { y.scalesWithHousehold = v || undefined; })} />
               <Select label="Spender" value={x.spender ?? ''} options={[['', 'Household'], ...plan.people.map((q) => [q.id, q.name] as [string, string])]} onChange={(v) => set((y) => { y.spender = v || undefined; })} />
               {x.kind !== 'oneTime' && <Num label="Repeats every (years)" value={x.everyYears ?? 1} onChange={(v) => set((y) => { y.everyYears = Math.round(v) > 1 ? Math.round(v) : undefined; })} />}

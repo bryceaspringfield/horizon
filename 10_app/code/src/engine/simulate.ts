@@ -258,6 +258,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
   /** People who left the household in a separation: their incomes and benefits leave the plan. */
   const departed = new Set<string>();
   let householdStart: number | null = null;
+  const matchLedger: Record<string, { year: number; amount: number }[]> = {};
   let ukLumpUsed = 0; // UK tax-free pension cash taken so far, against the lump sum allowance
   let expenseFactor = 1;
   /** Cumulative inflation at a year's start: from the path inside the plan, at the assumed rate before it. */
@@ -590,6 +591,8 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       let amt = eShare * (e.incomeShare ? e.incomeShare * ((e.incomeBasis === 'all' ? Object.values(income).reduce((t, v) => t + v, 0) + ssTotal : wages + selfEmp)) : amountIn(y, index, e));
       if (!e.id.startsWith('ev_sup_')) amt *= expenseFactor;
       amt *= hhScale;
+      // a shared plan (a family streaming plan, a Prime household): the plan pays its share of the shared price
+      if (e.sharedWith) amt /= 1 + Math.max(0, e.sharedWith);
       if (e.coverage) amt = outOfPocket(amt, { deductible: e.coverage.deductible * index, coinsurance: e.coverage.coinsurance, oopMax: e.coverage.oopMax * index });
       if (e.fundedBy && state.balance[e.fundedBy] > 0) {
         const take = Math.min(amt, state.balance[e.fundedBy]);
@@ -1063,6 +1066,22 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       }
     }
     if (shortfall > 1 && depletionYear === null) depletionYear = y;
+
+    // Provider IRA matches (Robinhood, Webull): the year's contributions earn the match, deposited in the account; a
+    // withdrawal while a match is younger than the holding period forfeits it (the clawback).
+    for (const x of accounts) {
+      const pm = x.providerMatch;
+      if (!pm) continue;
+      const led = (matchLedger[x.id] ??= []);
+      if ((withdrawals[x.id] ?? 0) > 0) {
+        const young = led.filter((m) => y - m.year < pm.years);
+        const lost = Math.min(Math.max(0, state.balance[x.id]), young.reduce((t, m) => t + m.amount, 0));
+        if (lost > 0) { state.balance[x.id] -= lost; income['clawback_' + x.id] = -lost; }
+        matchLedger[x.id] = led.filter((m) => y - m.year >= pm.years);
+      }
+      const m = (contributions[x.id] ?? 0) * pm.rate;
+      if (m > 0) { state.balance[x.id] += m; matchLedger[x.id].push({ year: y, amount: m }); match += m; }
+    }
 
     // Returns, appreciation, sales.
     let investmentReturn = 0;

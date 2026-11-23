@@ -24,7 +24,6 @@ Asked by Bryce on 2026-11-23, in the order to build.
 ## Statements, flows, and savings (Bryce, 2026-11-23)
 - Statement spending: how each category compares to the plan and where it can be cut.
 - Flows: automatic transfers between accounts on a schedule, employer matches, and provider IRA matches (Robinhood, Webull) with their clawback if the money leaves within a holding period (Robinhood: 5 years).
-- Shared costs: memberships a household can share (Amazon Prime household, family plans of streaming and phone), with the saving of one shared plan over separate ones.
 
 ## Pay and benefits follow-ups (Bryce, 2026-11-23)
 

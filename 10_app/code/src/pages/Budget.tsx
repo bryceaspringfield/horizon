@@ -65,6 +65,15 @@ export function BudgetPage() {
         </ul>
       </Card>
       <TimeValue takeHomeYear={takeHome * 12} />
+      {plan.expenses.some((e) => e.sharedWith) && <Card title="Shared memberships">
+        <div className="scroll"><table className="num">
+          <thead><tr><th>Membership</th><th>Shared plan</th><th>People</th><th>Your share</th><th>Own plan</th><th>Saved a year</th></tr></thead>
+          <tbody>{plan.expenses.filter((e) => e.sharedWith).map((e) => {
+            const share = e.amount / (1 + (e.sharedWith ?? 0));
+            return <tr key={e.id}><td>{e.name}</td><td>{money(e.amount)}</td><td>{1 + (e.sharedWith ?? 0)}</td><td>{money(share)}</td><td>{e.soloPrice ? money(e.soloPrice) : ''}</td><td>{e.soloPrice ? money(e.soloPrice - share) : ''}</td></tr>;
+          })}</tbody>
+        </table></div>
+      </Card>}
       <Card title="Essentials">
         <ul className="essentials">
           {ESSENTIALS.map((x) => {

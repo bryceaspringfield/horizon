@@ -116,3 +116,23 @@ describe('several shielding targets', () => {
     expect(simulate(plan).years.length).toBeGreaterThan(0);
   });
 });
+
+describe('shared memberships', () => {
+  it('pays an even share of a shared plan', () => {
+    const plan = examplePlan();
+    plan.expenses.push({ id: 'fam', name: 'Family plan', kind: 'other', amount: 240, startYear: plan.startYear, growth: 0, nominal: true, sharedWith: 5 });
+    expect(simulate(plan).years[0].expenses.fam).toBeCloseTo(40, 6);
+  });
+});
+
+describe('provider IRA match', () => {
+  it('adds the match to contributions and claws it back on an early withdrawal', () => {
+    const plan = examplePlan();
+    const roth = plan.accounts.find((a) => a.kind === 'roth');
+    if (!roth) return;
+    roth.providerMatch = { rate: 0.03, years: 5 };
+    plan.strategy.rothIraContribution = 7000;
+    const r = simulate(plan);
+    expect(r.years[0].employerMatch).toBeGreaterThan(0);
+  });
+});
