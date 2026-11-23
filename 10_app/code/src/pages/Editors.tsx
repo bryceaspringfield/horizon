@@ -247,8 +247,10 @@ export function AccountsPage() {
                   <Num label="Forgiven in year (0 for none)" value={a.forgiveYear ?? 0} onChange={(v) => set((x) => { x.forgiveYear = v || undefined; })} />
                   <Num label="Annual fee" value={a.annualFee ?? 0} onChange={(v) => set((x) => { x.annualFee = v || undefined; })} />
                   <RatesEditor rates={a.rewards} onChange={(r) => set((x) => { x.rewards = r.length ? r : undefined; })} />
-                  {!a.rewards?.length && <Num label="Share of spending on this card" percent value={a.cardSpendShare ?? 0} onChange={(v) => set((x) => { x.cardSpendShare = v || undefined; })} />
-                  <Num label="Cash back" percent value={a.cashBackRate ?? 0} onChange={(v) => set((x) => { x.cashBackRate = v || undefined; })} />}
+                  {!a.rewards?.length && <>
+                    <Num label="Share of spending on this card" percent value={a.cardSpendShare ?? 0} onChange={(v) => set((x) => { x.cardSpendShare = v || undefined; })} />
+                    <Num label="Cash back" percent value={a.cashBackRate ?? 0} onChange={(v) => set((x) => { x.cashBackRate = v || undefined; })} />
+                  </>}
                   <PayoffYear id={a.id} />
                   <Select label="Secured by" value={a.securedBy ?? ''} options={[['', 'Nothing'], ...assets]} onChange={(v) => set((x) => { x.securedBy = v || undefined; })} />
                 </>}
