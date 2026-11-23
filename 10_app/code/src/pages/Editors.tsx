@@ -7,11 +7,11 @@ import { estimatePia } from '../engine/retirement';
 import { useProjection } from '../useProjection';
 import statesJson from '../data/states.json';
 import { useActivePlan, useStore } from '../store';
-import { Card, Check, ListEditor, Num, Select, Stat, Text, money, pct } from '../ui';
+import { Card, Chart, Check, ListEditor, Num, Select, Stat, Text, money, pct } from '../ui';
 import { CURRENCIES, foreignCurrencies, formatMoney, planCurrency } from '../engine/currency';
 import { benefitAtClaim } from '../engine/retirement';
 import { refLabel, type DateRef } from '../engine/dates';
-import { MARKET, consensus } from '../engine/assumptions';
+import { MARKET, assumptionAt, consensus } from '../engine/assumptions';
 import { CONDITIONS, RACES, expectedDeathDate } from '../engine/lifespan';
 import { DIETS, FOOD_PLANS } from '../engine/food';
 import { ADOPTION_ROUTES, ADOPTION_SOURCE, BIRTH_SOURCE, WEDDING_SOURCES, WEDDING_STYLES, adoptionCost, birthCost, weddingCost } from '../engine/lifeCosts';
@@ -558,6 +558,8 @@ export function ExpensesPage() {
             <>
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
               <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
+              <Select label="Spender" value={x.spender ?? ''} options={[['', 'Household'], ...plan.people.map((q) => [q.id, q.name] as [string, string])]} onChange={(v) => set((y) => { y.spender = v || undefined; })} />
+              {x.kind !== 'oneTime' && <Num label="Repeats every (years)" value={x.everyYears ?? 1} onChange={(v) => set((y) => { y.everyYears = Math.round(v) > 1 ? Math.round(v) : undefined; })} />}
               <Num label="Discretionary share" percent value={x.discretionary ?? 0} hint="The part which could be cut in a bad stretch. Flexible spending (Strategy) uses it." onChange={(v) => set((y) => { y.discretionary = Math.max(0, Math.min(1, v)) || undefined; })} />
               <Num label="As a share of income (0: a fixed amount)" percent value={x.incomeShare ?? 0} onChange={(v) => set((y) => { y.incomeShare = v || undefined; })} />
               {!!x.incomeShare && <Select label="Share of" value={x.incomeBasis ?? 'pay'} options={[['pay', 'Pay'], ['all', 'All income']]} onChange={(v) => set((y) => { y.incomeBasis = v; })} />}
@@ -967,6 +969,17 @@ export function AssumptionsPage() {
         </div>
       </Card>
     <Card title="By horizon">
+        {(() => {
+          const born = plan.people[0]?.birthYear ?? plan.startYear;
+          const n = Math.max(30, ...(a.horizons ?? []).map((h) => h.through + 5));
+          const ages = Array.from({ length: n }, (_, i) => plan.startYear + i - born);
+          const line = (name: string, key: 'inflation' | 'stocks' | 'bonds' | 'cash') => ({ name, type: 'line', step: 'end', symbol: 'none', data: ages.map((_, i) => +(assumptionAt(a, key, i) * 100).toFixed(2)) });
+          return <Chart height={240} option={{
+            tooltip: { trigger: 'axis', valueFormatter: (v: number) => v + '%' }, legend: {},
+            xAxis: { type: 'category', name: 'Age', data: ages }, yAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
+            series: [line('Inflation', 'inflation'), line('Stocks', 'stocks'), line('Bonds', 'bonds'), line('Cash', 'cash')],
+          }} />;
+        })()}
         <div className="horizons">
           <div className="hrow head"><span>Plan years</span><span>Inflation</span><span>Stocks</span><span>Bonds</span><span>Cash</span><span /></div>
           {(a.horizons ?? []).map((h, k, all) => (

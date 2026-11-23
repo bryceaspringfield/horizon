@@ -260,6 +260,10 @@ export interface Expense {
   currency?: string;
   /** The share of the expense which can be cut in a bad stretch (0: essential; 1: wholly discretionary); used by flexible spending. */
   discretionary?: number;
+  /** Who spends it: a person's id, or the household where unset. */
+  spender?: string;
+  /** Recurs every this many years from its start (a car every 8 years); every year where unset. */
+  everyYears?: number;
 }
 
 export interface Milestone {

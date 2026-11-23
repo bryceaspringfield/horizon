@@ -273,4 +273,6 @@ export const HELP: Record<string, string> = {
   "Share of the estate left to charity": "The share of what is left at the end that goes to charity. It is deducted before estate tax, as the charitable deduction allows, and left out of what heirs receive in net legacy.",
   "Effective tax rate over": "The income the effective tax rate divides all taxes by: gross income, adjusted gross income, or taxable income after deductions.",
   "Count taxes as spending": "Adds income, payroll, and property taxes to spending in the spending charts and totals.",
+  "Spender": "Who spends this money: one person, or the household as a whole.",
+  "Repeats every (years)": "How often the expense comes back, counted from its start: 1 for every year, 8 for a car bought every 8 years.",
 };

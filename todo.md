@@ -46,5 +46,3 @@ Asked by Bryce on 2026-11-23, in the order to build.
 - Open ProjectionLab as a guest (Playwright) and record every screen, setting, and chart: tax-bracket optimization, drawdown order, gain harvesting, Roth conversions, flexible spending, tax strategy, estate planning, compare and what-if; build each one Horizon lacks.
 
 ## From ProjectionLab's screens (Bryce's screenshots, 2026-11-23)
-- Rates as curves by age, edited point by point (the horizon bands drawn as a chart).
-- Expense form: amount with a frequency (once, a month, a year), spender, timing, flexibility, and recurrence in one place.

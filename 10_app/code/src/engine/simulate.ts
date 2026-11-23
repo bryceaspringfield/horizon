@@ -541,6 +541,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         if (e.kind === 'oneTime') { if (y !== Math.floor(ts)) continue; }
         else { eShare = shareOfYear(y, ts, te); if (eShare <= 0) continue; }
       } else if (y < e.startYear || y > stop) continue;
+      if (e.everyYears && e.everyYears > 1 && (y - e.startYear) % Math.round(e.everyYears) !== 0) continue;
       let amt = eShare * (e.incomeShare ? e.incomeShare * ((e.incomeBasis === 'all' ? Object.values(income).reduce((t, v) => t + v, 0) + ssTotal : wages + selfEmp)) : amountIn(y, index, e));
       if (!e.id.startsWith('ev_sup_')) amt *= expenseFactor;
       if (e.fundedBy && state.balance[e.fundedBy] > 0) {
