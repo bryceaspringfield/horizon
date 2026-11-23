@@ -21,6 +21,8 @@ export function rulesFor(year: number): { rules: Rules; year: number } {
 export const rules = rulesFor(YEARS[0]).rules;
 
 export interface TaxInput {
+  /** The spread of incentive stock options exercised and held this year: an AMT preference item (section 56(b)(3)). */
+  isoSpread?: number;
   /** A US person's income from abroad: the exclusion and the foreign tax credit. */
   foreign?: ForeignInput;
   /** Child and dependent care costs paid for children under 13, so the adults can work (the credit of section 21). */
@@ -291,7 +293,7 @@ export function computeTax(t: TaxInput): TaxResult {
   // exemption (phased out at 50% above its threshold), at 26% and 28% on ordinary income and the capital gains rates
   // on gains; owed where the tentative tax exceeds the regular tax.
   const am = r.amt;
-  const amti = agi - qbiDed - (itemized ? deduction - Math.min(state + (t.propertyTax ?? 0), saltCap(t.year, agi)) : 0);
+  const amti = agi + (t.isoSpread ?? 0) - qbiDed - (itemized ? deduction - Math.min(state + (t.propertyTax ?? 0), saltCap(t.year, agi)) : 0);
   const exemption = Math.max(0, am.exemption[t.status] * k - am.phaseRate * Math.max(0, amti - am.phaseStart[t.status] * k));
   const amtBase = Math.max(0, amti - exemption);
   const amtPref = Math.min(preferential, amtBase);

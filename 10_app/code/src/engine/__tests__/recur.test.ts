@@ -59,6 +59,16 @@ describe('stock options', () => {
     };
     const nso = run('nso'), iso = run('iso');
     expect(nso.income.opt).toBeCloseTo(100000, -1);
-    expect(nso.taxes.total - iso.taxes.total).toBeGreaterThan(20000);
+    expect(nso.taxes.total).toBeGreaterThan(iso.taxes.total);
+  });
+});
+
+describe('ISO and the AMT', () => {
+  it('a large ISO spread raises the alternative minimum tax', () => {
+    const plan = examplePlan();
+    const y0 = plan.startYear;
+    const base = simulate(plan).years.find((x) => x.year === y0 + 1)!.taxes.total;
+    plan.incomes.push({ id: 'iso', name: 'ISOs', kind: 'options', ownerId: plan.people[0].id, amount: 0, growth: 0, startYear: y0 + 1, endYear: y0 + 1, inflationAdjusted: false, taxable: true, options: { type: 'iso', shares: 10000, strike: 10, price: 110, growth: 0 } } as any);
+    expect(simulate(plan).years.find((x) => x.year === y0 + 1)!.taxes.total).toBeGreaterThan(base + 100000);
   });
 });

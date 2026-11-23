@@ -343,6 +343,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
     const contributions: Record<string, number> = {};
     const withdrawals: Record<string, number> = {};
     const expenses: Record<string, number> = {};
+    let isoSpread = 0;
     let wages = 0, selfEmp = 0, otherOrdinary = 0, untaxedIncome = 0, preTax = 0, match = 0, sePremium = 0, assetGain = 0, homeExclusion = 0;
     const fo = { earned: 0, earnedBy: {} as Record<string, number>, noUsPayroll: 0, taxEarned: 0, generalOther: 0, taxGeneralOther: 0, passiveIncome: 0, taxPassive: 0, taxOther: 0 };
     const deferredBy: Record<string, number> = {};
@@ -408,7 +409,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
           income[inc.id] = spread;
           untaxedIncome -= spread;
           state.balance[taxableAcc.id] += spread;
-          if (o.type === 'nso') { wages += spread; state.basis[taxableAcc.id] += spread; }
+          if (o.type === 'nso') { wages += spread; state.basis[taxableAcc.id] += spread; } else isoSpread += spread;
           contributions[taxableAcc.id] = (contributions[taxableAcc.id] ?? 0) + spread;
         }
       } else if (inc.kind === 'rsu') {
@@ -805,7 +806,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
-        childrenUnder13: kidsUnder13, dependentCare: careCost,
+        childrenUnder13: kidsUnder13, dependentCare: careCost, isoSpread,
         saverContributions: alive.map((p) => (deferredBy[p.id] ?? 0) + (p.id === firstWorker?.id ? iraIn + rothIn : 0)) });
     }
     let harvested = 0;

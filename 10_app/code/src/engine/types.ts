@@ -186,7 +186,7 @@ export interface Income {
   vestYears?: number;
   /** Stock options, exercised and held in startYear: the type, shares, strike, and the share price today with its growth a
    * year. NSOs: the spread is wages, the shares' basis their value; ISOs: the shares' basis is 0, the gain taxed on sale
-   * (the AMT on an ISO spread is not modeled). */
+   * (the ISO spread counts toward the AMT in the exercise year). */
   options?: { type: 'nso' | 'iso'; shares: number; strike: number; price: number; growth: number };
   /** RSUs: nothing vests during these first years; the parts held back then vest together (a one-year cliff: 1). */
   vestCliffYears?: number;
