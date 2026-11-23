@@ -300,4 +300,8 @@ export const HELP: Record<string, string> = {
   "Joins the household": "The date this person moves in, such as a partner or a parent; leave blank if already in the household.",
   "Leaves the household": "The date this person moves out; leave blank if staying.",
   "Shared cost: grows with the household": "Rent, utilities, and other shared costs rise with the square root of the household's size, as the OECD's equivalence scale does: two people cost about 1.41 times one.",
+  "Bills paid through a health plan": "The amount is the year's expected medical bills; you pay the deductible, then the coinsurance share, up to the out-of-pocket maximum.",
+  "Deductible": "What you pay in full each year before the plan starts sharing costs.",
+  "Coinsurance after the deductible": "Your share of bills after the deductible: 20% for a typical plan.",
+  "Out-of-pocket maximum": "The most you pay in a year for covered care; the plan pays everything above it.",
 };

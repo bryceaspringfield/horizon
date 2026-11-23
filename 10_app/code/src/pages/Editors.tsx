@@ -588,6 +588,12 @@ export function ExpensesPage() {
             <>
               <Text label="Name" value={x.name} onChange={(v) => set((y) => { y.name = v; })} />
               <CurrencySelect value={x.currency} onChange={(v) => set((y) => { y.currency = v; })} />
+              {x.kind === 'healthcare' && <Check label="Bills paid through a health plan" value={!!x.coverage} onChange={(v) => set((y) => { y.coverage = v ? { deductible: 1700, coinsurance: 0.2, oopMax: 5000 } : undefined; })} />}
+              {x.kind === 'healthcare' && x.coverage && <>
+                <Num label="Deductible" value={x.coverage.deductible} onChange={(v) => set((y) => { y.coverage = { ...y.coverage!, deductible: v }; })} />
+                <Num label="Coinsurance after the deductible" percent value={x.coverage.coinsurance} onChange={(v) => set((y) => { y.coverage = { ...y.coverage!, coinsurance: v }; })} />
+                <Num label="Out-of-pocket maximum" value={x.coverage.oopMax} onChange={(v) => set((y) => { y.coverage = { ...y.coverage!, oopMax: v }; })} />
+              </>}
               <Check label="Shared cost: grows with the household" value={!!x.scalesWithHousehold} onChange={(v) => set((y) => { y.scalesWithHousehold = v || undefined; })} />
               <Select label="Spender" value={x.spender ?? ''} options={[['', 'Household'], ...plan.people.map((q) => [q.id, q.name] as [string, string])]} onChange={(v) => set((y) => { y.spender = v || undefined; })} />
               {x.kind !== 'oneTime' && <Num label="Repeats every (years)" value={x.everyYears ?? 1} onChange={(v) => set((y) => { y.everyYears = Math.round(v) > 1 ? Math.round(v) : undefined; })} />}

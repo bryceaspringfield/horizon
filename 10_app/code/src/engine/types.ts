@@ -281,6 +281,9 @@ export interface Expense {
   /** Shared household cost: scaled by the square root of the household's size against the first year's (the OECD's
    * square-root equivalence scale: two people cost about 1.41 times one). */
   scalesWithHousehold?: boolean;
+  /** Healthcare: the amount is the year's expected medical bills, and the plan pays them as insurance does: the
+   * deductible first, then the coinsurance share, up to the out-of-pocket maximum (today's dollars). */
+  coverage?: { deductible: number; coinsurance: number; oopMax: number };
 }
 
 export interface Milestone {

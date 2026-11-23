@@ -11,6 +11,7 @@ import { assumptionAt } from './assumptions';
 import { resolve, shareOfYear, yearOf } from './dates';
 import { cardRewards, cardable, categoryOf, type SpendCategory } from './cards';
 import { convertCurrencies } from './currency';
+import { outOfPocket } from './coverage';
 import { acaLimit, acaNetPremium, bracketTop, computeTax, estateTax, medicarePremium, rules, rulesFor, rulesTiers, zeroGainsTop } from './tax';
 import { benefitAtClaim, rmdStartAge, spousalAtClaim } from './retirement';
 import type { Person, Step, Account, Income, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
@@ -579,6 +580,7 @@ function simulateOnce(plan: Plan, path: ReturnPath, rothByYear?: Record<number, 
       let amt = eShare * (e.incomeShare ? e.incomeShare * ((e.incomeBasis === 'all' ? Object.values(income).reduce((t, v) => t + v, 0) + ssTotal : wages + selfEmp)) : amountIn(y, index, e));
       if (!e.id.startsWith('ev_sup_')) amt *= expenseFactor;
       amt *= hhScale;
+      if (e.coverage) amt = outOfPocket(amt, { deductible: e.coverage.deductible * index, coinsurance: e.coverage.coinsurance, oopMax: e.coverage.oopMax * index });
       if (e.fundedBy && state.balance[e.fundedBy] > 0) {
         const take = Math.min(amt, state.balance[e.fundedBy]);
         state.balance[e.fundedBy] -= take;
