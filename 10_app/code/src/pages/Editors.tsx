@@ -16,10 +16,10 @@ const ACCOUNT_KINDS: [AccountKind, string][] = [
   ['roth', 'Roth 401(k) / IRA'], ['hsa', 'HSA'], ['college529', '529 college savings'], ['asset', 'Asset (home, car)'], ['debt', 'Debt (mortgage, loan)'],
 ];
 const INCOME_KINDS: [IncomeKind, string][] = [
-  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['other', 'Other'],
+  ['salary', 'Salary'], ['selfEmployment', 'Self-employment'], ['rental', 'Rental'], ['pension', 'Pension'], ['annuity', 'Annuity'], ['windfall', 'One-time windfall'], ['rsu', 'RSU grant (total value)'], ['bonus', 'Bonus (taxed as wages)'], ['other', 'Other'],
 ];
 const EXPENSE_KINDS: [ExpenseKind, string][] = [
-  ['living', 'Living expenses'], ['housing', 'Housing'], ['healthcare', 'Healthcare'], ['education', 'Education'], ['travel', 'Travel'], ['oneTime', 'One-time'], ['other', 'Other'],
+  ['living', 'Living expenses'], ['housing', 'Housing'], ['healthcare', 'Healthcare'], ['education', 'Education'], ['travel', 'Travel'], ['insurance', 'Insurance'], ['longTermCare', 'Long-term care'], ['childcare', 'Childcare (counts toward the care credit)'], ['oneTime', 'One-time'], ['other', 'Other'],
 ];
 
 /** The currency of one account, income, or expense: the plan's by default. Choosing another adds its exchange rate to
@@ -209,6 +209,9 @@ export function AccountsPage() {
                   {!!a.rent && <Num label="Vacancy" percent value={a.vacancy ?? 0.05} onChange={(v) => set((x) => { x.vacancy = v; })} />}
                   {!!a.rent && <Num label="Rental costs (share of rent)" percent value={a.rentalCosts ?? 0.35} onChange={(v) => set((x) => { x.rentalCosts = v; })} />}
                   <Num label="Sale year (0 for none)" value={a.saleYear ?? 0} onChange={(v) => set((x) => { x.saleYear = v || undefined; })} />
+                  <Num label="Cost basis: price paid plus improvements (0 for none)" step={1000} value={a.costBasis ?? 0} hint="With a basis, a sale's gain is taxed as a long-term gain. With none, the sale is taken as made at cost." onChange={(v) => set((x) => { x.costBasis = v || undefined; })} />
+                  <Num label="Selling costs (share of the price)" percent value={a.sellingCosts ?? 0} onChange={(v) => set((x) => { x.sellingCosts = v || undefined; })} />
+                  {a.realEstate && <Check label="The home you live in (its sale excludes $250,000 of gain a person)" value={!!a.primaryResidence} onChange={(v) => set((x) => { x.primaryResidence = v || undefined; })} />}
                 </>}
                 {a.kind === 'debt' && <>
                   <Num label="Interest rate" percent value={a.interestRate ?? 0} onChange={(v) => set((x) => { x.interestRate = v; })} />
@@ -259,6 +262,11 @@ export function IncomePage() {
                 <Check label="Taxable" value={x.taxable} onChange={(v) => set((y) => { y.taxable = v; })} />
                 <Check label="Amounts in future dollars of their year" value={!!x.nominal} onChange={(v) => set((y) => { y.nominal = v; })} />
                 {x.kind === 'selfEmployment' && <Check label="A specified service business (law, health, consulting...)" value={!!x.serviceBusiness} onChange={(v) => set((y) => { y.serviceBusiness = v; })} />}
+                {x.kind === 'selfEmployment' && <>
+                  <Num label="Health insurance premium a year (today's $)" step={500} value={x.healthPremium ?? 0} hint="The self-employed health insurance deduction, up to the business's profit." onChange={(v) => set((y) => { y.healthPremium = v || undefined; })} />
+                  <Num label="Solo 401(k) deferral (share of profit)" percent value={x.contributionRate ?? 0} onChange={(v) => set((y) => { y.contributionRate = v; })} />
+                  <Num label="Employer contribution: SEP IRA or solo 401(k)" percent value={x.employerContributionRate ?? 0} hint="A share of net earnings, at most 20% for a sole owner." onChange={(v) => set((y) => { y.employerContributionRate = Math.min(0.2, v) || undefined; })} />
+                </>}
                 {x.kind !== 'windfall' && <StepsEditor steps={x.steps} nominal={x.nominal} onChange={(st) => set((y) => { y.steps = st; })} />}
                 {x.kind === 'rsu' && <Num label="Vests over (years)" value={x.vestYears ?? 4} onChange={(v) => set((y) => { y.vestYears = v; })} />}
                 {x.kind === 'rsu' && <Num label="Cliff (years before the first vesting)" value={x.vestCliffYears ?? 0} hint="With a one-year cliff, nothing vests in the first year and two parts vest in the second." onChange={(v) => set((y) => { y.vestCliffYears = v || undefined; })} />}
@@ -598,6 +606,7 @@ function TransfersCard() {
   const update = useUpdate();
   const list = plan.strategy.transfers ?? [];
   const accts = plan.accounts.filter((a) => a.kind !== 'asset').map((a) => [a.id, a.name] as [string, string]);
+  const dests: [string, string][] = [...accts, ['external', 'Outside the plan (a gift)']];
   return (
     <Card title="Scheduled transfers between accounts">
       <ListEditor<Transfer>
@@ -612,7 +621,7 @@ function TransfersCard() {
             <>
               <Text label="Name" value={t.name} onChange={(v) => set((x) => { x.name = v; })} />
               <Select label="From" value={t.from} options={accts} onChange={(v) => set((x) => { x.from = v; })} />
-              <Select label="To" value={t.to} options={accts} onChange={(v) => set((x) => { x.to = v; })} />
+              <Select label="To" value={t.to} options={dests} onChange={(v) => set((x) => { x.to = v; })} />
               <Num label="Amount a year (today's $)" value={t.amount} onChange={(v) => set((x) => { x.amount = v; })} />
               <Num label="From year" value={t.startYear} onChange={(v) => set((x) => { x.startYear = v; })} />
               <Num label="To year" value={t.endYear ?? t.startYear} onChange={(v) => set((x) => { x.endYear = v; })} />
@@ -651,6 +660,8 @@ export function TaxHealthPage() {
         <div className="grid">
           <Check label="Itemize when it beats the standard deduction" value={d.itemize} onChange={(v) => update((p) => { p.deductions.itemize = v; })} />
           <Num label="Property tax (share of home value)" percent step={0.05} value={d.propertyTaxRate} onChange={(v) => update((p) => { p.deductions.propertyTaxRate = v; })} />
+          <Check label="Limit mortgage interest to the first $750,000 of home debt" value={!!d.mortgageDebtLimit} onChange={(v) => update((p) => { p.deductions.mortgageDebtLimit = v ? 750000 : undefined; })} />
+          {!!d.mortgageDebtLimit && <Num label="Home debt limit ($1,000,000 for loans from before December 16, 2017)" step={50000} value={d.mortgageDebtLimit} onChange={(v) => update((p) => { p.deductions.mortgageDebtLimit = v || undefined; })} />}
           <Num label="Charitable giving a year (today's $)" value={d.charity} onChange={(v) => update((p) => { p.deductions.charity = v; })} />
         </div>
         <p className="muted">Itemized deductions add mortgage interest on debts secured by real estate, charity, and state income and property taxes up to the SALT cap ($40,400 in 2026, rising 1% a year to 2029, falling by 30% of income above $505,000 to a $10,000 floor, and $10,000 from 2030). Property tax and charity also count as spending.</p>
@@ -663,6 +674,7 @@ export function TaxHealthPage() {
         <div className="grid">
           <Check label="Medicare from 65, with income surcharges (IRMAA)" value={h.medicare} onChange={(v) => update((p) => { p.healthcare.medicare = v; })} />
           <Num label="Part D premium a month before surcharges" value={h.partDBase} onChange={(v) => update((p) => { p.healthcare.partDBase = v; })} />
+          <Num label="Medigap or Advantage premium a person a month (today's $)" value={h.medigap ?? 0} onChange={(v) => update((p) => { p.healthcare.medigap = v || undefined; })} />
           <Check label="ACA marketplace coverage from retirement to 65" value={h.aca} onChange={(v) => update((p) => { p.healthcare.aca = v; })} />
           <Num label="Benchmark silver premium a person a year" value={h.acaBenchmark} onChange={(v) => update((p) => { p.healthcare.acaBenchmark = v; })} />
         </div>
@@ -690,6 +702,8 @@ export function AssumptionsPage() {
         <Num label="Bond volatility" percent value={a.volatility.bonds} onChange={(v) => update((p) => { p.assumptions.volatility.bonds = v; })} />
         <Num label="Stock-bond correlation" step={0.05} value={a.correlation} onChange={(v) => update((p) => { p.assumptions.correlation = v; })} />
         <Num label="Dividend yield" percent value={a.dividendYield} onChange={(v) => update((p) => { p.assumptions.dividendYield = v; })} />
+        <Num label="Qualified share of dividends" percent value={a.qualifiedDividendShare ?? 1} hint="Qualified dividends are taxed at capital gains rates; the rest is ordinary income." onChange={(v) => update((p) => { p.assumptions.qualifiedDividendShare = Math.max(0, Math.min(1, v)); })} />
+        <Num label="Social Security raises beside inflation" percent step={0.1} value={a.benefitCola ?? 0} hint="0 keeps benefits level with inflation; -0.5 has them lose half a point a year." onChange={(v) => update((p) => { p.assumptions.benefitCola = v || undefined; })} />
       </div>
       <div className="grid" style={{ marginTop: 14 }}>
         <Select label="Tax model" value={a.taxModel?.kind ?? 'us'} options={[['us', 'United States rules (federal, state, local, payroll)'], ['flat', 'One flat rate on all income']]}

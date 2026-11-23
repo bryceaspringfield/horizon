@@ -67,6 +67,10 @@ export interface Account {
   dividendsPaidOut?: boolean;
   /** The currency the balance is held in (ISO 4217), where it differs from the plan's (engine/currency.ts). */
   currency?: string;
+  /** Assets: the home you live in. Its sale excludes $250,000 of gain a person ($500,000 for a couple filing jointly). */
+  primaryResidence?: boolean;
+  /** Assets: selling costs as a share of the sale price (agent fees, transfer taxes). */
+  sellingCosts?: number;
   /** A return tied to inflation: each year's inflation plus this fixed rate (Series I savings bonds, TIPS held to
    * maturity), in place of the allocation's market returns. */
   inflationLinked?: number;
@@ -80,7 +84,7 @@ export interface Step {
   amount: number;
 }
 
-export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu';
+export type IncomeKind = 'salary' | 'selfEmployment' | 'rental' | 'pension' | 'annuity' | 'other' | 'windfall' | 'rsu' | 'bonus';
 
 export interface Income {
   id: string;
@@ -122,6 +126,11 @@ export interface Income {
   serviceBusiness?: boolean;
   /** The currency the amounts are in, where it differs from the plan's. */
   currency?: string;
+  /** Self-employment: the yearly health insurance premium (today's dollars), deducted from income up to the business's profit. */
+  healthPremium?: number;
+  /** Self-employment with a solo 401(k) or SEP IRA: the employer contribution as a share of net earnings (at most 20%
+   * for a sole owner), on top of the deferral set by contributionRate (a solo 401(k) only). */
+  employerContributionRate?: number;
   /** A US person abroad: the pay is for work done while living abroad (it qualifies for the foreign earned income
    * exclusion), and whether US Social Security and Medicare tax is still owed on it (a US employer). */
   abroad?: boolean;
@@ -137,7 +146,7 @@ export interface SocialSecurity {
   claimAge: number;
 }
 
-export type ExpenseKind = 'living' | 'housing' | 'healthcare' | 'education' | 'travel' | 'other' | 'oneTime';
+export type ExpenseKind = 'living' | 'housing' | 'healthcare' | 'education' | 'travel' | 'other' | 'oneTime' | 'insurance' | 'longTermCare' | 'childcare';
 
 export interface Expense {
   id: string;
@@ -246,6 +255,8 @@ export interface Deductions {
   propertyTaxRate: number;
   /** Yearly charitable giving, today's dollars. */
   charity: number;
+  /** Count only the interest on the first $750,000 of home debt ($1,000,000 for debt from before December 16, 2017). */
+  mortgageDebtLimit?: number;
 }
 
 export interface Healthcare {
@@ -257,6 +268,8 @@ export interface Healthcare {
    * dollars, less the premium tax credit. */
   aca: boolean;
   acaBenchmark: number;
+  /** A Medicare supplement (Medigap) or Advantage premium a person a month from 65, today's dollars. */
+  medigap?: number;
 }
 
 export interface LocalTax {
@@ -282,6 +295,10 @@ export interface Assumptions {
   crash?: { enabled: boolean; year: number; drop: number };
   /** The tax model: United States rules, or one flat rate on all income in place of every income and payroll tax. */
   taxModel?: { kind: 'us' | 'flat'; rate: number };
+  /** A yearly change of Social Security benefits beside inflation (-0.005: cost-of-living raises half a point under inflation). */
+  benefitCola?: number;
+  /** The share of taxable accounts' dividends which are qualified (taxed at capital gains rates); the rest is ordinary. 1 where unset. */
+  qualifiedDividendShare?: number;
   /** Exchange-rate assumptions by foreign currency: units of the plan's currency for one unit today, and the rate's
    * yearly change (0.02: the foreign currency gains 2% a year on the plan's). */
   fx?: Record<string, { rate: number; drift: number }>;
@@ -373,6 +390,9 @@ export interface YearResult {
     credits?: number;
     amt?: number;
     local?: number;
+    /** Tax on the gain of real estate and other assets sold this year is inside capitalGains; the gain itself and the home-sale exclusion used. */
+    assetGain?: number;
+    homeExclusion?: number;
     /** Foreign income tax paid, the foreign tax credit taken, and the income left out by the foreign earned income exclusion. */
     foreign?: number;
     foreignCredit?: number;

@@ -36,6 +36,8 @@ export interface Settings {
   mainPlanId?: string;
   /** Net worth charts count real assets (a home net of its mortgage). */
   chartRealAssets?: boolean;
+  /** Show every amount as dots (for a screen someone else can see). */
+  hideAmounts?: boolean;
 }
 
 interface AppState {

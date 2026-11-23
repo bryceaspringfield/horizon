@@ -23,6 +23,9 @@ export const rules = rulesFor(YEARS[0]).rules;
 export interface TaxInput {
   /** A US person's income from abroad: the exclusion and the foreign tax credit. */
   foreign?: ForeignInput;
+  /** Child and dependent care costs paid for children under 13, so the adults can work (the credit of section 21). */
+  dependentCare?: number;
+  childrenUnder13?: number;
   year: number;
   status: FilingStatus;
   /** Inflation since the year of the rules in force (1.0 in that year). */
@@ -325,7 +328,11 @@ export function computeTax(t: TaxInput): TaxResult {
   }
   const foreignPaid = fo ? fo.taxEarned + fo.taxGeneralOther + fo.taxPassive + fo.taxOther : 0;
   const incomeTax = ordinaryTax + capitalGains + amt - ftcCredit;
-  const nonrefundablePool = ctcTotal + aotc * (1 - c.aotc.refundableShare) + saver;
+  // The child and dependent care credit: 20% of care costs up to $3,000 for one child and $6,000 for two or more, and
+  // up to the lower earner's pay (taken here as all earned income); the higher rates of low incomes are not modeled.
+  const careKids = t.childrenUnder13 ?? 0;
+  const care = careKids > 0 ? 0.2 * Math.min(t.dependentCare ?? 0, careKids >= 2 ? 6000 : 3000, t.wages + t.selfEmployment) : 0;
+  const nonrefundablePool = ctcTotal + aotc * (1 - c.aotc.refundableShare) + saver + care;
   const nonrefundable = Math.min(incomeTax, nonrefundablePool);
   // The refundable child credit: up to the refundable amount a child, 15% of earned income above $2,500.
   const earned = t.wages + t.selfEmployment;

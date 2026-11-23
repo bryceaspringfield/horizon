@@ -8,7 +8,9 @@ import { formatMoney } from './engine/currency';
 // Every amount on screen is in the active plan's currency; App sets it before the pages render.
 let shownCurrency = 'USD';
 export const setShownCurrency = (code: string) => { shownCurrency = code; };
-export const money = (v: number, compact = false) => formatMoney(v, shownCurrency, compact);
+let hidden = false;
+export const setAmountsHidden = (h: boolean) => { hidden = h; };
+export const money = (v: number, compact = false) => (hidden ? '•••••' : formatMoney(v, shownCurrency, compact));
 export const pct = (v: number, d = 1) => `${((v || 0) * 100).toFixed(d)}%`;
 
 export function Card({ title, children, actions, wide }: { title?: string; children: ReactNode; actions?: ReactNode; wide?: boolean }) {

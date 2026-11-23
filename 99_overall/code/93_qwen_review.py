@@ -139,11 +139,37 @@ def tasks():
             'brokers, ProjectionLab\'s own billing, advisor, or employer tools, native mobile apps, or tax systems outside the US. '
             'Check the types carefully before writing missing. No text outside the table.\n\n'
             + readme + '\n\n' + types + '\n\n=== Requests ===\n' + part)
+    # One ledger of every ProjectionLab feature Horizon still lacks (Bryce's goal, 2026-11-23: at least every feature ProjectionLab
+    # has): each earlier comparison is re-read with today's types, and every gap still open becomes one tab-separated row.
+    built = ('Built since those comparisons (do not list): a first-run setup wizard; sign-up choice of saving on the device or the server; an '
+             'installable offline app; import from ProjectionLab; plan currency, per-item currencies, and exchange rates; the foreign earned '
+             'income exclusion and foreign tax credit; RSU cliff; salary bonus rate; 401(k) Roth share; inflation-linked accounts; a later '
+             'withdrawal order; capital loss carryforward; undo and redo.')
+    # in chunks of about 24,000 characters at medium effort: whole files at xhigh came back empty, the budget spent on reasoning (2026-11-23)
+    chunks = []
+    for f in ('missing_table', 'layout_1', 'layout_2', 'layout_3'):
+        path = os.path.join(OUT, f + '.md')
+        if not os.path.exists(path): continue
+        cur = ''
+        for line in read(path).splitlines(keepends=True):
+            if len(cur) + len(line) > 24000 and cur: chunks.append(cur); cur = ''
+            cur += line
+        if cur.strip(): chunks.append(cur)
+    for n, chunk in enumerate(chunks):
+        out[f'ledger_{n + 1:02d}'] = (
+            'Below are Horizon\'s CURRENT types, then an earlier comparison of ProjectionLab with Horizon. Re-check every gap of the comparison '
+            'against the current types. For each gap STILL open (missing or partial), write exactly one line of four fields separated by a TAB '
+            'character and nothing else, no header, no numbering, no markdown: AREA<TAB>FEATURE<TAB>BUILD<TAB>EFFORT. AREA is one of: accounts, '
+            'income, expenses, taxes, healthcare, social-security, strategy, withdrawals, milestones, events, real-estate, estate, monte-carlo, '
+            'charts, tables, cash-flow, compare, progress, household, plans, settings, sharing, onboarding, other. FEATURE names the ProjectionLab '
+            'feature in at most 14 words. BUILD says what to add to Horizon in at most 22 words, naming the type or field. EFFORT is S, M, or L. '
+            'Merge duplicates into one line. Skip billing, advisor and employer tools, bank linking, sign-in, and tax systems outside the US. '
+            + built + '\n\n' + types + '\n\n=== Earlier comparison ===\n' + chunk)
     return out
 
 
 def run(name, prompt):
-    reply = qwen_farm.ask_stream(prompt, SYSTEM, EFFORT, BUDGET)
+    reply = qwen_farm.ask_stream(prompt, SYSTEM, 'medium' if name.startswith('ledger_') else EFFORT, BUDGET)
     open(os.path.join(OUT, name + '.md'), 'w').write(f'# {name}\n\n{reply}\n')
     return name, len(reply)
 

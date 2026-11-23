@@ -8,7 +8,7 @@ import { EstatePage, OptimizePage, PlotPage } from './pages/More';
 import { ReportPage } from './pages/Report';
 import { CashFlowPage, ComparePage, Dashboard, FirePage, MonteCarloPage, NetWorthChart, ProgressPage, TablePage, TaxesPage } from './pages/Analysis';
 import { useActivePlan, useDark, useStore, useUndo } from './store';
-import { Card, Check, Select, setShownCurrency } from './ui';
+import { Card, Check, Select, setAmountsHidden, setShownCurrency } from './ui';
 import { planCurrency } from './engine/currency';
 import { examplePlan } from './engine/defaults';
 import { accountName, changePassword, deleteAccount, keepThisCopy, MODE_KEY, moveToDevice, moveToServer, onSyncStatus, signedIn, signOut, syncStatus, takeServerCopy, type SyncStatus } from './account';
@@ -242,6 +242,7 @@ export default function App() {
   const setSettings = useStore((s) => s.setSettings);
   const plan = useActivePlan();
   setShownCurrency(planCurrency(plan));
+  setAmountsHidden(!!settings.hideAmounts);
   const [menu, setMenu] = useState(false);
   const go = (k: PageKey) => {
     history.pushState(null, '', BASE + (k === 'dashboard' ? '' : k));
@@ -370,6 +371,7 @@ function SettingsPage() {
       <Card title="Display">
         <div className="grid">
           <Check label="Show amounts in today's dollars" value={settings.realDollars} onChange={(v) => setSettings({ realDollars: v })} />
+          <Check label="Hide amounts (dots in place of every figure)" value={!!settings.hideAmounts} onChange={(v) => setSettings({ hideAmounts: v })} />
           <Select label="Theme" value={settings.theme} options={[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]} onChange={(v) => setSettings({ theme: v })} />
         </div>
       </Card>

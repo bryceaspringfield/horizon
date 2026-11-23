@@ -233,11 +233,12 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     const residence = stateIn(y);
     // Dependents from the child events: under 17 for the child tax credit, 17 to 18 and college students for the
     // $500 credit, and the first four college years for the American Opportunity credit.
-    let kids = 0, otherDeps = 0, students = 0;
+    let kids = 0, otherDeps = 0, students = 0, kidsUnder13 = 0;
     for (const c of childEvents) {
       if (c.kind !== 'child') continue;
       const age = y - c.year;
       if (age >= 0 && age < 17) kids++;
+      if (age >= 0 && age < 13) kidsUnder13++;
       else if (age >= 17 && age < 18) otherDeps++;
       else if (age >= 18 && age < 18 + c.collegeYears && c.collegeYearly > 0) { otherDeps++; if (age < 22) students++; }
     }
@@ -247,7 +248,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     const contributions: Record<string, number> = {};
     const withdrawals: Record<string, number> = {};
     const expenses: Record<string, number> = {};
-    let wages = 0, selfEmp = 0, otherOrdinary = 0, untaxedIncome = 0, preTax = 0, match = 0;
+    let wages = 0, selfEmp = 0, otherOrdinary = 0, untaxedIncome = 0, preTax = 0, match = 0, sePremium = 0, assetGain = 0, homeExclusion = 0;
     const fo = { earned: 0, earnedBy: {} as Record<string, number>, noUsPayroll: 0, taxEarned: 0, generalOther: 0, taxGeneralOther: 0, passiveIncome: 0, taxPassive: 0, taxOther: 0 };
     const deferredBy: Record<string, number> = {};
     const deposit = (id: string, amt: number) => {
@@ -307,7 +308,27 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         state.balance[taxableAcc.id] += vest;
         state.basis[taxableAcc.id] += vest;
         contributions[taxableAcc.id] = (contributions[taxableAcc.id] ?? 0) + vest;
-      } else if (inc.kind === 'selfEmployment') selfEmp += amt;
+      } else if (inc.kind === 'bonus') wages += amt;
+      else if (inc.kind === 'selfEmployment') {
+        selfEmp += amt;
+        // The health insurance deduction, up to the profit; then a solo 401(k) deferral and the employer contribution
+        // (SEP IRA or solo 401(k)), inside the person's deferral limit and the plan's total limit (section 415(c)).
+        const premium = Math.min(amt, (inc.healthPremium ?? 0) * index);
+        sePremium += premium;  // a deduction only: the premium itself is an expense of the plan
+        const age = ages[inc.ownerId];
+        const deferralLimit = (lim['401k'] + (age >= 60 && age <= 63 ? lim['401kCatchUp60to63'] : age >= 50 ? lim['401kCatchUp50'] : 0)) * ri;
+        const deferral = Math.max(0, Math.min(amt * (inc.contributionRate ?? 0), deferralLimit - (deferredBy[inc.ownerId] ?? 0), amt - premium));
+        const total415 = ((lim as unknown as Record<string, number>)['415c'] ?? 72000) * ri;
+        const employer = Math.max(0, Math.min(amt * Math.min(0.2, inc.employerContributionRate ?? 0), total415 - deferral, amt - premium - deferral));
+        if (deferral + employer > 0) {
+          deferredBy[inc.ownerId] = (deferredBy[inc.ownerId] ?? 0) + deferral;
+          const rothShare = Math.max(0, Math.min(1, inc.contributionRothShare ?? (inc.contributionRoth ? 1 : 0)));
+          const tAcc = plan401(inc.ownerId, false), rAcc = plan401(inc.ownerId, true);
+          const toRoth = rAcc ? deferral * rothShare : 0, toTrad = tAcc ? deferral - toRoth + employer : 0;
+          if (rAcc && toRoth > 0) { deposit(rAcc.id, toRoth); untaxedIncome -= toRoth; }
+          if (tAcc && toTrad > 0) { deposit(tAcc.id, toTrad); preTax += toTrad; }
+        }
+      }
       else if (inc.taxable) otherOrdinary += amt;
       else untaxedIncome += amt;
       // Income from abroad: pay for work abroad can be excluded; foreign tax paid feeds the credit, by basket.
@@ -332,7 +353,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const p = plan.people.find((q) => q.id === ss.ownerId);
       if (!p || departed.has(ss.ownerId)) continue;
       const claimYear = p.birthYear + ss.claimAge;
-      if (y >= claimYear) ssByPerson[ss.ownerId] = benefitAtClaim(ss.pia, ss.claimAge) * 12 * index;
+      if (y >= claimYear) ssByPerson[ss.ownerId] = benefitAtClaim(ss.pia, ss.claimAge) * 12 * index * Math.pow(1 + (a.benefitCola ?? 0), y - plan.startYear);
     }
     // A spouse receives the larger of the own benefit and half the partner's PIA (reduced for an early claim), once
     // both have claimed.
@@ -437,7 +458,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     let medicare = 0, aca = 0;
     if (hc.medicare) {
       const back = magiBy[y - 2] ?? magiBy[plan.startYear] ?? 0;
-      for (const p of alive) if (ages[p.id] >= 65) medicare += medicarePremium(y, back, status, hc.partDBase, ri, healthIndex);
+      for (const p of alive) if (ages[p.id] >= 65) medicare += medicarePremium(y, back, status, hc.partDBase, ri, healthIndex) + (hc.medigap ?? 0) * 12 * healthIndex;
     }
     if (hc.aca) {
       const covered = alive.filter((p) => ages[p.id] < 65 && !working(p.id)).length;
@@ -476,6 +497,10 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         mortgageInterest += Math.max(0, -(state.balance[d.id] ?? 0)) * (d.interestRate ?? 0);
       }
       if (d.kind === 'asset' && d.realEstate) propertyTax += Math.max(0, state.balance[d.id]) * (dd.propertyTaxRate ?? 0);
+    }
+    if (dd.mortgageDebtLimit) {
+      const homeDebt = accounts.reduce((t, d) => t + (d.kind === 'debt' && d.securedBy && byId.get(d.securedBy)?.realEstate !== false ? Math.max(0, -(state.balance[d.id] ?? 0)) : 0), 0);
+      if (homeDebt > dd.mortgageDebtLimit) mortgageInterest *= dd.mortgageDebtLimit / homeDebt;
     }
     if (propertyTax > 0) { expenses['__propertyTax'] = propertyTax; totalExpenses += propertyTax; }
 
@@ -551,8 +576,9 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const w = x.allocation, tot = w.stocks + w.bonds + w.cash || 1;
       const bal = state.balance[x.id];
       const div = bal * (w.stocks / tot) * a.dividendYield, int = bal * ((w.bonds + w.cash) / tot) * (path.bonds[i] * 0.8);
-      qualified += div;
-      interest += int;
+      const q = Math.max(0, Math.min(1, a.qualifiedDividendShare ?? 1));
+      qualified += div * q;
+      interest += int + div * (1 - q);
       if (x.foreignWithholding) { fo.passiveIncome += div; fo.taxPassive += div * x.foreignWithholding; }
       // Paid out: the income reaches cash this year and leaves the account's growth.
       if (x.dividendsPaidOut) { paidOutBy[x.id] = div + int; paidOut += div + int; income['div_' + x.id] = div + int; }
@@ -564,6 +590,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     let xTrad = 0, xGains = 0, xEarly = 0, transferred = 0;
     const flatRate = a.taxModel?.kind === 'flat' ? a.taxModel.rate : undefined;
     const serviceBusiness = plan.incomes.some((q) => q.kind === 'selfEmployment' && q.serviceBusiness);
+    const careCost = plan.expenses.reduce((t, e) => t + (e.kind === 'childcare' ? expenses[e.id] ?? 0 : 0), 0);
     for (const b of [ftcCarry.general, ftcCarry.passive]) while (b.length && y - b[0].y > 10) b.shift();
     const carried = (b: { amt: number }[]) => b.reduce((sum, v) => sum + v.amt, 0);
     const foreign = fo.earned || fo.generalOther || fo.passiveIncome || fo.taxOther || ftcCarry.general.length || ftcCarry.passive.length
@@ -574,11 +601,12 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
       const hsaOver = Math.max(0, hsaDrawn - medicalSpend);
       const netGains = g + harvested + xGains - lossCarry, lossUsed = Math.min(3000, Math.max(0, -netGains));
       return computeTax({ year: y, status, index: ri, wages, selfEmployment: selfEmp, otherOrdinary: otherOrdinary + rmd + conv + tr + xTrad + hsaOver - lossUsed,
-        interest, qualifiedDividends: qualified, longTermGains: Math.max(0, netGains), socialSecurity: ssTotal, preTaxDeductions: preTax,
+        interest, qualifiedDividends: qualified, longTermGains: Math.max(0, netGains), socialSecurity: ssTotal, preTaxDeductions: preTax + sePremium,
         hsaPenaltyBase: hsaOwner && ages[hsaOwner] < 65 ? hsaOver : 0, flatRate, serviceBusiness, foreign,
         earlyWithdrawals: e + xEarly, over65: alive.filter((p) => ages[p.id] >= 65).length, state: residence,
         itemize: dd.itemize, itemizedOther: mortgageInterest + charity, propertyTax,
         children: kids, otherDependents: otherDeps, collegeStudents: students, local: localIn(y),
+        childrenUnder13: kidsUnder13, dependentCare: careCost,
         saverContributions: alive.map((p) => (deferredBy[p.id] ?? 0) + (p.id === firstWorker?.id ? iraIn + rothIn : 0)) });
     }
     let harvested = 0;
@@ -616,9 +644,10 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
     for (const tf of s.transfers ?? []) {
       if (y < tf.startYear || y > (tf.endYear ?? tf.startYear)) continue;
       const from = byId.get(tf.from), to = byId.get(tf.to);
-      if (!from || !to || from.id === to.id || from.kind === 'debt' || from.kind === 'asset' || to.kind === 'asset') continue;
+      const outside = tf.to === 'external';
+      if (!from || (!to && !outside) || from.id === tf.to || from.kind === 'debt' || from.kind === 'asset' || to?.kind === 'asset') continue;
       let take = Math.min(tf.amount * index, Math.max(0, state.balance[from.id]));
-      if (to.kind === 'debt') take = Math.min(take, Math.max(0, -state.balance[to.id]));
+      if (to?.kind === 'debt') take = Math.min(take, Math.max(0, -state.balance[to.id]));
       if (take <= 0) continue;
       const bal = state.balance[from.id];
       state.balance[from.id] -= take;
@@ -627,13 +656,26 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         const frac = bal > 0 ? state.basis[from.id] / bal : 1;
         xGains += take * (1 - frac); state.basis[from.id] -= take * frac;
       } else if (from.kind === 'traditional') {
-        if (to.kind === 'roth') conversion += take;
+        if (to?.kind === 'roth') conversion += take;
         else { xTrad += take; if (ages[from.ownerId] < 59.5) xEarly += take; }
       } else if (from.kind === 'hsa') hsaDrawn += take;
+      // Money given away or otherwise leaving the plan: the tax of the withdrawal applies, and it shows as a gift.
+      if (!to) { expenses['__gifts'] = (expenses['__gifts'] ?? 0) + take; transferred += take; continue; }
       state.balance[to.id] += take;
       if (to.kind === 'taxable') state.basis[to.id] += take;
       if (to.kind !== 'debt') contributions[to.id] = (contributions[to.id] ?? 0) + take;
       transferred += take;
+    }
+
+    // Assets sold this year: the gain over the cost basis is a long-term gain, after selling costs and, for the home
+    // lived in, the exclusion of $250,000 a person ($500,000 filing jointly). An asset with no basis entered is taken as
+    // sold at cost. The value is the year's opening value; the sale itself settles with the year's returns below.
+    for (const x of accounts) {
+      if (x.kind !== 'asset' || x.saleYear !== y || x.costBasis === undefined) continue;
+      const price = Math.max(0, state.balance[x.id]);
+      const gain = Math.max(0, price * (1 - (x.sellingCosts ?? 0)) - x.costBasis);
+      const excl = x.primaryResidence ? Math.min(gain, status === 'mfj' ? 500000 : 250000) : 0;
+      assetGain += gain; homeExclusion += excl; xGains += gain - excl;
     }
 
     // Taxes and withdrawals, solved together.
@@ -780,7 +822,7 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         }
       } else if (x.kind === 'asset') {
         if (x.saleYear && y === x.saleYear) {
-          let proceeds = state.balance[x.id];
+          let proceeds = state.balance[x.id] * (1 - (x.sellingCosts ?? 0));
           for (const d of accounts) if (d.kind === 'debt' && d.securedBy === x.id) { proceeds += state.balance[d.id]; state.balance[d.id] = 0; }
           state.balance[x.id] = 0;
           state.balance[cashAcc.id] += proceeds;
@@ -869,6 +911,8 @@ export function simulate(plan: Plan, path: ReturnPath = meanPath(plan)): Project
         credits: tax.credits,
         amt: tax.amt,
         local: tax.local,
+        assetGain: assetGain || undefined,
+        homeExclusion: homeExclusion || undefined,
         foreign: tax.foreignTaxPaid || undefined,
         foreignCredit: tax.foreignTaxCredit || undefined,
         foreignExclusion: tax.foreignExclusion || undefined,
