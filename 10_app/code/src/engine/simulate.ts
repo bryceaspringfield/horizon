@@ -13,7 +13,7 @@ import { cardRewards, cardable, categoryOf, type SpendCategory } from './cards';
 import { convertCurrencies } from './currency';
 import { acaLimit, acaNetPremium, bracketTop, computeTax, estateTax, medicarePremium, rules, rulesFor, rulesTiers, zeroGainsTop } from './tax';
 import { benefitAtClaim, rmdStartAge, spousalAtClaim } from './retirement';
-import type { Step, Account, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
+import type { Step, Account, Income, Plan, Projection, ReturnPath, WithdrawalStep, YearResult } from './types';
 
 const ONE_TIME = new Set(['windfall', 'accountBonus', 'settlement']);
 /** SSA's announced cost-of-living adjustments, by the year they take effect (ssa.gov, Oct 2025 and Oct 14, 2026). */
@@ -121,6 +121,16 @@ export function expandEvents(plan: Plan): Plan {
         plan.incomes.push({ id: 'ev_inh_' + e.id, name: e.name, kind: 'windfall', ownerId: plan.people[0].id, amount: e.amount, growth: 0,
           startYear: e.year, inflationAdjusted: true, taxable: false });
       }
+    } else if (e.kind === 'annuity') {
+      // Buying an income annuity: the premium (nominal) paid from an account in the purchase year, then a yearly payout for
+      // life from the payout year. A premium from a traditional account is taxed as a withdrawal then, so its payouts are
+      // not taxed again; any other premium comes back tax-free over 20 years (the exclusion ratio), the rest taxed.
+      const src = plan.accounts.find((x) => x.id === e.fromAccount);
+      plan.expenses.push({ id: 'ev_ann_' + e.id, name: e.name + ': premium', kind: 'oneTime', amount: e.premium, startYear: e.year, growth: 0, nominal: true, fundedBy: src?.id });
+      const pay = e.premium * e.payoutRate, taxedShare = src?.kind === 'traditional' ? 0 : Math.max(0, 1 - 1 / (20 * Math.max(1e-9, e.payoutRate)));
+      const base = { kind: 'annuity' as const, ownerId: e.personId, growth: 0, startYear: e.payoutYear, inflationAdjusted: !!e.inflationAdjusted, nominal: !e.inflationAdjusted };
+      if (taxedShare > 0) plan.incomes.push({ ...base, id: 'ev_annt_' + e.id, name: e.name, amount: pay * taxedShare, taxable: true } as Income);
+      if (taxedShare < 1) plan.incomes.push({ ...base, id: 'ev_annx_' + e.id, name: e.name + ' (return of premium)', amount: pay * (1 - taxedShare), taxable: false } as Income);
     } else if (e.kind === 'separation') {
       if (e.support > 0 && e.supportYears > 0) plan.expenses.push({ id: 'ev_sup_' + e.id, name: e.name + ': support paid', kind: 'other',
         amount: e.support, startYear: e.year, endYear: e.year + e.supportYears - 1, growth: 0 });

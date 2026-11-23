@@ -444,6 +444,7 @@ export type LifeEvent = { date?: string; endDate?: string } & (
   | { id: string; kind: 'payChange'; name: string; personId: string; year: number; factor: number }
   | { id: string; kind: 'move'; name: string; year: number; state: string; local?: LocalTax }
   | { id: string; kind: 'inheritance'; name: string; year: number; amount: number; asIra: boolean }
+  | { id: string; kind: 'annuity'; name: string; year: number; premium: number; fromAccount?: string; payoutRate: number; payoutYear: number; personId: string; inflationAdjusted?: boolean }
   | { id: string; kind: 'recurring'; name: string; year: number; amount: number; everyYears: number; endYear: number }
   | { id: string; kind: 'separation'; name: string; year: number; personId: string; keepShare: number; expenseFactor: number; support: number; supportYears: number }
   | { id: string; kind: 'rentalProperty'; name: string; year: number; price: number; downPayment: number; rate: number; termYears: number; rent: number; vacancy: number; costs: number; appreciation: number }

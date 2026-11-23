@@ -23,3 +23,16 @@ describe('municipal bonds', () => {
     expect(simulate(plan).years[0].taxes.total).toBeLessThan(base);
   });
 });
+
+describe('annuity purchase', () => {
+  it('pays the premium once and a payout every year after', () => {
+    const plan = examplePlan();
+    const y0 = plan.startYear, who = plan.people[0].id;
+    plan.events = [...(plan.events ?? []), { id: 'a1', kind: 'annuity', name: 'SPIA', year: y0 + 1, premium: 100000, payoutRate: 0.07, payoutYear: y0 + 1, personId: who }];
+    const r = simulate(plan);
+    const at = (y: number) => r.years.find((x) => x.year === y)!;
+    expect(at(y0 + 1).expenses['ev_ann_a1']).toBeCloseTo(100000, -2);
+    const paid = (y: number) => (at(y).income['ev_annt_a1'] ?? 0) + (at(y).income['ev_annx_a1'] ?? 0);
+    expect(paid(y0 + 3)).toBeCloseTo(7000, -1);
+  });
+});

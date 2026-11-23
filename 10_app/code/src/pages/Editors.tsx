@@ -586,7 +586,7 @@ export function ExpensesPage() {
   );
 }
 
-const EVENT_KINDS: [LifeEvent['kind'], string][] = [['wedding', 'Wedding'], ['birth', 'Pregnancy and birth'], ['adoption', 'Adoption'], ['homePurchase', 'Buy a home'], ['rentalProperty', 'Buy a rental property'], ['child', 'Have a child'], ['careerBreak', 'Career break'], ['payChange', 'Pay change'], ['move', 'Move to another state'], ['inheritance', 'Inheritance'], ['recurring', 'Recurring purchase'], ['separation', 'Separation or divorce']];
+const EVENT_KINDS: [LifeEvent['kind'], string][] = [['wedding', 'Wedding'], ['birth', 'Pregnancy and birth'], ['adoption', 'Adoption'], ['homePurchase', 'Buy a home'], ['rentalProperty', 'Buy a rental property'], ['child', 'Have a child'], ['careerBreak', 'Career break'], ['payChange', 'Pay change'], ['move', 'Move to another state'], ['inheritance', 'Inheritance'], ['annuity', 'Buy an annuity'], ['recurring', 'Recurring purchase'], ['separation', 'Separation or divorce']];
 
 function newEvent(kind: LifeEvent['kind'], year: number, personId: string): LifeEvent {
   const id = uid();
@@ -599,6 +599,7 @@ function newEvent(kind: LifeEvent['kind'], year: number, personId: string): Life
   if (kind === 'payChange') return { id, kind, name: 'Promotion', personId, year, factor: 1.2 };
   if (kind === 'move') return { id, kind, name: 'Move', year, state: 'TX' };
   if (kind === 'inheritance') return { id, kind, name: 'Inheritance', year, amount: 200000, asIra: false };
+  if (kind === 'annuity') return { id, kind, name: 'Income annuity', year, premium: 0, payoutRate: 0.07, payoutYear: year, personId };
   if (kind === 'separation') return { id, kind, name: 'Separation', year, personId, keepShare: 0.5, expenseFactor: 0.65, support: 0, supportYears: 0 };
   if (kind === 'recurring') return { id, kind, name: 'New car', year, amount: 40000, everyYears: 8, endYear: year + 40 };
   return { id, kind: 'rentalProperty', name: 'Rental', year, price: 350000, downPayment: 0.25, rate: 0.07, termYears: 30, rent: 30000, vacancy: 0.05, costs: 0.35, appreciation: 0.03 };
@@ -679,6 +680,14 @@ export function EventsPage() {
               {e.kind === 'inheritance' && <>
                 <Num label="Amount (today's $)" value={e.amount} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.amount = v; })} />
                 <Check label="As an inherited IRA (10-year rule)" value={e.asIra} onChange={(v) => set((x) => { if (x.kind === 'inheritance') x.asIra = v; })} />
+              </>}
+              {e.kind === 'annuity' && <>
+                <Num label="Premium" value={e.premium} onChange={(v) => set((x) => { if (x.kind === 'annuity') x.premium = v; })} />
+                <Select label="Paid from" value={e.fromAccount ?? ''} options={[['', 'Cash flow'], ...plan.accounts.filter((q) => q.kind !== 'debt' && q.kind !== 'asset').map((q) => [q.id, q.name] as [string, string])]} onChange={(v) => set((x) => { if (x.kind === 'annuity') x.fromAccount = v || undefined; })} />
+                <Num label="Payout a year (share of premium)" percent value={e.payoutRate} onChange={(v) => set((x) => { if (x.kind === 'annuity') x.payoutRate = Math.max(0, v); })} />
+                <Num label="Payouts start in" value={e.payoutYear} onChange={(v) => set((x) => { if (x.kind === 'annuity') x.payoutYear = Math.round(v); })} />
+                <Select label="Annuitant" value={e.personId} options={plan.people.map((q) => [q.id, q.name] as [string, string])} onChange={(v) => set((x) => { if (x.kind === 'annuity') x.personId = v; })} />
+                <Check label="Payout rises with inflation" value={!!e.inflationAdjusted} onChange={(v) => set((x) => { if (x.kind === 'annuity') x.inflationAdjusted = v || undefined; })} />
               </>}
               {e.kind === 'recurring' && <>
                 <Num label="Amount (today's $)" value={e.amount} onChange={(v) => set((x) => { if (x.kind === 'recurring') x.amount = v; })} />

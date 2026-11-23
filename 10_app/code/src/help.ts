@@ -279,4 +279,9 @@ export const HELP: Record<string, string> = {
   "Keep income under this multiple of the poverty line": "The income ceiling for ACA withdrawals, as a multiple of the federal poverty line: 4 keeps the premium credit, 2.5 keeps cost-sharing reductions, and 1.38 keeps Medicaid in expansion states.",
   "Use SSA's announced COLAs (2.8% for 2026, 3.6% for 2027)": "Social Security grows by the cost-of-living adjustments SSA has announced for the years they are known, and by the plan's inflation after.",
   "Change the order when": "Switch to the second withdrawal order in a set year, or the year after a milestone is reached.",
+  "Premium": "The price of the annuity, paid in the purchase year.",
+  "Payout a year (share of premium)": "The yearly income as a share of the premium, from an insurer's quote.",
+  "Payouts start in": "The first year of income; later than the purchase for a deferred annuity.",
+  "Annuitant": "The person whose life the income lasts for.",
+  "Payout rises with inflation": "An inflation-adjusted payout starts lower and keeps its buying power; a level one stays fixed in dollars.",
 };
