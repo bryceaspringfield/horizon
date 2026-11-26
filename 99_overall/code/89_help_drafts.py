@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""Drafts the info-icon explanations of Horizon's fields (Bryce, 2026-11-23: "little info icons that show a tooltip ...
-which explains it"). Reads output/help/labels.tsv (label, page, component, code line), asks Qwen for 40 labels a call at
-medium effort, and writes output/help/drafts.json ({label: explanation}); a chunk already drafted is skipped on a rerun."""
 import json, os, sys
 sys.path.insert(0, os.path.expanduser('~/.claude/skills/efficiency'))
 import qwen_farm

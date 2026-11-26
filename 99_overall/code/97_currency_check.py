@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""Checks currencies on the built app (10_app/code/dist), in headless Chromium:
-  1. the plan currency chosen on the Assumptions page (Norwegian kroner) relabels every amount: the dashboard shows kr and no $;
-  2. an account held in euros gets an exchange rate on the Assumptions page, and raising the rate raises the net worth shown;
-  3. no page raises an error with a foreign currency in the plan.
-Prints PASS or FAIL a step, and ALL_OK at the end.
-
-  python3 99_overall/code/97_currency_check.py
-"""
 import functools
 import http.server
 import os
@@ -48,11 +40,10 @@ def main():
         pg.goto(url + 'assumptions'); pg.wait_for_selector('nav'); pg.wait_for_timeout(600)
         pg.locator('.field:has(span:has-text("Plan currency")) .ddbtn').click(); pg.locator('.ddlist [data-value="NOK"]').click(); pg.wait_for_timeout(600)
         pg.goto(url); pg.wait_for_selector('nav'); pg.wait_for_timeout(1000)
-        text = ' '.join(pg.locator('main .stat .value, main .stat .sub').all_inner_texts())  # the figures; a milestone's name may hold a $
+        text = ' '.join(pg.locator('main .stat .value, main .stat .sub').all_inner_texts())
         nok = worth()
         step('the plan currency relabels every amount', usd.startswith('$') and 'kr' in nok and '$' not in text and re.sub(r'\D', '', usd) == re.sub(r'\D', '', nok),
              f'{usd} then {nok}; "Today\'s money" pill {"Today" in pg.locator(".topbar").inner_text()}')
-        # the Roth IRA held in euros: set in storage, as the Accounts page's Currency field does
         pg.evaluate("""() => { const s = JSON.parse(localStorage.getItem('horizon-v1')); const p = s.state.plans[0];
             p.accounts.find(a => a.id === 'a_roth').currency = 'EUR'; p.assumptions.fx = { EUR: { rate: 1, drift: 0 } }; localStorage.setItem('horizon-v1', JSON.stringify(s)); }""")
         pg.goto(url); pg.wait_for_selector('nav'); pg.wait_for_timeout(800)

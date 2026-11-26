@@ -1,23 +1,3 @@
-// Horizon's account server: a Cloudflare Worker with one SQLite-backed Durable Object holding every account.
-//
-// The server never sees a password or a plan. The browser derives two keys from the password (PBKDF2-SHA-256, 600,000
-// iterations, a random salt per account): an authentication key, sent here and stored only as SHA-256(key, server
-// salt), and an encryption key, which never leaves the browser and seals the plans with AES-256-GCM before upload.
-// The server stores the sealed data, a version for each save (a save naming an older version is refused, so two
-// devices cannot overwrite each other unseen), and sessions as hashes of random tokens, 30 days each.
-//
-// Routes (JSON in and out; the session token in "Authorization: Bearer"):
-//   POST /salt     {username}                         -> {salt, iterations}  (a stable decoy salt for unknown names)
-//   POST /signup   {username, salt, auth}             -> {token}
-//   POST /login    {username, auth}                   -> {token, data, version}
-//   GET  /data                                        -> {data, version}
-//   PUT  /data     {data, version}                    -> {version}         (409 with the stored version on a conflict)
-//   POST /password {salt, auth, data, version}        -> {token, version}  (re-sealed data; other sessions end)
-//   POST /logout                                      -> {}
-//   POST /delete   {auth}                             -> {}
-//   GET  /admin/stats  (Bearer: the ADMIN_KEY secret)  -> counts only: accounts, and sessions seen lately
-//   POST /admin/reset  (Bearer: ADMIN_KEY) {confirm}    -> deletes every account and session
-// Ten wrong logins in a row lock a username for 15 minutes.
 
 const ORIGINS = ['https://bryceaspringfield.github.io', 'http://localhost:5173', 'http://localhost:4173', 'http://127.0.0.1:8765'];
 const MAX_DATA = 5_000_000;
@@ -31,7 +11,6 @@ const random = (n) => hex(crypto.getRandomValues(new Uint8Array(n)));
 const b64ok = (s, min, max) => typeof s === 'string' && s.length >= min && s.length <= max && /^[A-Za-z0-9+/=]+$/.test(s);
 const nameOk = (u) => typeof u === 'string' && /^[a-z0-9._-]{1,30}$/.test(u);
 
-/** Equal-time comparison of two hex strings. */
 function same(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
   let d = 0;
@@ -70,8 +49,7 @@ export class Accounts {
       data TEXT, version INTEGER, failures INTEGER DEFAULT 0, locked_until INTEGER DEFAULT 0, created INTEGER)`);
     this.sql.exec('CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, name TEXT, expires INTEGER)');
     this.sql.exec('CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT)');
-    // When each session last made a request (to the minute), for the count of people online; added 2026-11-23.
-    try { this.sql.exec('ALTER TABLE sessions ADD COLUMN last_seen INTEGER DEFAULT 0'); } catch { /* the column exists */ }
+    try { this.sql.exec('ALTER TABLE sessions ADD COLUMN last_seen INTEGER DEFAULT 0'); } catch {  }
   }
 
   secret() {
@@ -103,7 +81,6 @@ export class Accounts {
     return this.user(row.name) ?? null;
   }
 
-  /** Checks an authentication key, counting failures toward the lock. */
   async check(u, auth) {
     if (u.locked_until > Date.now()) return 'locked';
     const ok = b64ok(auth, 40, 60) && same(await sha256(auth, u.server_salt), u.auth);
@@ -130,7 +107,6 @@ export class Accounts {
     if (route === 'POST /salt') {
       if (!nameOk(username)) return json({ error: 'bad username' }, 400);
       const u = this.user(username);
-      // An unknown name gets a stable decoy salt, so the answer does not reveal which names exist.
       const salt = u ? u.salt : btoa(String.fromCharCode(...(await sha256(this.secret(), username)).slice(0, 32).match(/../g).map((h) => parseInt(h, 16)))).slice(0, 24);
       return json({ salt, iterations: ITERATIONS });
     }
@@ -152,8 +128,6 @@ export class Accounts {
       return json({ token: await this.newSession(u.name), data: u.data, version: u.version });
     }
 
-    // Deletes every account and session (Bryce, 2026-11-23: a clean start to try the new-user experience). Needs the
-    // admin key and the body {"confirm": "delete every account"}; answers with the counts deleted.
     if (route === 'POST /admin/reset') {
       const key = /^Bearer (.+)$/.exec(req.headers.get('Authorization') ?? '')?.[1] ?? '';
       if (!this.env.ADMIN_KEY || !same(await sha256(key), await sha256(this.env.ADMIN_KEY))) return json({ error: 'not found' }, 404);

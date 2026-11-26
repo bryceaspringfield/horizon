@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""Checks the password protection of the built app in headless Chromium: renames the plan, sets a password, checks
-that local storage then holds no readable plan text, reloads to the login screen, tries a wrong and then the right
-password, checks the renamed plan opened, and checks "Remember this device" skips the login on the next load.
-Prints PASS or FAIL a line and ALL_OK at the end.
-
-  python3 99_overall/code/92_lock_check.py
-"""
 import functools
 import http.server
 import os
@@ -27,7 +20,6 @@ def check(name, ok, detail=''):
 
 def main():
     class SPA(http.server.SimpleHTTPRequestHandler):
-        # Unknown paths get index.html, as GitHub Pages serves 404.html (a copy of it).
         def send_head(self):
             path = self.translate_path(self.path.split('?')[0])
             if not os.path.exists(path):
@@ -43,10 +35,10 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page()
-        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
+        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")
         errors = []
         pg.on('pageerror', lambda e: errors.append(str(e)))
-        pg.goto(url); pg.click('button:has-text("explore an example plan")'); pg.wait_for_selector('nav')  # the first-run setup: the example plan
+        pg.goto(url); pg.click('button:has-text("explore an example plan")'); pg.wait_for_selector('nav')
         pg.goto(url + 'people'); pg.wait_for_timeout(1500)
         name = pg.locator('main input').first
         name.fill('Secret Plan Zeta'); pg.wait_for_timeout(500)

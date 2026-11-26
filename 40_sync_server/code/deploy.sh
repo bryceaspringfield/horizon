@@ -1,7 +1,4 @@
 #!/bin/bash
-# Deploys Horizon's account server (worker.js) to Cloudflare Workers and points the app at it.
-# Needs an API token with "Workers Scripts: Edit" on the account, saved (mode 600) in ~/.config/cloudflare_workers_token;
-# the account ID is ~/.config/cloudflare_account_id. Prints the server's address and writes it into 10_app/code/src/syncConfig.ts.
 set -euo pipefail
 H=/home/baspring/projects/independent/horizon
 export PATH=$HOME/.conda/envs/tools/bin:$PATH WRANGLER_SEND_METRICS=false

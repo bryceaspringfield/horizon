@@ -1,13 +1,4 @@
 #!/usr/bin/env python3
-"""Checks the import from ProjectionLab on the built app (10_app/code/dist), in headless Chromium, with the sample file
-99_overall/input/projectionlab/sample_export.json (shaped as the export is understood to be; no real export yet):
-  1. on the first-run setup, the import builds the plans and opens the app on the first, with the report card shown;
-  2. the imported accounts and incomes show on their pages, and the dashboard computes with no page error;
-  3. in Settings, a second import adds its plans to the plans already there; a Horizon backup file is refused.
-Prints PASS or FAIL a step, and ALL_OK at the end.
-
-  python3 99_overall/code/96_import_check.py
-"""
 import functools
 import http.server
 import json

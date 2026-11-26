@@ -1,16 +1,4 @@
 #!/usr/bin/env python3
-"""Checks accounts end to end on this machine: starts the account server (40_sync_server, wrangler dev, fresh storage),
-builds the app pointed at it, and in headless Chromium, as two devices:
-  1. creates an account (the button stays off until the Terms of Use are accepted), renames the plan, and waits for "Saved";
-  2. on a second device, a wrong password fails, the right one opens the renamed plan;
-  3. the server's storage holds no plan text (the plan name is absent from its files);
-  4. a save from each device in turn: the older one sees the conflict notice;
-  5. changes the password: the old one fails, the new one opens the plan;
-  6. deletes the account: signing in fails.
-Prints PASS or FAIL a step, and ALL_OK at the end.
-
-  python3 99_overall/code/94_account_check.py
-"""
 import functools
 import http.server
 import os
@@ -92,7 +80,6 @@ def main():
                 pg.wait_for_timeout(6000)
                 return pg.locator('nav').count() > 0, pg.locator('.login .error').all_inner_texts()
 
-            # 1. Create an account and rename the plan.
             a = device()
             a.goto(app); a.wait_for_selector('text=Create account')
             a.click('button:has-text("Create account")')
@@ -107,7 +94,7 @@ def main():
             step('the Terms of Use open, and an account needs them accepted', blocked and shown and kept
                  and not a.locator('form button[type=submit]').is_disabled(), f'blocked {blocked}, shown {shown}, form kept {kept}')
             a.click('form button[type=submit]')
-            a.wait_for_selector('text=Welcome to Horizon', timeout=30000)  # a new account opens on the first-run setup
+            a.wait_for_selector('text=Welcome to Horizon', timeout=30000)
             a.click('button:has-text("explore an example plan")'); a.wait_for_selector('nav')
             a.goto(app + 'people'); a.wait_for_timeout(1500)
             a.locator('label.field:has-text("Plan name") input').fill(NAME)
@@ -115,7 +102,6 @@ def main():
             pill = a.locator('.topbar .pill').all_inner_texts()
             step('account created and the edit saved', any('Saved' in t for t in pill), ' | '.join(pill))
 
-            # The Auto theme (the default) follows the device: dark on a dark device, at the sign-in screen and in the app.
             theme = lambda pg: pg.evaluate('document.documentElement.dataset.theme')
             dk = b.new_context(color_scheme='dark').new_page()
             dk.goto(app); dk.wait_for_selector('text=Create account')
@@ -127,7 +113,6 @@ def main():
             step('the Auto theme follows the device', at_gate == 'dark' and in_app == 'dark' and theme(dk) == 'light' and theme(a) == 'light',
                  f'dark device: {at_gate} at sign-in, {in_app} in the app, {theme(dk)} after the device turns light')
 
-            # 2. A second device: a wrong password fails, the right one opens the renamed plan.
             c = device()
             ok, err = sign_in(c, 'tester', 'wrong password!!')
             step('wrong password refused', not ok and any('Wrong' in e for e in err), '; '.join(err))
@@ -136,7 +121,6 @@ def main():
             val = c.locator('label.field:has-text("Plan name") input').input_value() if ok else ''
             step('second device opens the plan', ok and val == NAME, val)
 
-            # 3. The server's storage never holds the plan's text.
             blob = b''
             for root, _, files in os.walk(state):
                 for f in files:
@@ -144,7 +128,6 @@ def main():
             step('server stores only ciphertext', len(blob) > 0 and NAME.encode() not in blob and b'Living expenses' not in blob,
                  f'{len(blob)} bytes searched')
 
-            # 4. Device C saves; device A, behind, saves and sees the conflict notice.
             c.locator('label.field:has-text("Plan name") input').fill(NAME + ' C'); c.wait_for_timeout(4000)
             a.locator('label.field:has-text("Plan name") input').fill(NAME + ' A'); a.wait_for_timeout(4000)
             step('a stale save is reported as a conflict', a.locator('text=Your plans changed on another device').count() == 1)
@@ -153,7 +136,6 @@ def main():
             v = a.locator('label.field:has-text("Plan name") input').input_value()
             step('taking the other copy loads it', v == NAME + ' C', v)
 
-            # 5. Change the password on A.
             a.goto(app + 'settings'); a.wait_for_timeout(1500)
             card = a.locator('section.card:has(h3:has-text("Account"))')
             card.locator('input').nth(0).fill('a brand new passphrase'); card.locator('input').nth(1).fill('a brand new passphrase')
@@ -166,7 +148,6 @@ def main():
             v = e.locator('label.field:has-text("Plan name") input').input_value() if ok_new else ''
             step('password change: the old fails, the new opens the plan', not ok_old and ok_new and v == NAME + ' C', v)
 
-            # 6. Delete the account.
             e.goto(app + 'settings'); e.wait_for_timeout(1500)
             e.once('dialog', lambda dlg: dlg.accept('a brand new passphrase'))
             e.locator('button:has-text("Delete account")').click(); e.wait_for_timeout(5000)
@@ -174,7 +155,6 @@ def main():
             ok, err = sign_in(f, 'tester', 'a brand new passphrase')
             step('deleted account cannot sign in', not ok, '; '.join(err))
 
-            # 7. A sign-up which saves on this device only; the plans then move to the server, and back with the account deleted.
             ls = lambda pg, k: pg.evaluate("k => localStorage.getItem(k)", k)
             name_of = lambda pg: pg.locator('label.field:has-text("Plan name") input').input_value()
             g = device()

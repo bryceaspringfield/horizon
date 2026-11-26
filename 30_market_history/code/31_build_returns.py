@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""Builds output/returns.json, the yearly history the app's historical Monte Carlo and backtests draw from, from
-Damodaran's histretSP.xls (input/): for each year from 1928, the S&P 500's total return (stocks), the 10-year Treasury
-bond's total return (bonds), the 3-month T-bill's return (cash), and CPI inflation (the workbook's FRED CPIAUCNS
-sheet, December to December as the workbook states it). Prints each series' arithmetic and geometric means.
-
-  python3 code/31_build_returns.py
-"""
 import json
 import os
 

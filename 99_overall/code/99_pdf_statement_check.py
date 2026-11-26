@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""Uploads a PDF statement on the Spending page of the built app (10_app/code/dist) in headless Chromium: the PDF is printed
-from a small HTML statement, and the check passes when the page reports the transactions added. Exit 1 otherwise.
-
-  python3 99_overall/code/99_pdf_statement_check.py
-"""
 import functools
 import http.server
 import os
@@ -43,7 +38,7 @@ def main():
         pg.set_content(STATEMENT)
         pg.pdf(path=pdf)
         pg = b.new_page()
-        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
+        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")
         pg.on('pageerror', lambda e: errors.append(str(e)))
         pg.goto(url)
         pg.click('button:has-text("explore an example plan")')

@@ -1,12 +1,4 @@
 #!/usr/bin/env python3
-"""Checks the installable app on the built files (10_app/code/dist), in headless Chromium:
-  1. the web app manifest loads with a name, a start URL, and icons which exist (192 and 512 pixels, one maskable);
-  2. the service worker installs and saves every file of the build;
-  3. with the connection cut, the app reopens on a deep page (the plan still there), and the Settings page shows the Install card.
-Prints PASS or FAIL a step, and ALL_OK at the end.
-
-  python3 99_overall/code/95_install_check.py
-"""
 import functools
 import http.server
 import json
@@ -53,7 +45,7 @@ def main():
         saved = pg.evaluate("""async () => { await navigator.serviceWorker.ready; for (let i = 0; i < 40; i++) {
             const ks = await caches.keys(); if (ks.length) { const n = (await (await caches.open(ks[0])).keys()).length; if (n > 3) return n; }
             await new Promise(r => setTimeout(r, 250)); } return 0; }""")
-        files = sum(len(f) for _, _, f in os.walk(DIST)) - 3  # without sw.js, 404.html, and index.html (saved as ./)
+        files = sum(len(f) for _, _, f in os.walk(DIST)) - 3
         step('the service worker saves every file of the build', saved == files + 1, f'{saved} saved, {files + 1} expected')
         pg.goto(url + 'people'); pg.wait_for_selector('nav'); pg.wait_for_timeout(500)
         name = pg.locator('label.field:has-text("Plan name") input').input_value()

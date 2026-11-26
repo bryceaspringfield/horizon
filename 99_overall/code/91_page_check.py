@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""Opens every page of the built app (10_app/code/dist) in headless Chromium, prints each page's console errors and
-headings, runs the Monte Carlo (normal and backtest), and saves a screenshot of each page in 99_overall/output/pages/.
-Exit 1 when any page logs an error.
-
-  python3 99_overall/code/91_page_check.py
-"""
 import functools
 import http.server
 import os
@@ -24,7 +18,6 @@ PAGES = ['dashboard', 'people', 'accounts', 'income', 'expenses', 'events', 'mil
 def main():
     os.makedirs(OUT, exist_ok=True)
     class SPA(http.server.SimpleHTTPRequestHandler):
-        # Unknown paths get index.html, as GitHub Pages serves 404.html (a copy of it).
         def send_head(self):
             path = self.translate_path(self.path.split('?')[0])
             if not os.path.exists(path):
@@ -40,11 +33,11 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page(viewport={'width': 1440, 'height': 1000})
-        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
+        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")
         errors = []
         pg.on('console', lambda m: errors.append(m.text) if m.type == 'error' else None)
         pg.on('pageerror', lambda e: errors.append(str(e)))
-        pg.goto(url); pg.click('button:has-text("explore an example plan")'); pg.wait_for_selector('nav')  # the first-run setup: the example plan
+        pg.goto(url); pg.click('button:has-text("explore an example plan")'); pg.wait_for_selector('nav')
         for name in PAGES:
             errors.clear()
             pg.goto(f'{url}{name}')
@@ -73,7 +66,6 @@ def main():
                 print('   ERROR', e[:300])
             bad += len(errors)
             pg.screenshot(path=os.path.join(OUT, f'{name}.png'), full_page=True)
-        # The features of 0.7: the main plan flag, a scheduled transfer, the flat tax model, and the report.
         errors.clear()
         pg.goto(f'{url}people'); pg.wait_for_timeout(1500)
         pg.click('button:has-text("☆ Main")'); pg.wait_for_timeout(300)
@@ -94,14 +86,12 @@ def main():
         for e in errors[:5]:
             print('   ERROR', e[:300])
         bad += len(errors) + sum(not x for x in (main_ok, transfer_ok, flat_ok, report_ok, nav_hidden))
-        # Tab links are plain paths, and the lock button shows on every page.
         pg.goto(url); pg.wait_for_timeout(1500)
         hrefs = pg.eval_on_selector_all('nav a', 'as => as.map(a => a.getAttribute("href"))')
         hashed = [h for h in hrefs if not h or '#' in h]
         lockbtn = pg.locator('.topbar .pill:has-text("Set a password")').count()
         print(f'tab links: {len(hrefs)}, with # or empty: {len(hashed)}; e.g. {hrefs[1:4]}; lock button: {lockbtn}')
         bad += len(hashed) + (0 if lockbtn == 1 else 1)
-        # The first-run setup on a fresh device: six steps build the user's own plan.
         su = b.new_page()
         su.add_init_script("localStorage.setItem('horizon-mode', 'local')")
         serr = []
@@ -131,9 +121,8 @@ def main():
         ok = ('Age 40, salary $95,000' in summary and 'Avery' in sub_line and '80000' in su.content() and 'Brokerage' not in acct and kept and not serr)
         print(f"setup: summary has the answers: {'Age 40, salary $95,000' in summary}; plan for {sub_line!r}; no example accounts: {'Brokerage' not in acct}; kept after reload: {kept}; errors: {len(serr)}")
         bad += 0 if ok else 1
-        # Phone width: no page may scroll sideways, and the menu drawer opens and leads to a page.
         ph = b.new_page(viewport={'width': 390, 'height': 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
-        ph.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
+        ph.add_init_script("localStorage.setItem('horizon-mode', 'local')")
         perr = []
         ph.on('pageerror', lambda e: perr.append(str(e)))
         wide = []

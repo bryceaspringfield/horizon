@@ -1,5 +1,4 @@
 #!/bin/bash
-# Rebuilds everything in order: the tax rules, the market history, the app's tests, and the app.
 set -euo pipefail
 H=$(cd "$(dirname "$0")" && pwd)
 PY=${PY:-python3}

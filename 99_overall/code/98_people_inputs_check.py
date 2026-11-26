@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""Checks Horizon's editing fixes in headless Chromium (Bryce, 2026-11-23): the People page adds people past two and opens
-each new card, a number field holding 0 can be emptied with Backspace and retyped, and Cost basis has an info icon whose
-bubble shows on hover. Prints PASS or FAIL a line and ALL_OK at the end.
-
-  python3 99_overall/code/98_people_inputs_check.py
-"""
 import functools
 import http.server
 import os
@@ -26,7 +20,6 @@ def check(name, ok, detail=''):
 
 def main():
     class SPA(http.server.SimpleHTTPRequestHandler):
-        # Unknown paths get index.html, as GitHub Pages serves 404.html (a copy of it).
         def send_head(self):
             path = self.translate_path(self.path.split('?')[0])
             if not os.path.exists(path):
@@ -42,10 +35,10 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch()
         pg = b.new_page()
-        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")  # this device only, not the account screen
+        pg.add_init_script("localStorage.setItem('horizon-mode', 'local')")
         errors = []
         pg.on('pageerror', lambda e: errors.append(str(e)))
-        pg.goto(url); pg.click('button:has-text("explore an example plan")'); pg.wait_for_selector('nav')  # the first-run setup: the example plan
+        pg.goto(url); pg.click('button:has-text("explore an example plan")'); pg.wait_for_selector('nav')
         pg.goto(url + 'people'); pg.wait_for_timeout(1500)
         card = pg.locator('section.card:has(h3:has-text("People"))')
         n0 = card.locator('details.item').count()

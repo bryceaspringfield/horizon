@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""Writes the country order (20_tax_rules/output/country_order.csv, from 22_country_order.py) as one HTML page: a filter, sortable columns, each country's flag (flagcdn.com), the territories counted in
-a country, and the order in which state and province taxes are added.
-
-  python3 20_tax_rules/code/23_country_page.py OUT.html
-"""
 import csv
 import html
 import sys
@@ -12,25 +7,20 @@ import time
 rows = list(csv.DictReader(open('/home/baspring/projects/independent/horizon/20_tax_rules/output/country_order.csv')))
 ok = rows
 by_users = {r['iso2']: i + 1 for i, r in enumerate(sorted([r for r in ok if r['internet_users'] != ''], key=lambda r: -int(r['internet_users'])))}
-# a flat flag for a two-letter code from flagcdn.com (its w40 and w80 files; the 20x15 files are the waving style), cropped to 20 by 15; Artsakh's and Transnistria's from Wikimedia Commons (Flag_of_Artsakh.svg,
-# Flag_of_Transnistria_(state).svg), as PNG files kept in the page's own folder
 LOCAL_FLAG = {'X-ART': 'artsakh', 'X-TRN': 'transnistria'}
 flag = lambda c: (f"<img class=f loading=lazy alt='' width=20 height=15 src='https://flagcdn.com/w40/{c.lower()}.png' srcset='https://flagcdn.com/w80/{c.lower()}.png 2x'>"
                   if len(c) == 2 else f"<img class=f loading=lazy alt='' width=20 height=15 style='object-fit:cover' src='{LOCAL_FLAG[c]}_40.png' srcset='{LOCAL_FLAG[c]}_80.png 2x'>")
 nth = lambda v: '' if v == '' else v + ('th' if v[-2:] in ('11', '12', '13') else {'1': 'st', '2': 'nd', '3': 'rd'}.get(v[-1], 'th'))
 import re, unicodedata
 def norm(t):
-    """Lower case, accents dropped, punctuation as spaces: the form the filter compares in."""
     t = ''.join(c for c in unicodedata.normalize('NFD', t) if not unicodedata.category(c).startswith('M')).lower()
     return re.sub(r'[\W_]+', ' ', t).strip()
 def keys(r):
-    """Every spelling of a row for the filter: each as typed with spaces and run together ("u s a" and "usa"), joined by bars."""
     names = [r['country'], r['iso2'] if len(r['iso2']) == 2 else ''] + r['aliases'].split('; ') + r['includes'].split('; ')
     spell = set()
     for x in names:
         v = norm(x)
         if not v: continue
-        # Saint and St, with and without "and" and "the": every such form of a name is accepted
         vs = {v, re.sub(r'\bsaint\b', 'st', v), re.sub(r'\bst\b', 'saint', v)}
         vs |= {re.sub(r'\band\b', ' ', w) for w in vs}
         vs |= {re.sub(r'\bthe\b', ' ', w) for w in vs}
@@ -44,7 +34,6 @@ def why(b):
     k = next((v for t, v in TIER.items() if b.startswith(t)), 'z')
     return f"<span class='tag t{k}'>{html.escape(b)}</span>"
 def places(r):
-    """The territories counted in the country and its regional choices as chips, and any other note as one short line."""
     chips = [x for x in r['includes'].split('; ') if x]
     rest = []
     for part in r['note'].split('; '):

@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""Opens ProjectionLab in headless Chromium as a guest (Bryce, 2026-11-23: check its features in the app itself, since
-not all are documented) and records each screen's visible text, buttons, and a screenshot in output/pl_explore/. With no
-argument it records the first screen and any guest or demo entry; with page paths (e.g. /plan /chance) it visits them.
-
-  python3 99_overall/code/88_pl_explore.py [path ...]
-"""
 import json
 import os
 import sys
@@ -41,7 +35,7 @@ def main():
                     pg.wait_for_timeout(6000)
                     record(pg, '01_after_' + word.replace(' ', '_'))
                     break
-                except Exception as e:  # a match which is not clickable
+                except Exception as e:
                     print('no click on', word, str(e)[:80])
         for k, path in enumerate(sys.argv[1:]):
             pg.goto(START.rstrip('/') + path, wait_until='networkidle', timeout=60000)

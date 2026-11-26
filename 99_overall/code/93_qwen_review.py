@@ -1,15 +1,4 @@
 #!/usr/bin/env python3
-"""Asks Qwen (the farm's qwen3.8-27b, 131,072-token context) at the highest reasoning effort (xhigh), six streamed
-requests at once (a finished task's file is kept and skipped), for:
-  1. errors in each engine file of the app (tax law, finance, and code), each with the exact lines and a fix;
-  2. errors in each page file (wrong numbers, broken inputs, misleading labels);
-  3. ProjectionLab features Horizon still lacks, from ProjectionLab's changelog (99_overall/input/projectionlab/);
-  4. features ProjectionLab's users asked for (its archived request board, 637 suggestions and 37 planned items, with
-     votes) which Horizon could build.
-Writes 99_overall/output/qwen_review/<task>.md, one file a request, and requests.tsv (the parsed request board).
-
-  python3 99_overall/code/93_qwen_review.py [TASK ...]
-"""
 import concurrent.futures as cf
 import html
 import os
@@ -23,7 +12,7 @@ H = '/home/baspring/projects/independent/horizon'
 SRC = H + '/10_app/code/src'
 PL = H + '/99_overall/input/projectionlab'
 OUT = H + '/99_overall/output/qwen_review'
-EFFORT = 'xhigh'   # the server's efforts: xhigh, medium, low (qwen_farm.effort_name maps 'high' to xhigh)
+EFFORT = 'xhigh'
 BUDGET = 40000
 WORKERS = 6
 
@@ -40,7 +29,6 @@ def read(path):
 
 
 def board():
-    """The request board's items: (list, votes, comments, title)."""
     rows = []
     for name, label in (('changemap_1252-suggestions.html', 'suggested'), ('changemap_1253-planned.html', 'planned')):
         t = read(os.path.join(PL, name))
@@ -90,7 +78,6 @@ def tasks():
         'first. For each: the feature, the changelog version that added it, what Horizon has today, and a concrete design '
         'for Horizon (types, engine steps, and UI). Leave out account linking to banks (Horizon is local-only), mobile apps, '
         'and non-US taxes.\n\n' + readme + '\n\n' + types + '\n\n=== ProjectionLab changelog ===\n' + changelog)
-    # The same comparison as one table: the long answer above spends its budget on designs and reaches four features.
     out['missing_table'] = (
         'Below are Horizon\'s README (what it models) and its types, then ProjectionLab\'s full changelog. Go through the '
         'changelog version by version and list EVERY ProjectionLab feature, setting, chart, or option which Horizon lacks or '
@@ -107,8 +94,6 @@ def tasks():
         'value, and effort; skip bank account linking and anything needing a server, since Horizon runs in the browser '
         'only), say for each whether Horizon already has it, and give a concrete design for Horizon (types, engine '
         'steps, and UI).\n\n' + readme + '\n\n' + types + '\n\n=== Requests ===\n' + listing)
-    # ProjectionLab's help center (99_overall/input/projectionlab/layout/help_articles.txt, 179 pages, captured
-    # 2026-11-23 by a headless browser), in parts which fit the context: every feature and setting Horizon lacks.
     help_path = os.path.join(PL, 'layout', 'help_articles.txt')
     if os.path.exists(help_path):
         arts = [x for x in read(help_path).split('\n\n===== ') if '/help/' in x[:120] and '/category/' not in x[:120]]
@@ -127,7 +112,6 @@ def tasks():
                 '(missing or partial, and why you think so), and a one-line design. Skip billing, advisors, employers, '
                 'sign-in, non-US countries, and bank linking. End with the 15 most valuable gaps of this part, ranked.\n\n'
                 + readme + '\n\n' + types + '\n\n=== ProjectionLab help center, part ' + str(i + 1) + ' ===' + part)
-    # Every request with 5 or more votes (Bryce, 2026-11-23: implement all of them), sorted for the build queue, in parts of 75.
     five = [r for r in reqs if r[1] >= 5]
     for i in range(0, len(five), 75):
         part = '\n'.join(f'{i + j + 1}. [{v} votes] {t}' for j, (l, v, c, t) in enumerate(five[i:i + 75]))
@@ -139,13 +123,10 @@ def tasks():
             'brokers, ProjectionLab\'s own billing, advisor, or employer tools, native mobile apps, or tax systems outside the US. '
             'Check the types carefully before writing missing. No text outside the table.\n\n'
             + readme + '\n\n' + types + '\n\n=== Requests ===\n' + part)
-    # One ledger of every ProjectionLab feature Horizon still lacks (Bryce's goal, 2026-11-23: at least every feature ProjectionLab
-    # has): each earlier comparison is re-read with today's types, and every gap still open becomes one tab-separated row.
     built = ('Built since those comparisons (do not list): a first-run setup wizard; sign-up choice of saving on the device or the server; an '
              'installable offline app; import from ProjectionLab; plan currency, per-item currencies, and exchange rates; the foreign earned '
              'income exclusion and foreign tax credit; RSU cliff; salary bonus rate; 401(k) Roth share; inflation-linked accounts; a later '
              'withdrawal order; capital loss carryforward; undo and redo.')
-    # in chunks of about 24,000 characters at medium effort: whole files at xhigh came back empty, the budget spent on reasoning (2026-11-23)
     chunks = []
     for f in ('missing_table', 'layout_1', 'layout_2', 'layout_3'):
         path = os.path.join(OUT, f + '.md')
@@ -169,7 +150,6 @@ def tasks():
 
 
 def run(name, prompt):
-    # qwen_farm.ask_stream raises where no answer comes (no server, reasoning alone at every effort): a failed task writes no file
     try:
         reply = qwen_farm.ask_stream(prompt, SYSTEM, 'medium' if name.startswith('ledger_') else EFFORT, BUDGET)
     except Exception as e:
@@ -183,7 +163,6 @@ def main():
     todo = tasks()
     first = ['missing_projectionlab', 'user_requests']
     want = sys.argv[1:] or first + [n for n in todo if n not in first]
-    # done: a file with an answer in it (an empty or reasoning-only file from before the 2026-11-23 guard is asked again)
     done = lambda n: os.path.exists(os.path.join(OUT, n + '.md')) and os.path.getsize(os.path.join(OUT, n + '.md')) > 200 and 'Only the reasoning arrived' not in read(os.path.join(OUT, n + '.md'))[:300]
     want = [n for n in want if not done(n)]
     print(len(todo), 'tasks;', len(want), 'asked', flush=True)

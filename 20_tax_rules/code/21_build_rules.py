@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""Builds the tax rules the app reads, from this stage's input/:
-
-  output/federal.json  every federal_YYYY.json as entered by hand (brackets, deductions, limits, RMD table), keyed by year
-  output/healthcare.json  Medicare premiums and IRMAA, ACA applicable percentages and poverty lines, and the SALT cap
-  output/states.json   2026 state income tax brackets, standard deductions, and personal exemptions from the Tax
-                       Foundation's workbook (sheet "2026"), keyed by postal code, plus whether each state taxes
-                       Social Security benefits (state_social_security.json)
-
-A personal exemption the workbook states as a credit ("$29 credit") is left out; the error is at most a few hundred
-dollars a year. Local income taxes (New York City, Ohio cities) are not modeled.
-
-  python3 code/21_build_rules.py      (run from the stage folder, or by run_all.sh)
-"""
 import json
 import os
 import re
@@ -35,7 +22,6 @@ ABBR = {
 
 
 def num(v):
-    """A dollar amount or rate cell as a number, or None for 'n.a.', blanks, and credits."""
     if isinstance(v, (int, float)):
         return float(v)
     if isinstance(v, str):
@@ -72,8 +58,6 @@ def states():
                 cur['brackets'][key].append([lo, rate])
         if row[0] is None and all(v in (None, '\xa0', '') for v in row[1:8]):
             continue
-    # Washington's rates in the workbook (7%, 9% above $1 million) tax capital gains above a large exemption, not
-    # wages, which Washington does not tax; the model leaves the capital gains tax out.
     out['WA'] = {'brackets': {'single': [], 'mfj': []}, 'standardDeduction': {}, 'exemption': {}}
     ss = json.load(open(os.path.join(IN, 'state_social_security.json')))
     for code in ABBR.values():
@@ -90,15 +74,11 @@ def states():
 
 
 def credit_table():
-    """The federal state death tax credit table of 26 U.S.C. 2011(b) as [start, rate] rows, parsed from the 2012 Code
-    text (the table Massachusetts, Rhode Island, Maryland, and Illinois still use), with its published tax at each start
-    checked against the rows before it."""
     text = open(os.path.join(IN, 'usc26-2011-2012.txt'), encoding='utf-8', errors='ignore').read()
     cells = re.findall(r'<td class="left">(.*?)</td>\s*<td class="right">(.*?)</td>', text, re.S)
     rows = [[0, 0, 0.0]]
     for left, right in cells:
         if '8/10ths of 1%' in right:
-            # The first taxed row, "8/10ths of 1% of the amount by which the adjusted taxable estate exceeds $40,000".
             rows.append([40000, 0, 0.008])
             continue
         start = int(re.findall(r'\$([\d,]+)', left)[0].replace(',', ''))
@@ -111,7 +91,6 @@ def credit_table():
 
 
 def check_rows(code, rows):
-    """Each row's published tax at its start must equal the tax the rows before it give."""
     for (a, base_a, rate_a), (b, base_b, _) in zip(rows, rows[1:]):
         want = base_a + rate_a * (b - a)
         assert abs(want - base_b) < 1, (code, b, base_b, want)
@@ -119,7 +98,6 @@ def check_rows(code, rows):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    # Every federal_YYYY.json, keyed by year; the app uses the newest year at or before each plan year.
     years = {}
     for name in sorted(os.listdir(IN)):
         if name.startswith('federal_') and name.endswith('.json'):
